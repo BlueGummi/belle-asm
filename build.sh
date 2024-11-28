@@ -52,7 +52,7 @@ default_build() {
     cd ..
     cp -f bdump/bdump bin
     echo "bdump build complete"
-    printf "\nBuild complete"
+    printf "\nBuild complete\n"
     if [ $with_cleanup ]; then
         echo "Cleaning up..."
         cd basm
