@@ -60,7 +60,7 @@ void print_output(Instruction *ins) {
             bool sign = false;
             if ((ins->source >> 7) == 1) {
                 sign = true;
-                ins->source = (ins->source >> 1);
+                ins->source = ins->source & 0b01111111;
             }
             if (colors) {
                 if (!sign)

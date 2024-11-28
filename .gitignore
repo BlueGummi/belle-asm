@@ -1,0 +1,3 @@
+bdump/src/*.o
+basm/target
+bin

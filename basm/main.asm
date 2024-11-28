@@ -7,6 +7,7 @@
    st $500, %r2
    jnz $399
    int #2
+   add %r2, #-43
    mov %r4, #40
    hlt
    ret
