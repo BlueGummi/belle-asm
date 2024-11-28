@@ -56,12 +56,13 @@ else
 fi
 
 if [ "$BUILD" = true ]; then
-    read -p "Do you want to build BELLE to create the binaries?? [Y/n]: " ANSWER
+    read -p "Do you want to build BELLE to create the binaries? [Y/n]: " ANSWER
     ANSWER=${ANSWER:-Y} # default to 'Y' if no input
 
     if [[ "$ANSWER" =~ ^[Yy]$ ]]; then
-        echo "Building the project..."
+        echo "Building..."
         ./build.sh
+	./install.sh
     else
         echo "Exiting"
     fi
