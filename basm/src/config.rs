@@ -13,6 +13,7 @@ pub struct Args {
     pub output: Option<String>,
 
     /// Path to input
+    #[clap(required = true)]
     pub file: String,
 
     /// Verbose output

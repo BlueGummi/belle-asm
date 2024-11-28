@@ -12,8 +12,10 @@ void print_binary(int num, int leading) {
 
 void print_help(const char *bin) { // bin is the name of the binary
     printf("The disassembler for %sBELLE%s\n\n", ANSI_BOLD, ANSI_RESET);
-    printf("%sUsage%s: %s [OPTIONS] <FILE>\n", ANSI_UNDERLINE, ANSI_RESET, bin);
-    printf("Options:\n");
+    printf("%sUsage:%s %s [OPTIONS] <FILE>\n\n", ANSI_UNDERLINE, ANSI_RESET, bin);
+    printf("%sArguments:%s\n", ANSI_UNDERLINE, ANSI_RESET);
+    printf("  <FILE> Path to input\n\n");
+    printf("%sOptions:%s\n", ANSI_UNDERLINE, ANSI_RESET);
     printf("  -h, --help       Show this help message and exit\n");
     printf("  -l, --line-num   Enable line numbering\n");
     printf("  -b, --binary     Print binary\n");

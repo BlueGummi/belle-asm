@@ -6,9 +6,11 @@ spinner() {
     local spin='/-\|'
     local i=0
     local msg=$2
+    printf "$msg"
+    local n=${#msg}
     while ps -p $pid > /dev/null; do
         local temp=${spin:i++%${#spin}:1}
-        printf "\r$msg $temp"
+        printf "\r\t\t\t$temp"
         sleep $delay
     done
     printf "\rDone!                \n"
@@ -20,7 +22,6 @@ print_help() {
     printf "Options:\n"
     printf "  -c, --clean        Clean the build directories (doesn't build)\n"
     printf "  -w, --with-cleanup Clean directories after building\n"
-    printf "  -i, --install      Install the BELLE programs and utilities\n"
     exit 0
 }
 default_build() {
@@ -51,7 +52,7 @@ default_build() {
     cd ..
     cp -f bdump/bdump bin
     echo "bdump build complete"
-    echo "\nBuild complete"
+    printf "\nBuild complete"
     if [ $with_cleanup ]; then
         echo "Cleaning up..."
         cd basm
