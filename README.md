@@ -6,8 +6,13 @@ Cargo, RustC, GCC, and Makefile compatibility must be present on the system if t
 
 Every executable in this repository can have the --help flag passed to display helpful information.
 
-Two shell scripts come included within this repository. To build and install the BELLE-assembler and BELLE-disassembler, run
 
-```./build.sh -w && ./install.sh -c # This installs the binaries to ~/.local/bin```
+```
+./build.sh -w && ./install.sh -c # This installs the binaries to ~/.local/bin
+```
 
 The binaries can be run by calling `basm` or `bdump`.
+
+## Naming
+
+**BELLE** is the *emulator*, whilst **BELLE-ISA/ISABELLE** is the *instruction set*.
