@@ -12,22 +12,27 @@ pub struct CPU {
     pub running: bool,
     pub zflag: bool,
 }
-
+impl Default for CPU {
+    fn default() -> CPU {
+        CPU::new()
+    }
+}
 impl CPU {
     pub fn new() -> CPU {
         CPU {
             int_reg: [0; 6],
-            float_reg: [0; 2],
+            float_reg: [0.0; 2],
             memory: [0; 65536],
             pc: 0,
             ic: 0,
             sp: 0,
             bp: 0,
+            jloc: 0,
             running: false,
             zflag: false,
         }
     }
-    
+}    
     // we need a function to load instructions into RAM
     // we also need interrupts for pseudo-instructions
     //

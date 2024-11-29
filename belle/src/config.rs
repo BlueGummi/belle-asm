@@ -6,7 +6,7 @@ pub static CONFIG: Lazy<Cli> = Lazy::new(declare_config);
 #[command(name = "belle")]
 #[command(version = "0.1.0")]
 #[command(author = "gummi")]
-#[command(about = "BELLE", long_about = None)]
+#[command(about = "BELLE - The Big Endian, Low Level Emulator", long_about = None)]
 pub struct Cli {
     /// Path to input
     #[clap(required = true)]
@@ -30,8 +30,8 @@ pub struct Cli {
 }
 
 pub fn declare_config() -> Cli {
-    let cli = Args::parse();
-    Args {
+    let cli = Cli::parse();
+    Cli {
         file: cli.file,
         verbose: cli.verbose,
         debug: cli.debug,

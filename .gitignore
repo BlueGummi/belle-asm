@@ -1,3 +1,4 @@
 bdump/src/*.o
 basm/target
+belle/target
 bin
