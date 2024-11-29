@@ -1,19 +1,9 @@
-# belle-asm - the assembler for BELLE
+# basm - the assembler for BELLE
 
 ## Quickstart
 
-### Prerequisites
-`cargo`, `rustc`, and `git` must be installed on the system.
 
-
-
-To begin, first clone this repository.
-
-```git clone https://github.com/BlueGummi/belle-asm.git```
-
-Then, `cd` into the directory and build the program from source.
-
-```cd belle-asm && cargo build --release```
+```cargo build --release```
 
 To assemble source code, execute this.
 
