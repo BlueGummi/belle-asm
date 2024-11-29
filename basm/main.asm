@@ -1,4 +1,5 @@
-    set #3
+    int
+	set #3
     cl #3
     .start $500
     mul %r0, &r7

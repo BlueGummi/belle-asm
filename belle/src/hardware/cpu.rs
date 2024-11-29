@@ -38,11 +38,15 @@ impl CPU {
         let mut in_subr = false;
         let mut counter = 0;
         let mut start_found = false;
+        let mut subr_loc = 20000;
         for element in binary {
             if in_subr && (element >> 12) != RET_OP {
+                self.memory[counter + subr_loc] = Some(element);
                 continue;
             } else if (element >> 12) == RET_OP {
                 in_subr = false;
+                self.memory[counter + subr_loc] = Some(element);
+                subr_loc += 100;
             }
             if (element >> 9) == 1 {
                 if start_found {
@@ -57,7 +61,6 @@ impl CPU {
                 }
                 continue;
             }
-            println!("{:b}", (element >> 12) & 0b0000000000001111u16 as i16);
             if (element >> 12) & 0b0000000000001111u16 as i16 != 0b1111 {
                 self.memory[counter + self.starts_at as usize] = Some(element);
                 if CONFIG.verbose {
@@ -69,13 +72,6 @@ impl CPU {
             }
             counter += 1;
         }
-        let mut some_count = 0;
-        for i in 0..=65535 {
-            if self.memory[i as usize].is_some() {
-                some_count += 1;
-            }
-        }
-        println!("Some count: {some_count}");
     }
     fn shift_memory(&mut self) {
         let mut some_count = 0;
@@ -98,9 +94,21 @@ impl CPU {
                 self.memory[(i + self.starts_at) as usize] = mem_copy[i as usize];
             }
         }
+        self.ic = self.starts_at;
+        self.pc = self.ic + 1;
         if CONFIG.verbose {
             println!("Shift completed.");
             //    println!("Memory: {:?}", self.memory);
+        }
+    }
+    pub fn run(&mut self) {
+        self.running = true;
+        while self.running {
+            // fetch instructions
+            // execute instructions
+            
+
+
         }
     }
 }

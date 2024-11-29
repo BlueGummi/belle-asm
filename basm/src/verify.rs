@@ -3,7 +3,7 @@ use crate::*;
 use std::process;
 pub fn verify(ins: &Token, arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> bool {
     let instructions = [
-        "ADD", "HLT", "JGE", "CL", "DIV", "RET", "LD", "ST", "PUSH", "JNZ", "POP", "CMP", "MUL",
+        "ADD", "HLT", "JGE", "CL", "DIV", "RET", "LD", "ST", "SWP", "JNZ", "SET", "CMP", "MUL",
         "INT", "MOV",
     ];
     let raw_token = ins.get_raw().to_uppercase();
@@ -34,9 +34,9 @@ fn check_instruction(
             check_two_arguments(arg1, arg2, raw_token, line_num);
         }
         "INT" => {
-            check_one_or_two_arguments(arg1, arg2, raw_token, line_num);
+            check_one_or_no_arguments(arg1, arg2, raw_token, line_num);
         }
-        "CALL" | "PUSH" | "JNZ" | "POP" | "CL" | "JGE" => {
+        "CALL" | "SWP" | "JNZ" | "SET" | "CL" | "JGE" => {
             check_one_argument(arg1, arg2, raw_token, line_num);
         }
         _ => {
@@ -86,16 +86,16 @@ fn check_two_arguments(
     }
 }
 
-fn check_one_or_two_arguments(
+fn check_one_or_no_arguments(
     arg1: Option<&Token>,
     arg2: Option<&Token>,
     instruction: &str,
     line_num: u32,
 ) {
-    let args_satisfied = (is_arg(arg1) && is_arg(arg2)) || (is_arg(arg1) && !is_arg(arg2));
+    let args_satisfied = (is_arg(arg1) || is_arg(arg2)) || (!is_arg(arg1) && !is_arg(arg2));
     if !args_satisfied {
         ExpectedArgument(
-            format!("{} requires one or two arguments", instruction).as_str(),
+            format!("{} requires one or no arguments", instruction).as_str(),
             line_num,
             None,
         )
