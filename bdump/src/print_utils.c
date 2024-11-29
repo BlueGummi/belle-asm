@@ -147,6 +147,11 @@ void print_output(Instruction *ins) {
                        ANSI_RESET);
             else
                 printf(".start $%d\n", ins->type);
+        } else {
+            if (colors)
+                printf("%shlt%s\n", ANSI_YELLOW, ANSI_RESET);
+            else
+                printf("hlt\n");
         }
     } else if (strcmp(op, "ld") == 0) {
         if (colors)
