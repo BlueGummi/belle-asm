@@ -1,5 +1,5 @@
-use colored::*;
 use crate::*;
+use colored::*;
 pub enum UnrecoverableError {
     // segfaults, illegal instructions, divide by 0
     SegmentationFault(u16, Option<String>), // first one is the state of the PC, second is specifically
@@ -8,7 +8,7 @@ pub enum UnrecoverableError {
 }
 
 pub enum RecoverableError {
-    // I will come back to this later, CPU time! 
+    // I will come back to this later, CPU time!
     TempErr(),
 }
 impl UnrecoverableError {
@@ -38,7 +38,8 @@ impl UnrecoverableError {
             UnrecoverableError::DivideByZero(n, _) => n,
             //_ => unreachable!(),
         };
-        if !CONFIG.verbose && !CONFIG.debug && !CONFIG.dont_crash { // default error printing
+        if !CONFIG.verbose && !CONFIG.debug && !CONFIG.dont_crash {
+            // default error printing
             eprintln!("{}", err_type.yellow());
         }
         if CONFIG.verbose || CONFIG.debug {
