@@ -1,16 +1,38 @@
 #!/bin/bash
+set -e
+
 DIR="bin"
 FILE1="basm"
 FILE2="bdump"
 
+print_message() {
+    local message="$1"
+    local color="$2"
+    case "$color" in
+        green) echo -e "\e[32m$message\e[0m" ;;
+        red) echo -e "\e[31m$message\e[0m" ;;
+        yellow) echo -e "\e[33m$message\e[0m" ;;
+        blue) echo -e "\e[34m$message\e[0m" ;;
+        *) echo "$message" ;;
+    esac
+}
+
 install() {
-    echo "Installing..."
-    cp $DIR/$FILE1 ~/.local/bin
-    cp $DIR/$FILE2 ~/.local/bin
-    echo "Installation complete."
-    if [ $cleanup ]; then
-        echo "Deleting '$DIR'..."
-        rm -rf $DIR
+    print_message "Installing..." blue
+    mkdir -p ~/.local/bin
+    cp "$DIR/$FILE1" ~/.local/bin
+    cp "$DIR/$FILE2" ~/.local/bin
+    print_message "Installation complete." green
+
+    if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+        print_message "Updating PATH to include ~/.local/bin"
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+        print_message "Please run 'source ~/.bashrc' or restart your terminal to apply changes." yellow
+    fi
+
+    if [ "$cleanup" ]; then
+        print_message "Deleting '$DIR'..." yellow
+        rm -rf "$DIR"
     fi
 }
 
@@ -19,52 +41,56 @@ print_help() {
     printf "\e[4mUsage\e[0m: $1 [OPTIONS]\n"
     printf "Options:\n"
     printf "  -c, --cleanup        Clean the binary directory\n"
+    printf "  -h, --help           Display this help message\n"
     exit 0
 }
 
-if [ $# -eq 1 ]; then
-    if [ "$1" == "--cleanup" ]; then
-        cleanup=true
-    elif [ "$1" == "-c" ]; then
-        cleanup=true
-    elif [ "$1" == "--help" ]; then
-        print_help $0
-    elif [ "$1" == "-h" ]; then
-        print_help $0
-    elif [ "$1" == "help" ]; then
-        print_help $0
-    fi
-fi
+for arg in "$@"; do
+    case $arg in
+        --cleanup|-c)
+            cleanup=true
+            ;;
+        --help|-h|help)
+            print_help "$0"
+            ;;
+    esac
+done
 
 if [ ! -d "$DIR" ]; then
-    echo "Directory '$DIR' does not exist."
+    print_message "Directory '$DIR' does not exist." red
     BUILD=true
 else
     FILE1_PATH="$DIR/$FILE1"
     FILE2_PATH="$DIR/$FILE2"
 
     if [ ! -f "$FILE1_PATH" ] && [ ! -f "$FILE2_PATH" ]; then
-        echo "Both binaries '$FILE1' and '$FILE2' do not exist in '$DIR'."
+        print_message "Both binaries '$FILE1' and '$FILE2' do not exist in '$DIR'." red
         BUILD=true
     elif [ ! -f "$FILE1_PATH" ]; then
-        echo "Binary '$FILE1' does not exist in '$DIR'."
+        print_message "Binary '$FILE1' does not exist in '$DIR'." red
         BUILD=true
     elif [ ! -f "$FILE2_PATH" ]; then
-        echo "Binary '$FILE2' does not exist in '$DIR'."
+        print_message "Binary '$FILE2' does not exist in '$DIR'." red
         BUILD=true
     fi
 fi
 
 if [ "$BUILD" = true ]; then
     read -p "Do you want to build BELLE to create the binaries? [Y/n]: " ANSWER
-    ANSWER=${ANSWER:-Y} # default to 'Y' if no input
+    ANSWER=${ANSWER:-Y}
 
     if [[ "$ANSWER" =~ ^[Yy]$ ]]; then
-        echo "Building..."
+        if [ ! -f "./build.sh" ]; then
+            print_message "Build script 'build.sh' not found." red
+            exit 1
+        fi
+
+        print_message "Building..." blue
         ./build.sh
-	    ./install.sh
+        print_message "Build successful. Proceeding to installation..." green
+        install
     else
-        echo "Exiting"
+        print_message "Exiting without installing." yellow
     fi
 else
     install

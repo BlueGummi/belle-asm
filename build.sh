@@ -1,19 +1,91 @@
 #!/bin/bash
 
+print_message() {
+    local message="$1"
+    local color="$2"
+    case "$color" in
+        green) echo -e "\e[32m$message\e[0m" ;;
+        red) echo -e "\e[31m$message\e[0m" ;;
+        yellow) echo -e "\e[33m$message\e[0m" ;;
+        blue) echo -e "\e[34m$message\e[0m" ;;
+        *) echo "$message" ;;
+    esac
+}
+
+clear_line() {
+    printf "\r\033[K"
+}
+
 spinner() {
     local pid=$1
     local delay=0.1
     local spin='/-\|'
-    local i=0
     local msg=$2
-    printf "$msg"
-    local n=${#msg}
+    if [ "$quiet" != true ]; then
+        print_message "$msg" blue
+    fi
+    local i=0
     while ps -p $pid > /dev/null; do
         local temp=${spin:i++%${#spin}:1}
-        printf "\r\t\t\t$temp"
+        if [ "$quiet" != true ]; then
+            printf "\r$temp"
+        fi
         sleep $delay
     done
-    printf "\rDone!                \n"
+    clear_line
+    if [ "$quiet" != true ]; then
+        print_message "Done!" green
+    fi
+}
+
+bouncing_text() {
+    local pid=$1
+    local msg=$2
+    if [ "$quiet" != true ]; then
+        print_message "$msg" blue
+    fi
+    local delay=0.1
+    local spaces=0
+    local direction=1
+    local max_spaces=10
+
+    while ps -p $pid > /dev/null; do
+        if [ "$quiet" != true ]; then
+            printf "\r%${spaces}sLoading" ""
+        fi
+        sleep $delay
+        spaces=$((spaces + direction))
+        if [ $spaces -eq $max_spaces ] || [ $spaces -eq 0 ]; then
+            direction=$((direction * -1))
+        fi
+    done
+    clear_line
+    if [ "$quiet" != true ]; then
+        print_message "Done!" green
+    fi
+}
+
+moving_text() {
+    local pid=$1
+    local msg=$2
+    if [ "$quiet" != true ]; then
+        print_message "$msg" blue
+    fi
+    local delay=0.1
+    local position=0
+    local width=$(tput cols)
+
+    while ps -p $pid > /dev/null; do
+        if [ "$quiet" != true ]; then
+            printf "\r%${position}s%s" "" "$msg"
+        fi
+        sleep $delay
+        position=$(( (position + 1) % (width + ${#msg}) ))
+    done
+    clear_line
+    if [ "$quiet" != true ]; then
+        print_message "Done!" green
+    fi
 }
 
 print_help() {
@@ -22,66 +94,100 @@ print_help() {
     printf "Options:\n"
     printf "  -c, --clean        Clean the build directories (doesn't build)\n"
     printf "  -w, --with-cleanup Clean directories after building\n"
+    printf "  -q, --quiet        Suppress output\n"
+    printf "  -h, --help         Display this help message\n"
     exit 0
 }
+
 default_build() {
-    if [ -d "bin" ]; then
-        true
-    else
+    if [ ! -d "bin" ]; then
         mkdir bin
     fi
+
     cd basm
-    if [ $clean ]; then
+    if [ "$clean" ]; then
         cargo clean --quiet
         cd ..
         cd bdump
         make clean --quiet
-        echo "Cleaned up!"
+        if [ "$quiet" != true ]; then
+            print_message "Cleaned up!" green
+        fi
         exit 0
     fi
-    cargo build --release --quiet & # spin spin spin
+
+    cargo build --release --quiet & 
     pid=$!
-    spinner $pid "\nBuilding BELLE-asm..."
+
+    local animations=(spinner bouncing_text moving_text)
+    local selected_animation=${animations[RANDOM % ${#animations[@]}]}
+    if [ "$quiet" != true ]; then
+        echo ""
+    fi
+    $selected_animation $pid "Building BELLE-asm..."
+    
+    clear_line
     cd ..
     cp -f basm/target/release/basm bin
-    echo "basm build complete"
+    if [ "$quiet" != true ]; then
+        print_message "basm build complete" green
+    fi
+
     cd bdump
     make --quiet &
     pid=$!
-    spinner $pid "\nBuilding BELLE-dump..."
+
+    selected_animation=${animations[RANDOM % ${#animations[@]}]}
+    if [ "$quiet" != true ]; then
+        echo ""
+    fi
+    $selected_animation $pid "Building BELLE-dump..."
+    
+    clear_line
     cd ..
     cp -f bdump/bdump bin
-    echo "bdump build complete"
-    printf "\nBuild complete\n"
-    if [ $with_cleanup ]; then
-        echo "Cleaning up..."
+    if [ "$quiet" != true ]; then
+        print_message "bdump build complete" green
+    fi
+    
+    if [ "$quiet" != true ]; then
+        printf "\n"
+        print_message "Build complete" green
+    fi
+    
+    if [ "$with_cleanup" ]; then
+        if [ "$quiet" != true ]; then
+            print_message "Cleaning up..." blue
+        fi
         cd basm
         cargo clean --quiet
         cd ..
         cd bdump
         make clean --quiet
         cd ..
-        echo "Cleaned up!"
+        if [ "$quiet" != true ]; then
+            print_message "Cleaned up!" green
+        fi
         exit 0
     fi
     exit 0
 }
 
-if [ $# -eq 1 ]; then
-    if [ "$1" == "--clean" ]; then
-        clean=true
-    elif [ "$1" == "-c" ]; then
-        clean=true
-    elif [ "$1" == "--with-cleanup" ]; then
-        with_cleanup=true
-    elif [ "$1" == "-w" ]; then
-        with_cleanup=true
-    elif [ "$1" == "--help" ]; then
-        print_help $0
-    elif [ "$1" == "-h" ]; then
-        print_help $0
-    elif [ "$1" == "help" ]; then
-        print_help $0
-    fi
-fi
+for arg in "$@"; do
+    case $arg in
+        --clean|-c)
+            clean=true
+            ;;
+        --with-cleanup|-w)
+            with_cleanup=true
+            ;;
+        --quiet|-q)
+            quiet=true
+            ;;
+        --help|-h|help)
+            print_help "$0"
+            ;;
+    esac
+done
+
 default_build

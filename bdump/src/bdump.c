@@ -1,7 +1,4 @@
 #include "print_utils.c"
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 int main(int argc, char *argv[]) {
     args = parse_arguments(argc, argv);
@@ -12,8 +9,9 @@ int main(int argc, char *argv[]) {
 
     FILE *input = fopen(args.input_file, "rb");
     if (!input) {
-        fprintf(stderr, "%s%sFailed to open file: %s%s\n", ANSI_RED, ANSI_BOLD, ANSI_RESET,
-                args.input_file);
+        fputs(ANSI_RED ANSI_BOLD "Failed to open file: " ANSI_RESET, stderr);
+        fputs(args.input_file, stderr);
+        fputc('\n', stderr);
         return EXIT_FAILURE;
     }
 
@@ -47,7 +45,7 @@ char *match_opcode(Instruction *s) {
     case INT_OP: opcode = "int"; break;
     case MOV_OP: opcode = "mov"; break;
     case SR_OP: opcode = "sr"; break;
-    default: printf("OPCODE not recognized.\n"); exit(1);
+    default: puts("OPCODE not recognized."); exit(1);
     }
     return opcode;
 }
@@ -57,14 +55,12 @@ void print_instruction(Instruction *s) {
     print_output(s);
     if (args.debug == 1) {
         print("opcode: %s\n", opcode);
-        print("destination: ");
         print_binary(s->destination, 3);
-        print("source: ");
         print_binary(s->source, 8);
         print("type %d\n", s->type);
     }
     if (args.debug == 1)
-        printf("\n");
+        putchar('\n');
 }
 
 Instruction parse_instruction(int instruction) {
@@ -88,13 +84,13 @@ Instruction parse_instruction(int instruction) {
 }
 
 CLI parse_arguments(int argc, char *argv[]) {
-    CLI opts = {0};         // Initialize all fields to zero
-    opts.input_file = NULL; // Ensure this is explicitly set to NULL
+    CLI opts = {0};
+    opts.input_file = NULL;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             print_help(argv[0]);
-            exit(EXIT_SUCCESS); // Exit after printing help
+            exit(EXIT_SUCCESS);
         } else if (argv[i][0] == '-') {
             if (argv[i][1] == '-') { // Handle long options
                 if (strcmp(argv[i], "--line-num") == 0) {
@@ -108,9 +104,11 @@ CLI parse_arguments(int argc, char *argv[]) {
                 } else if (strcmp(argv[i], "--binary") == 0) {
                     opts.binary = 1;
                 } else {
-                    fprintf(stderr, "Error: Unknown option %s\n", argv[i]);
+                    fputs("Error: Unknown option ", stderr);
+                    fputs(argv[i], stderr);
+                    fputc('\n', stderr);
                     print_help(argv[0]);
-                    exit(EXIT_FAILURE); // Exit on error
+                    exit(EXIT_FAILURE);
                 }
             } else { // Handle short options
                 for (int j = 1; argv[i][j] != '\0'; j++) {
@@ -121,20 +119,23 @@ CLI parse_arguments(int argc, char *argv[]) {
                     case 'd': opts.debug = 1; break;
                     case 'b': opts.binary = 1; break;
                     default:
-                        fprintf(stderr, "Error: Unknown option -%c\n", argv[i][j]);
+                        fputs("Error: Unknown option -", stderr);
+                        fputc(argv[i][j], stderr);
+                        fputc('\n', stderr);
                         print_help(argv[0]);
-                        exit(EXIT_FAILURE); // Exit on error
+                        exit(EXIT_FAILURE);
                     }
                 }
             }
         } else {
-            // Assume the first non-option argument is the input file
             if (opts.input_file == NULL) {
                 opts.input_file = argv[i];
             } else {
-                fprintf(stderr, "Error: Unexpected argument: %s\n", argv[i]);
+                fputs("Error: Unexpected argument: ", stderr);
+                fputs(argv[i], stderr);
+                fputc('\n', stderr);
                 print_help(argv[0]);
-                exit(EXIT_FAILURE); // Exit on error
+                exit(EXIT_FAILURE);
             }
         }
     }

@@ -2,7 +2,7 @@
 
 bool in_sr = false;
 void print_binary(int num, int leading) {
-    if (args.binary == 1 || args.debug == 1) {
+    if (args.binary == 1) {
         printf("\n");
         if (in_sr)
             printf("   ");
@@ -28,13 +28,14 @@ void print_help(const char *bin) { // bin is the name of the binary
     printf("  -v, --verbose    Increase verbosity level (use multiple for more)\n");
     exit(0);
 }
+
 void print(const char *format, ...) {
     if (args.debug == 1) {
         printf(ANSI_GREEN "DEBUG: " ANSI_RESET);
-        va_list args;
-        va_start(args, format);
-        vprintf(format, args);
-        va_end(args);
+        va_list arguments;
+        va_start(arguments, format);
+        vprintf(format, arguments);
+        va_end(arguments);
     }
 }
 
@@ -49,6 +50,7 @@ void print_output(Instruction *ins) {
         else
             printf("%s ", op);
     }
+    int memaddr, reg;
     if (strcmp(op, "ret") == 0)
         in_sr = false;
     bool two_reg_args =
@@ -85,14 +87,14 @@ void print_output(Instruction *ins) {
             }
             break;
         case 2:
-            int memaddr = ((ins->source << 1) & 0b1111111) >> 1;
+            memaddr = ((ins->source << 1) & 0b1111111) >> 1;
             if (colors)
                 printf("%s&$%d%s\n", ANSI_YELLOW, memaddr, ANSI_RESET);
             else
                 printf("&$%d\n", memaddr);
             break;
         case 3:
-            int reg = ((ins->source << 3) & 0b1111111) >> 3;
+            reg = ((ins->source << 3) & 0b1111111) >> 3;
             if (colors)
                 printf("%s&r%d%s\n", ANSI_YELLOW, reg, ANSI_RESET);
             else
