@@ -170,6 +170,11 @@ void print_output(Instruction *ins) {
                    ins->source, ANSI_RESET);
         else
             printf("$%d, %%r%d\n", ins->destination, ins->source);
+    } else if (strcmp(op, "set") == 0 || strcmp(op, "cl") == 0) {
+        if (colors)
+            printf("%s#%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+        else
+            printf("#%d\n", ins->source);
     }
     line++;
 }

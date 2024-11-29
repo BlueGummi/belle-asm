@@ -1,4 +1,5 @@
 bdump/src/*.o
+bdump/bdump
 basm/target
 belle/target
 bin
