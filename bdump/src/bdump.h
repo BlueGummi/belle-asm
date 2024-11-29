@@ -1,7 +1,6 @@
 #ifndef BDUMP_H
 #define BDUMP_H
 
-#include "consts.h"
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -42,3 +41,6 @@ char *match_opcode(Instruction *s);
 int main(int argc, char *argv[]);
 
 #endif
+#include "consts.h"
+#include "print_helpers.c"
+#include "print_utils.c"

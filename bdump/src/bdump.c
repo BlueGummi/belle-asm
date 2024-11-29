@@ -1,4 +1,4 @@
-#include "print_utils.c"
+#include "bdump.h"
 
 int main(int argc, char *argv[]) {
     args = parse_arguments(argc, argv);
