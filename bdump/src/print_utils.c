@@ -37,149 +37,182 @@ void print(const char *format, ...) {
         va_end(arguments);
     }
 }
+void print_instruction_header(int line, bool colors) {
+    if (colors) {
+        printf("%sline %*d:%s ", ANSI_RED, 3, line, ANSI_RESET);
+    } else {
+        printf("line %*d: ", 3, line);
+    }
+}
+
+void print_operation(const char *op, int destination, bool colors) {
+    if (colors) {
+        printf("%s%s%s ", ANSI_BLUE, op, ANSI_RESET);
+    } else {
+        printf("%s ", op);
+    }
+}
+
+void print_two_reg_args(Instruction *ins, bool colors) {
+    if (colors) {
+        printf("%s%%r%d%s, ", ANSI_GREEN, ins->destination, ANSI_RESET);
+    } else {
+        printf("%%r%d, ", ins->destination);
+    }
+
+    switch (ins->type) {
+        case 0: // register
+            if (colors) {
+                printf("%s%%r%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+            } else {
+                printf("%%r%d\n", ins->source);
+            }
+            break;
+        case 1: // literal
+            {
+                bool sign = (ins->source >> 7) == 1;
+                ins->source &= 0b01111111; // Clear the sign bit
+                if (colors) {
+                    printf("%s#%d%s\n", ANSI_YELLOW, sign ? -ins->source : ins->source, ANSI_RESET);
+                } else {
+                    printf("#%d\n", sign ? -ins->source : ins->source);
+                }
+            }
+            break;
+        case 2: // memory address
+            {
+                int memaddr = ((ins->source << 1) & 0b1111111) >> 1;
+                if (colors) {
+                    printf("%s&$%d%s\n", ANSI_YELLOW, memaddr, ANSI_RESET);
+                } else {
+                    printf("&$%d\n", memaddr);
+                }
+            }
+            break;
+        case 3: // register indirect
+            {
+                int reg = ((ins->source << 3) & 0b1111111) >> 3;
+                if (colors) {
+                    printf("%s&r%d%s\n", ANSI_YELLOW, reg, ANSI_RESET);
+                } else {
+                    printf("&r%d\n", reg);
+                }
+            }
+            break;
+        default:
+            fprintf(stderr, "Unknown instruction type\n");
+            exit(1);
+    }
+}
+
+void print_jump_instruction(Instruction *ins, bool colors) {
+    if (ins->destination == 4) {
+        if (colors) {
+            printf("%s@%d%s\n", ANSI_GREEN, ins->source, ANSI_RESET);
+        } else {
+            printf("@%d\n", ins->source);
+        }
+    } else {
+        ins->destination = (ins->destination << 1) | ins->type;
+        ins->destination = (ins->destination << 8) | ins->source;
+        ins->source = ins->destination;
+        if (colors) {
+            printf("%s$%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+        } else {
+            printf("$%d\n", ins->source);
+        }
+    }
+}
+
+void print_hlt_instruction(Instruction *ins, bool colors) {
+    if (ins->destination == 1) {
+        ins->type = (ins->type << 8) | ins->source;
+        if (colors) {
+            printf("%s.start%s%s $%d%s\n", ANSI_GREEN, ANSI_RESET, ANSI_YELLOW, ins->type, ANSI_RESET);
+        } else {
+            printf(".start $%d\n", ins->type);
+        }
+    } else {
+        if (colors) {
+            printf("%shlt%s\n", ANSI_YELLOW, ANSI_RESET);
+        } else {
+            printf("hlt\n");
+        }
+    }
+}
 
 void print_output(Instruction *ins) {
     bool colors = args.colors == 1;
     char *op = match_opcode(ins);
+
     if (args.line_num == 1) {
-        if (colors)
-            printf("%sline %*d:%s ", ANSI_RED, 3, line, ANSI_RESET);
-        else
-            printf("line %*d: ", 3, line);
+        print_instruction_header(line, colors);
     }
+
     if (strcmp(op, "sr") != 0 && strcmp(op, "hlt") != 0) {
-        if (in_sr && args.debug == 0 && args.binary == 0)
+        if (in_sr && args.debug == 0 && args.binary == 0) {
             printf("   ");
-        if (colors)
-            printf("%s%s%s ", ANSI_BLUE, op, ANSI_RESET);
-        else
-            printf("%s ", op);
-    }
-    int memaddr, reg;
-    if (strcmp(op, "ret") == 0)
-        in_sr = false;
-    bool two_reg_args =
-        (strcmp(op, "add") == 0 || strcmp(op, "div") == 0 || strcmp(op, "swp") == 0 ||
-         strcmp(op, "cmp") == 0 || strcmp(op, "mul") == 0 || strcmp(op, "mov") == 0);
-    if (two_reg_args) {
-        if (colors)
-            printf("%s%%r%d%s, ", ANSI_GREEN, ins->destination, ANSI_RESET);
-        else
-            printf("%%r%d, ", ins->destination);
-        switch (ins->type) { // instruction type
-        case 0:
-            if (colors)
-                printf("%s%%r%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
-            else
-                printf("%%r%d\n", ins->source);
-            break;
-        case 1: // literal
-            bool sign = false;
-            if ((ins->source >> 7) == 1) {
-                sign = true;
-                ins->source = ins->source & 0b01111111;
-            }
-            if (colors) {
-                if (!sign)
-                    printf("%s#%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
-                else
-                    printf("%s#-%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET); // negative
-            } else {
-                if (!sign)
-                    printf("#%d\n", ins->source);
-                else
-                    printf("#-%d\n", ins->source);
-            }
-            break;
-        case 2:
-            memaddr = ((ins->source << 1) & 0b1111111) >> 1;
-            if (colors)
-                printf("%s&$%d%s\n", ANSI_YELLOW, memaddr, ANSI_RESET);
-            else
-                printf("&$%d\n", memaddr);
-            break;
-        case 3:
-            reg = ((ins->source << 3) & 0b1111111) >> 3;
-            if (colors)
-                printf("%s&r%d%s\n", ANSI_YELLOW, reg, ANSI_RESET);
-            else
-                printf("&r%d\n", reg);
-            break;
-        default:
-            printf("Unknown instruction type\n");
-            exit(1);
-            break;
         }
+        print_operation(op, ins->destination, colors);
+    }
+
+    if (strcmp(op, "ret") == 0) {
+        in_sr = false;
+    }
+
+    bool two_reg_args = (
+        strcmp(op, "add") == 0 || strcmp(op, "div") == 0 || strcmp(op, "swp") == 0 ||
+        strcmp(op, "cmp") == 0 || strcmp(op, "mul") == 0 || strcmp(op, "mov") == 0
+    );
+
+    if (two_reg_args) {
+        print_two_reg_args(ins, colors);
     } else if (strcmp(op, "sr") == 0) {
         in_sr = true;
-        if (colors)
+        if (colors) {
             printf("%s%d:%s\n", ANSI_GREEN, ins->source, ANSI_RESET);
-        else
-            printf("%d:\n", ins->source);
-    } else if (strcmp(op, "jnz") == 0 || strcmp(op, "jge") == 0) { // jump expressions
-        if (ins->destination == 4) {
-            if (colors)
-                printf("%s@%d%s\n", ANSI_GREEN, ins->source, ANSI_RESET);
-            else
-                printf("@%d\n", ins->source);
         } else {
-            ins->destination = (ins->destination << 1) | ins->type;
-            ins->destination = (ins->destination << 8) | ins->source;
-            ins->source = ins->destination;
-            if (colors)
-                printf("%s$%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
-            else
-                printf("$%d\n", ins->source);
+            printf("%d:\n", ins->source);
         }
+    } else if (strcmp(op, "jnz") == 0 || strcmp(op, "jge") == 0) {
+        print_jump_instruction(ins, colors);
     } else if (strcmp(op, "ret") == 0) {
         printf("\n");
     } else if (strcmp(op, "int") == 0) {
-        if (colors)
+        if (colors) {
             printf("%s#%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
-        else
-            printf("#%d\n", ins->source);
-    } else if (strcmp(op, "hlt") == 0) { // account for labels
-        if (ins->destination == 1) {
-            ins->type = ins->type << 8;
-            ins->type = ins->type | ins->source;
-            if (colors)
-                printf("%s.start%s%s $%d%s\n", ANSI_GREEN, ANSI_RESET, ANSI_YELLOW, ins->type,
-                       ANSI_RESET);
-            else
-                printf(".start $%d\n", ins->type);
         } else {
-            if (colors)
-                printf("%shlt%s\n", ANSI_YELLOW, ANSI_RESET);
-            else
-                printf("hlt\n");
+            printf("#%d\n", ins->source);
         }
+    } else if (strcmp(op, "hlt") == 0) {
+        print_hlt_instruction(ins, colors);
     } else if (strcmp(op, "ld") == 0) {
-        if (colors)
+        if (colors) {
             printf("%s%%r%d%s, ", ANSI_YELLOW, ins->destination, ANSI_RESET);
-        else
+        } else {
             printf("%%r%d, ", ins->destination);
-        ins->type = ins->type << 8;
-        ins->type = ins->type | ins->source;
-        ins->source = ins->type;
-        if (colors)
+        }
+        ins->type = (ins->type << 8) | ins->source;
+        if (colors) {
             printf("%s$%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
-        else
+        } else {
             printf("$%d\n", ins->source);
+        }
     } else if (strcmp(op, "st") == 0) {
         int reconstructed = (ins->destination << 9) | (ins->type << 8) | ins->source;
-        ins->source = ins->source & 0x07;
-        ins->destination = reconstructed & 0xFFF8;
-        ins->destination = ins->destination >> 3;
-        if (colors)
-            printf("%s$%d%s, %s%%r%d%s\n", ANSI_YELLOW, ins->destination, ANSI_RESET, ANSI_YELLOW,
-                   ins->source, ANSI_RESET);
-        else
+        ins->source &= 0x07;
+        ins->destination = (reconstructed & 0xFFF8) >> 3;
+        if (colors) {
+            printf("%s$%d%s, %s%%r%d%s\n", ANSI_YELLOW, ins->destination, ANSI_RESET, ANSI_YELLOW, ins->source, ANSI_RESET);
+        } else {
             printf("$%d, %%r%d\n", ins->destination, ins->source);
+        }
     } else if (strcmp(op, "set") == 0 || strcmp(op, "cl") == 0) {
-        if (colors)
+        if (colors) {
             printf("%s#%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
-        else
+        } else {
             printf("#%d\n", ins->source);
+        }
     }
     line++;
 }

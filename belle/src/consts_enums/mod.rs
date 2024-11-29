@@ -1,4 +1,6 @@
 pub mod instruction_consts;
 pub use instruction_consts::*;
-pub mod errors_warns;
-pub use errors_warns::*;
+pub mod cpu_errors;
+pub use cpu_errors::*;
+pub mod emu_errors;
+pub use emu_errors::*;
