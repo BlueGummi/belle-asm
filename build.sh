@@ -21,81 +21,27 @@ spinner() {
     local delay=0.1
     local spin='/-\|'
     local msg=$2
-    if [ "$quiet" != true ]; then
-        print_message "$msg" blue
-    fi
+    print_message "$msg" blue
     local i=0
     while ps -p $pid > /dev/null; do
         local temp=${spin:i++%${#spin}:1}
-        if [ "$quiet" != true ]; then
-            printf "\r$temp"
-        fi
+        printf "\r$temp"
         sleep $delay
     done
     clear_line
-    if [ "$quiet" != true ]; then
-        print_message "Done!" green
-    fi
-}
-
-bouncing_text() {
-    local pid=$1
-    local msg=$2
-    if [ "$quiet" != true ]; then
-        print_message "$msg" blue
-    fi
-    local delay=0.1
-    local spaces=0
-    local direction=1
-    local max_spaces=10
-
-    while ps -p $pid > /dev/null; do
-        if [ "$quiet" != true ]; then
-            printf "\r%${spaces}sLoading" ""
-        fi
-        sleep $delay
-        spaces=$((spaces + direction))
-        if [ $spaces -eq $max_spaces ] || [ $spaces -eq 0 ]; then
-            direction=$((direction * -1))
-        fi
-    done
-    clear_line
-    if [ "$quiet" != true ]; then
-        print_message "Done!" green
-    fi
-}
-
-moving_text() {
-    local pid=$1
-    local msg=$2
-    if [ "$quiet" != true ]; then
-        print_message "$msg" blue
-    fi
-    local delay=0.1
-    local position=0
-    local width=$(tput cols)
-
-    while ps -p $pid > /dev/null; do
-        if [ "$quiet" != true ]; then
-            printf "\r%${position}s%s" "" "$msg"
-        fi
-        sleep $delay
-        position=$(( (position + 1) % (width + ${#msg}) ))
-    done
-    clear_line
-    if [ "$quiet" != true ]; then
-        print_message "Done!" green
-    fi
+    print_message "Done!" green
 }
 
 print_help() {
     printf "The build script for the BELLE programs and utilities\n\n"
-    printf "\e[4mUsage\e[0m: $1 [OPTIONS]\n"
+    printf "\e[4mUsage\e[0m: $1 [OPTIONS] [TARGETS]\n"
     printf "Options:\n"
     printf "  -c, --clean        Clean the build directories (doesn't build)\n"
     printf "  -w, --with-cleanup Clean directories after building\n"
     printf "  -q, --quiet        Suppress output\n"
     printf "  -h, --help         Display this help message\n"
+    printf "\nTargets:\n"
+    printf "  bdump, basm, belle (default: all)\n"
     exit 0
 }
 
@@ -104,74 +50,57 @@ default_build() {
         mkdir bin
     fi
 
-    cd basm
-    if [ "$clean" ]; then
-        cargo clean --quiet
-        cd ..
-        cd bdump
-        make clean --quiet
-        if [ "$quiet" != true ]; then
-            print_message "Cleaned up!" green
-        fi
-        exit 0
-    fi
+    for target in "${targets[@]}"; do
+        case "$target" in
+            basm)
+                cd basm
+                cargo build --release --quiet &
+                pid=$!
+                spinner $pid "Building BELLE-asm..."
+                cp -f target/release/basm ../bin
+                cd ..
+                print_message "basm build complete" green
+                ;;
+            bdump)
+                cd bdump
+                make --quiet &
+                pid=$!
+                spinner $pid "Building BELLE-dump..."
+                cp -f bdump ../bin
+                cd ..
+                print_message "bdump build complete" green
+                ;;
+            belle)
+                cd belle
+                cargo build --release --quiet &
+                pid=$!
+                spinner $pid "Building BELLE..."
+                cp -f target/release/belle ../bin
+                cd ..
+                print_message "belle build complete" green
+                ;;
+        esac
+    done
 
-    cargo build --release --quiet & 
-    pid=$!
-
-    local animations=(spinner bouncing_text moving_text)
-    local selected_animation=${animations[RANDOM % ${#animations[@]}]}
-    if [ "$quiet" != true ]; then
-        echo ""
-    fi
-    $selected_animation $pid "Building BELLE-asm..."
-    
-    clear_line
-    cd ..
-    cp -f basm/target/release/basm bin
-    if [ "$quiet" != true ]; then
-        print_message "basm build complete" green
-    fi
-
-    cd bdump
-    make --quiet &
-    pid=$!
-
-    selected_animation=${animations[RANDOM % ${#animations[@]}]}
-    if [ "$quiet" != true ]; then
-        echo ""
-    fi
-    $selected_animation $pid "Building BELLE-dump..."
-    
-    clear_line
-    cd ..
-    cp -f bdump/bdump bin
-    if [ "$quiet" != true ]; then
-        print_message "bdump build complete" green
-    fi
-    
-    if [ "$quiet" != true ]; then
-        printf "\n"
-        print_message "Build complete" green
-    fi
-    
     if [ "$with_cleanup" ]; then
-        if [ "$quiet" != true ]; then
-            print_message "Cleaning up..." blue
-        fi
+        print_message "Cleaning up..." blue
         cd basm
         cargo clean --quiet
         cd ..
         cd bdump
         make clean --quiet
         cd ..
-        if [ "$quiet" != true ]; then
-            print_message "Cleaned up!" green
-        fi
-        exit 0
+        cd belle
+        cargo clean --quiet
+        cd ..
+        print_message "Cleaned up!" green
     fi
+
+    print_message "Build complete" green
     exit 0
 }
+
+targets=()
 
 for arg in "$@"; do
     case $arg in
@@ -187,7 +116,14 @@ for arg in "$@"; do
         --help|-h|help)
             print_help "$0"
             ;;
+        bdump|basm|belle)
+            targets+=("$arg")
+            ;;
     esac
 done
+
+if [ ${#targets[@]} -eq 0 ]; then
+    targets=(bdump basm belle)
+fi
 
 default_build
