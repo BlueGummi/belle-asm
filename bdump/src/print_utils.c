@@ -1,11 +1,10 @@
 #include "bdump.h"
 
 bool in_sr = false;
+int line = 1;
 void print_binary(int num, int leading) {
     if (args.binary == 1) {
         printf("\n");
-        if (in_sr)
-            printf("   ");
         for (int i = leading - 1; i >= 0; i--) {
             printf("%d", (num >> i) & 1);
         }
@@ -40,10 +39,16 @@ void print(const char *format, ...) {
 }
 
 void print_output(Instruction *ins) {
-    char *op = match_opcode(ins);
     bool colors = args.colors == 1;
+    char *op = match_opcode(ins);
+    if (args.line_num == 1) {
+        if (colors)
+            printf("%sline %*d:%s ", ANSI_RED, 3, line, ANSI_RESET);
+        else
+            printf("line %*d: ", 3, line);
+    }
     if (strcmp(op, "sr") != 0 && strcmp(op, "hlt") != 0) {
-        if (in_sr)
+        if (in_sr && args.debug == 0 && args.binary == 0)
             printf("   ");
         if (colors)
             printf("%s%s%s ", ANSI_BLUE, op, ANSI_RESET);
@@ -166,4 +171,5 @@ void print_output(Instruction *ins) {
         else
             printf("$%d, %%r%d\n", ins->destination, ins->source);
     }
+    line++;
 }

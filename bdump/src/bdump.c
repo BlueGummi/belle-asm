@@ -54,9 +54,6 @@ void print_instruction(Instruction *s) {
     char *opcode = match_opcode(s);
     print_output(s);
     if (args.debug == 1) {
-        print("opcode: %s\n", opcode);
-        print_binary(s->destination, 3);
-        print_binary(s->source, 8);
         print("type %d\n", s->type);
     }
     if (args.debug == 1)
@@ -78,7 +75,6 @@ Instruction parse_instruction(int instruction) {
             parsed_ins.type = 3;
     }
 
-    print("instruction: ");
     print_binary(instruction, 16);
     return parsed_ins;
 }
