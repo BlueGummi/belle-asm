@@ -1,7 +1,11 @@
 #include "bdump.h"
 
+bool in_sr = false;
 void print_binary(int num, int leading) {
     if (args.binary == 1 || args.debug == 1) {
+        printf("\n");
+        if (in_sr)
+            printf("   ");
         for (int i = leading - 1; i >= 0; i--) {
             printf("%d", (num >> i) & 1);
         }
@@ -37,10 +41,16 @@ void print(const char *format, ...) {
 void print_output(Instruction *ins) {
     char *op = match_opcode(ins);
     bool colors = args.colors == 1;
-    if (colors)
-        printf("%s%s%s ", ANSI_BLUE, op, ANSI_RESET);
-    else
-        printf("%s ", op);
+    if (strcmp(op, "sr") != 0 && strcmp(op, "hlt") != 0) {
+        if (in_sr)
+            printf("   ");
+        if (colors)
+            printf("%s%s%s ", ANSI_BLUE, op, ANSI_RESET);
+        else
+            printf("%s ", op);
+    }
+    if (strcmp(op, "ret") == 0)
+        in_sr = false;
     bool two_reg_args =
         (strcmp(op, "add") == 0 || strcmp(op, "div") == 0 || strcmp(op, "swp") == 0 ||
          strcmp(op, "cmp") == 0 || strcmp(op, "mul") == 0 || strcmp(op, "mov") == 0);
@@ -66,7 +76,7 @@ void print_output(Instruction *ins) {
                 if (!sign)
                     printf("%s#%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
                 else
-                    printf("%s#-%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+                    printf("%s#-%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET); // negative
             } else {
                 if (!sign)
                     printf("#%d\n", ins->source);
@@ -93,5 +103,65 @@ void print_output(Instruction *ins) {
             exit(1);
             break;
         }
+    } else if (strcmp(op, "sr") == 0) {
+        in_sr = true;
+        if (colors)
+            printf("%s%d:%s\n", ANSI_GREEN, ins->source, ANSI_RESET);
+        else
+            printf("%d:\n", ins->source);
+    } else if (strcmp(op, "jnz") == 0 || strcmp(op, "jge") == 0) { // jump expressions
+        if (ins->destination == 4) {
+            if (colors)
+                printf("%s@%d%s\n", ANSI_GREEN, ins->source, ANSI_RESET);
+            else
+                printf("@%d\n", ins->source);
+        } else {
+            ins->destination = (ins->destination << 1) | ins->type;
+            ins->destination = (ins->destination << 8) | ins->source;
+            ins->source = ins->destination;
+            if (colors)
+                printf("%s$%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+            else
+                printf("$%d\n", ins->source);
+        }
+    } else if (strcmp(op, "ret") == 0) {
+        printf("\n");
+    } else if (strcmp(op, "int") == 0) {
+        if (colors)
+            printf("%s#%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+        else
+            printf("#%d\n", ins->source);
+    } else if (strcmp(op, "hlt") == 0) { // account for labels
+        if (ins->destination == 1) {
+            ins->type = ins->type << 8;
+            ins->type = ins->type | ins->source;
+            if (colors)
+                printf("%s.start%s%s $%d%s\n", ANSI_GREEN, ANSI_RESET, ANSI_YELLOW, ins->type,
+                       ANSI_RESET);
+            else
+                printf(".start $%d\n", ins->type);
+        }
+    } else if (strcmp(op, "ld") == 0) {
+        if (colors)
+            printf("%s%%r%d%s, ", ANSI_YELLOW, ins->destination, ANSI_RESET);
+        else
+            printf("%%r%d, ", ins->destination);
+        ins->type = ins->type << 8;
+        ins->type = ins->type | ins->source;
+        ins->source = ins->type;
+        if (colors)
+            printf("%s$%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+        else
+            printf("$%d\n", ins->source);
+    } else if (strcmp(op, "st") == 0) {
+        int reconstructed = (ins->destination << 9) | (ins->type << 8) | ins->source;
+        ins->source = ins->source & 0x07;
+        ins->destination = reconstructed & 0xFFF8;
+        ins->destination = ins->destination >> 3;
+        if (colors)
+            printf("%s$%d%s, %s%%r%d%s\n", ANSI_YELLOW, ins->destination, ANSI_RESET, ANSI_YELLOW,
+                   ins->source, ANSI_RESET);
+        else
+            printf("$%d, %%r%d\n", ins->destination, ins->source);
     }
 }

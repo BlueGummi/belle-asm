@@ -55,12 +55,14 @@ char *match_opcode(Instruction *s) {
 void print_instruction(Instruction *s) {
     char *opcode = match_opcode(s);
     print_output(s);
-    print("opcode: %s\n", opcode);
-    print("destination: ");
-    print_binary(s->destination, 3);
-    print("source: ");
-    print_binary(s->source, 8);
-    print("type %d\n", s->type);
+    if (args.debug == 1) {
+        print("opcode: %s\n", opcode);
+        print("destination: ");
+        print_binary(s->destination, 3);
+        print("source: ");
+        print_binary(s->source, 8);
+        print("type %d\n", s->type);
+    }
     if (args.debug == 1)
         printf("\n");
 }

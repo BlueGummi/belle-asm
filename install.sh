@@ -62,7 +62,7 @@ if [ "$BUILD" = true ]; then
     if [[ "$ANSWER" =~ ^[Yy]$ ]]; then
         echo "Building..."
         ./build.sh
-	./install.sh
+	    ./install.sh
     else
         echo "Exiting"
     fi
