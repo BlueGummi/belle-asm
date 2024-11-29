@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -w
+CFLAGS = -Wall
 SRCDIR = src
 OBJ = bdump.o # print_utils.o # math_functions.o
 TARGET = bdump

@@ -51,7 +51,6 @@ char *match_opcode(Instruction *s) {
 }
 
 void print_instruction(Instruction *s) {
-    char *opcode = match_opcode(s);
     print_output(s);
     if (args.debug == 1) {
         print("type %d\n", s->type);
