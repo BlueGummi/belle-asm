@@ -11,9 +11,9 @@ void print_binary(int num, int leading) {
     }
 }
 
-void print_help(const char *bin) { // bin is the name of the binary
+void print_help(char *bin) { // bin is the name of the bin
     printf("The disassembler for %sBELLE-ISA%s\n\n", ANSI_BOLD, ANSI_RESET);
-    printf("%s%sUsage:%s %s [OPTIONS] <FILE>\n\n", ANSI_UNDERLINE, ANSI_RESET, bin);
+    printf("%sUsage:%s %s [OPTIONS] <FILE>\n\n", ANSI_UNDERLINE, ANSI_RESET, bin);
     printf("%s%sArguments:%s\n", ANSI_BOLD, ANSI_UNDERLINE, ANSI_RESET);
     printf("  %s<FILE>%s Path to input\n\n", ANSI_BOLD, ANSI_RESET);
     printf("%s%sOptions:%s\n", ANSI_BOLD, ANSI_UNDERLINE, ANSI_RESET);

@@ -35,7 +35,7 @@ CLI parse_arguments(int argc, char *argv[]);
 Instruction parse_instruction(int instruction);
 void print_binary(int num, int leading);
 void print_instruction(Instruction *s);
-void print_help(const char *bin);
+void print_help(char *bin);
 void print(const char *format, ...);
 char *match_opcode(Instruction *s);
 int main(int argc, char *argv[]);
