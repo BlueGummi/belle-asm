@@ -4,15 +4,22 @@ SRCDIR = src
 OBJ = bdump.o # print_utils.o # math_functions.o
 TARGET = bdump
 
+ifeq ($(OS),Windows_NT)
+    RM = del
+    RM_FLAGS = /Q
+else
+    RM = rm -f
+endif
+
 all: $(TARGET)
-	rm -f $(SRCDIR)/*.o
+	$(RM) $(SRCDIR)\*.o $(RM_FLAGS)
 
 $(TARGET): $(SRCDIR)/$(OBJ)
-	$(CC) $(SRCDIR)/$(OBJ)-o $(TARGET) $(CFLAGS)
+	$(CC) $(SRCDIR)/$(OBJ) -o $(TARGET) $(CFLAGS)
 
-%.o: %.c
+$(SRCDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(SRCDIR)/*.o
-	rm -f $(OBJ) $(TARGET)
+	$(RM) $(SRCDIR)\*.o $(RM_FLAGS)
+	$(RM) $(OBJ) $(TARGET)
