@@ -1,6 +1,6 @@
-use crate::*;
-use crate::Instruction::*;
 use crate::Argument::*;
+use crate::Instruction::*;
+use crate::*;
 use std::vec::Vec;
 pub struct CPU {
     pub int_reg: [i16; 6],   // r0 thru r5
@@ -89,7 +89,7 @@ impl CPU {
             }
         }
         // check for overflow
-        if some_count + self.starts_at > 65535 {
+        if some_count as u32 + self.starts_at as u32 > 65535 {
             EmuError::MemoryOverflow().err();
         }
         let mem_copy = self.memory;
@@ -116,7 +116,7 @@ impl CPU {
                 }
                 UnrecoverableError::SegmentationFault(
                     self.pc,
-                    Some("Segmentation fault while finding next instruction.".to_string()),
+                    Some("Segmentation fault while finding next instruction".to_string()),
                 )
                 .err();
             }
@@ -128,12 +128,40 @@ impl CPU {
     }
     fn parse_instruction(&self) -> Instruction {
         let opcode = (self.ir >> 12) & 0b0000000000001111u16 as i16;
-        let mut parsed_instruction = match opcode {
+
+        let ins_type = if ((self.ir >> 8) & 1) == 1 {
+            1
+        } else if ((self.ir >> 7) & 1) == 1 {
+            2
+        } else if ((self.ir >> 6) & 1) == 1 {
+            3
+        } else {
+            0
+        };
+        let source = match ins_type {
+            0 | 1 => self.ir & 0b11111111,
+            2 => self.ir & 0b1111111,
+            _ => self.ir & 0b111111,
+        };
+        let destination = (self.ir & 0b111000000000) >> 9;
+        let part = match ins_type {
+            0 => Register(source),
+            1 => Literal(source),
+            2 => MemPtr(source),
+            _ => RegPtr(source),
+        };
+        let parsed_instruction = match opcode {
             HLT_OP => HLT,
-            ADD_OP => ADD(Nothing, Nothing),
-            JGE_OP => JGE(Nothing),
-            CL_OP => CL(Nothing),
-            DIV_OP => DIV(Nothing, Nothing),
+            ADD_OP => ADD(Register(destination), part),
+            JGE_OP => {
+                if destination == 4 {
+                    JGE(SR(source))
+                } else {
+                    JGE(MemAddr(source))
+                }
+            }
+            CL_OP => CL(Flag(source)),
+            DIV_OP => DIV(Register(destination), part),
             RET_OP => RET,
             LD_OP => LD(Nothing, Nothing),
             ST_OP => ST(Nothing, Nothing),
@@ -146,8 +174,9 @@ impl CPU {
             MOV_OP => MOV(Nothing, Nothing),
             _ => unreachable!(),
         };
+
         // println!("{:04b}", opcode);
-        return HLT;
+        HLT
     }
 }
 // we need a function to load instructions into RAM

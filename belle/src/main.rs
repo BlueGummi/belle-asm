@@ -14,7 +14,7 @@ fn main() -> io::Result<()> {
         process::exit(1);
     }
     let mut cpu = CPU::new();
-    let bin = bin_to_vec(&executable_path)?;
+    let bin = bin_to_vec(executable_path)?;
     cpu.load_binary(bin);
     cpu.run();
     Ok(())

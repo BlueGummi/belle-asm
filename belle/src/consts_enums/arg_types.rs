@@ -5,6 +5,7 @@ pub enum Argument {
     RegPtr(i16),
     MemPtr(i16),
     SR(i16),
+    Flag(i16),
     Nothing,
 }
 
