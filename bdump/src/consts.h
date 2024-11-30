@@ -10,7 +10,7 @@
 #define LD_OP 0b0110  // we need this
 #define ST_OP 0b0111  // we need this
 #define SWP_OP 0b1000 // we need this
-#define JNZ_OP 0b1001 // maybe optional ?
+#define JZ_OP 0b1001 // maybe optional ?
 #define CMP_OP 0b1010 // we need this
 #define MUL_OP 0b1011 // we need this
 #define SET_OP 0b1100 // we need this

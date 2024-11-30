@@ -158,7 +158,7 @@ pub fn encode_instruction(
                     ins_type = "call";
                 }
                 // we can use this as JMP by doing cmp r0, r0
-                JNZ_OP // 9
+                JZ_OP // 9
             }
             "CMP" => CMP_OP, // 10
             "MUL" => MUL_OP, // 11

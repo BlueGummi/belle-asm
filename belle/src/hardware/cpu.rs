@@ -1,4 +1,6 @@
 use crate::*;
+use crate::Instruction::*;
+use crate::Argument::*;
 use std::vec::Vec;
 pub struct CPU {
     pub int_reg: [i16; 6],   // r0 thru r5
@@ -7,7 +9,7 @@ pub struct CPU {
     pub pc: u16, // program counter
     pub sp: u16,
     pub bp: u16,
-    pub ir: u16,
+    pub ir: i16,
     pub jloc: u16, // location from which a jump was performed
     pub starts_at: u16,
     pub running: bool,
@@ -55,8 +57,10 @@ impl CPU {
                 self.starts_at = (element & 0b111111111) as u16;
                 if CONFIG.verbose {
                     println!(".start directive found.");
-                    start_found = true;
-                    self.shift_memory();
+                }
+                start_found = true;
+                self.shift_memory();
+                if CONFIG.verbose {
                     println!("program starts at {}", self.starts_at);
                 }
                 continue;
@@ -73,6 +77,7 @@ impl CPU {
             counter += 1;
         }
     }
+    #[allow(unused_comparisons)]
     fn shift_memory(&mut self) {
         let mut some_count = 0;
         if CONFIG.verbose {
@@ -106,6 +111,9 @@ impl CPU {
             // fetch instructions
             // execute instructions
             if self.memory[self.pc as usize].is_none() {
+                if CONFIG.verbose {
+                    println!("pc: {}", self.pc);
+                }
                 UnrecoverableError::SegmentationFault(
                     self.pc,
                     Some("Segmentation fault while finding next instruction.".to_string()),
@@ -114,12 +122,32 @@ impl CPU {
             }
             self.ir = self.memory[self.pc as usize].unwrap();
             let parsed_ins = self.parse_instruction();
+            // self.execute_instruction(parsed_ins);
             self.pc += 1;
         }
     }
     fn parse_instruction(&self) -> Instruction {
-        
-
+        let opcode = (self.ir >> 12) & 0b0000000000001111u16 as i16;
+        let mut parsed_instruction = match opcode {
+            HLT_OP => HLT,
+            ADD_OP => ADD(Nothing, Nothing),
+            JGE_OP => JGE(Nothing),
+            CL_OP => CL(Nothing),
+            DIV_OP => DIV(Nothing, Nothing),
+            RET_OP => RET,
+            LD_OP => LD(Nothing, Nothing),
+            ST_OP => ST(Nothing, Nothing),
+            SWP_OP => SWP(Nothing, Nothing),
+            JZ_OP => JZ(Nothing),
+            CMP_OP => CMP(Nothing, Nothing),
+            MUL_OP => MUL(Nothing, Nothing),
+            SET_OP => SET(Nothing),
+            INT_OP => INT(Nothing),
+            MOV_OP => MOV(Nothing, Nothing),
+            _ => unreachable!(),
+        };
+        // println!("{:04b}", opcode);
+        return HLT;
     }
 }
 // we need a function to load instructions into RAM
