@@ -1,4 +1,4 @@
-ifndef CONSTS_H
+#ifndef CONSTS_H
 #define CONSTS_H
 
 #include <stdbool.h>
