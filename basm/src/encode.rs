@@ -151,7 +151,7 @@ pub fn encode_instruction(
             "SWP" => {
                 SWP_OP // 8
             }
-            "JNZ" => {
+            "jz" => {
                 ins_type = "one_arg";
                 if let Some(&Token::SRCall(_)) = arg1.or(arg2) {
                     // do something here
