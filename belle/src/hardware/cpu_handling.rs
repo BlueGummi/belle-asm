@@ -163,7 +163,7 @@ impl CPU {
     pub fn handle_int(&mut self, arg: &Argument) {
         let code = self.get_value(arg) as u16;
         match code {
-            1_u16..=5_u16 => {
+            0_u16..=5_u16 => {
                 println!("{}", self.int_reg[code as usize]);
             }
             6 => println!("{}", self.float_reg[0]),
@@ -185,6 +185,16 @@ impl CPU {
                     }
                 }
                 println!();
+            }
+            9 => {
+                let mut input = String::new();
+                std::io::stdin().read_line(&mut input).unwrap();
+                match input.trim().parse::<i16>() {
+                    Ok(number) => {
+                        self.int_reg[0] = number;
+                    }
+                    Err(e) => EmuError::ReadFail(e.to_string()).err(),
+                }
             }
             _ => todo!(),
         }
