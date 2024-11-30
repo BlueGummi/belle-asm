@@ -38,6 +38,7 @@ impl CPU {
                 1 => self.zflag = false,
                 2 => self.oflag = false,
                 3 => self.hlt_on_overflow = false,
+                4 => self.rflag = false,
                 _ => self.report_unknown_flag("CL"),
             }
         }
@@ -57,6 +58,9 @@ impl CPU {
                 n if n > 5 => self.report_invalid_register(),
                 _ => {
                     let current_value = self.int_reg[*n as usize];
+                    if current_value as f32 % divisor != 0.0 {
+                        self.rflag = true;
+                    }
                     self.int_reg[*n as usize] = (current_value as i32 / divisor as i32) as i16;
                 }
             }
@@ -142,6 +146,7 @@ impl CPU {
                 1 => self.zflag = true,
                 2 => self.oflag = true,
                 3 => self.hlt_on_overflow = true,
+                4 => self.rflag = true,
                 _ => self.report_unknown_flag("SET"),
             }
         }
@@ -197,7 +202,9 @@ impl CPU {
                 }
             }
             10 => std::thread::sleep(std::time::Duration::from_secs(1)),
-
+            11 => self.zflag = !self.zflag,
+            12 => self.oflag = !self.oflag,
+            13 => self.rflag = !self.rflag,
             _ => todo!(),
         }
     }

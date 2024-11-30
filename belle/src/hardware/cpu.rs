@@ -15,6 +15,7 @@ pub struct CPU {
     pub running: bool,
     pub zflag: bool,
     pub oflag: bool,
+    pub rflag: bool,
     pub hlt_on_overflow: bool,
 }
 impl Default for CPU {
@@ -35,6 +36,7 @@ impl CPU {
             running: false,
             zflag: false,
             oflag: false,
+            rflag: false,
             hlt_on_overflow: false,
         }
     }

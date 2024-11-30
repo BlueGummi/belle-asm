@@ -37,6 +37,13 @@ impl CPU {
         if new_value > i16::MAX as i32 || new_value < i16::MIN as i32 {
             RecoverableError::Overflow(self.pc, Some("Overflowed a register.".to_string())).err();
             self.oflag = true;
+            if self.hlt_on_overflow {
+                self.running = false;
+                if !CONFIG.quiet {
+                    println!("Halting...");
+                }
+                std::process::exit(0); // dumb hack for a dumb bug (cpu would overflow twice)
+            }
         }
     }
 

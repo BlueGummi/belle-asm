@@ -49,6 +49,7 @@ impl CPU {
             println!("  Running              : {}", cpu.running);
             println!("  Zero flag            : {}", cpu.zflag);
             println!("  Overflow flag        : {}", cpu.oflag);
+            println!("  Remainder flag       : {}", cpu.rflag);
         } else {
             println!("No CPU state found for clock: {}", clock);
         }
