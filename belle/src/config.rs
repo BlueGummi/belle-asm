@@ -27,6 +27,10 @@ pub struct Cli {
     /// Don't crash (may lead to undefined behavior)
     #[clap(short = 'c', long, default_value_t = false)]
     pub dont_crash: bool,
+
+    /// Clock cycle delay (milliseconds)
+    #[clap(short = 't', long)]
+    pub time_delay: Option<u32>,
 }
 
 pub fn declare_config() -> Cli {
@@ -37,5 +41,6 @@ pub fn declare_config() -> Cli {
         debug: cli.debug,
         quiet: cli.quiet,
         dont_crash: cli.dont_crash,
+        time_delay: Some(cli.time_delay.unwrap_or(0)),
     }
 }

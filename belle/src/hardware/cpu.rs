@@ -120,6 +120,7 @@ impl CPU {
         while self.running {
             let mut clock = CLOCK.lock().unwrap(); // might panic
             *clock += 1;
+            std::thread::sleep(std::time::Duration::from_millis(CONFIG.time_delay.unwrap().into()));
             std::mem::drop(clock); // clock must go bye bye so it unlocks
             if self.memory[self.pc as usize].is_none() {
                 if CONFIG.verbose {
@@ -143,7 +144,7 @@ impl CPU {
             let clock = CLOCK.lock().unwrap();
             cpu::CPU::display_state(*clock);
             if self.oflag {
-                RecoverableError::Overflow(self.pc, Some("Overflowed a register".to_string()))
+                RecoverableError::Overflow(self.pc, Some("Overflowed a register.".to_string()))
                     .err();
                 if self.hlt_on_overflow {
                     self.running = false;

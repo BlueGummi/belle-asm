@@ -48,6 +48,7 @@ impl CPU {
             println!("  Jump Location: {}", cpu.jloc);
             println!("  Running state: {}", cpu.running);
             println!("  Zero flag: {}", cpu.zflag);
+            println!("  Ovflow flag: {}", cpu.oflag);
         } else {
             println!("No CPU state found for clock: {}", clock);
         }
