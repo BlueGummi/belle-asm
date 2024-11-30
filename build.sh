@@ -15,7 +15,19 @@ print_message() {
 clear_line() {
     printf "\r\033[K"
 }
-
+clean() {
+    print_message "Cleaning up..." blue
+    cd basm
+    cargo clean --quiet    
+    cd ..
+    cd bdump
+    make clean --quiet
+    cd ..
+    cd belle
+    cargo clean --quiet
+    cd ..
+    print_message "Cleaned up!" green
+}
 spinner() {
     local pid=$1
     local delay=0.1
@@ -49,7 +61,10 @@ default_build() {
     if [ ! -d "bin" ]; then
         mkdir bin
     fi
-
+    if [ "$clean" ]; then
+        clean
+        exit 0
+    fi
     for target in "${targets[@]}"; do
         case "$target" in
             basm)
@@ -83,17 +98,7 @@ default_build() {
     done
 
     if [ "$with_cleanup" ]; then
-        print_message "Cleaning up..." blue
-        cd basm
-        cargo clean --quiet
-        cd ..
-        cd bdump
-        make clean --quiet
-        cd ..
-        cd belle
-        cargo clean --quiet
-        cd ..
-        print_message "Cleaned up!" green
+        clean
     fi
 
     print_message "Build complete" green
