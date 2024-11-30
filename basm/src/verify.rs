@@ -36,7 +36,7 @@ fn check_instruction(
         "INT" => {
             check_one_or_no_arguments(arg1, arg2, raw_token, line_num);
         }
-        "CALL" | "SWP" | "jz" | "SET" | "CL" | "JGE" => {
+        "CALL" | "SWP" | "JZ" | "SET" | "CL" | "JGE" => {
             check_one_argument(arg1, arg2, raw_token, line_num);
         }
         _ => {

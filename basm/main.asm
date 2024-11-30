@@ -1,7 +1,6 @@
     int
 	set #3
     cl #3
-    .start $500
     mul %r0, &r7
    mov %r1, &r3
    mov %r1, &$40
