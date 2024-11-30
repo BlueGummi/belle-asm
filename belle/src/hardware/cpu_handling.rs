@@ -27,7 +27,7 @@ impl CPU {
             self.pc = *n as u16;
         } else if let SR(s) = arg {
             self.jloc = self.pc;
-            self.pc = 20000 + ((*s as u16)*100 - 100);
+            self.pc = 20000 + ((*s as u16) * 100 - 100);
         }
     }
 
@@ -106,7 +106,7 @@ impl CPU {
             self.pc = *n as u16;
         } else if let SR(s) = arg {
             self.jloc = self.pc;
-            self.pc = 20000 + ((*s as u16)*100 - 100);
+            self.pc = 20000 + ((*s as u16) * 100 - 100);
         }
     }
 
@@ -168,6 +168,24 @@ impl CPU {
             }
             6 => println!("{}", self.float_reg[0]),
             7 => println!("{}", self.float_reg[1]),
+            8 => {
+                let starting_point = self.int_reg[0];
+                let end_point = self.int_reg[1];
+                let memory = &self.memory;
+            
+                for index in starting_point..=end_point {
+                    if let Some(value) = memory[index as usize] {
+                        print!("{}", char::from_u32(value.try_into().unwrap()).unwrap());
+                    } else {
+                        println!();
+                        self.handle_segmentation_fault(
+                            "Segmentation fault. Memory index out of bounds on interrupt call.",
+                        );
+                        return;
+                    }
+                }
+                println!();
+            }
             _ => todo!(),
         }
     }

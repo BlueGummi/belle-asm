@@ -96,7 +96,8 @@ impl CPU {
             }
         }
         // check for overflow
-        if some_count as u32 + self.starts_at as u32 > 65535 { // unused comparison
+        if some_count as u32 + self.starts_at as u32 > 65535 {
+            // unused comparison
             EmuError::MemoryOverflow().err();
         }
         let mem_copy = self.memory;
