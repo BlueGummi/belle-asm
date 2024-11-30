@@ -19,9 +19,9 @@ impl CPU {
         }
         let state = CPU_STATE.lock().unwrap();
         if let Some(cpu) = state.get(&clock) {
-            println!("\nCPU State for clock {}:", clock);
-            println!("  Int   Registers: {:?}", cpu.int_reg);
-            println!("  Float Registers: {:?}", cpu.float_reg);
+            println!("\nCPU State for clock cycle {}:", clock);
+            println!("  Integer Registers    : {:?}", cpu.int_reg);
+            println!("  Float Registers      : {:?}", cpu.float_reg);
             /*
             println!("  memory:");
             let mut none_count = 0;
@@ -43,12 +43,12 @@ impl CPU {
                 }
             }
             */
-            println!("  Program Counter: {}", cpu.pc);
-            println!("  Instruction Register: {:016b}", cpu.ir);
-            println!("  Jump Location: {}", cpu.jloc);
-            println!("  Running state: {}", cpu.running);
-            println!("  Zero flag: {}", cpu.zflag);
-            println!("  Ovflow flag: {}", cpu.oflag);
+            println!("  Program Counter      : {}", cpu.pc);
+            println!("  Instruction Register : {:016b}", cpu.ir);
+            println!("  Jump Location        : {}", cpu.jloc);
+            println!("  Running              : {}", cpu.running);
+            println!("  Zero flag            : {}", cpu.zflag);
+            println!("  Overflow flag        : {}", cpu.oflag);
         } else {
             println!("No CPU state found for clock: {}", clock);
         }
