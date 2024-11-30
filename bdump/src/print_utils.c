@@ -127,7 +127,7 @@ void print_output(Instruction *ins) {
         } else {
             printf("%d:\n", ins->source);
         }
-    } else if (strcmp(op, "jnz") == 0 || strcmp(op, "jge") == 0) {
+    } else if (strcmp(op, "jz") == 0 || strcmp(op, "jge") == 0) {
         print_jump_instruction(ins, colors);
     } else if (strcmp(op, "ret") == 0) {
         printf("\n");

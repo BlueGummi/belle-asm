@@ -9,7 +9,7 @@
    add %r4, #127
    ld %r2, $500
    st $500, %r2
-   jnz $399
+   jz $399
    int #2
    add %r2, #-43
    mov %r4, #40
@@ -23,7 +23,7 @@
    mov %r2, #10 ; limit
    mov %r3, %r0 ;r3 as counter
   int #4
-	jnz @fib
+	jz @fib
    fib:
      cmp %r3, %r2
 
@@ -32,6 +32,6 @@
 	mov %r0, %r1
 	mov %r4, %r0
 	add %r3, #1
-	jnz @fib
+	jz @fib
 ret
 mov %r2, #4

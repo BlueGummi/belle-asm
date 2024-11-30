@@ -8,7 +8,7 @@ add %r3, %r2
 add %r4, #127
 ld %r2, $244
 st $500, %r2
-jnz $399
+jz $399
 int #2
 add %r2, #-43
 mov %r4, #40
@@ -20,7 +20,7 @@ mov %r1, #1
 mov %r2, #10
 mov %r3, %r0
 int #4
-jnz @subr
+jz @subr
 subr:
    cmp %r3, %r2
    add %r4, %r1
@@ -28,7 +28,7 @@ subr:
    mov %r0, %r1
    mov %r4, %r0
    add %r3, #1
-   jnz @subr
+   jz @subr
    ret 
 mov %r2, #4
 mov %r2, %r0

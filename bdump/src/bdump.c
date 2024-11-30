@@ -38,7 +38,7 @@ char *match_opcode(Instruction *s) {
     case LD_OP: opcode = "ld"; break;
     case ST_OP: opcode = "st"; break;
     case SWP_OP: opcode = "swp"; break;
-    case JNZ_OP: opcode = "jnz"; break;
+    case JNZ_OP: opcode = "jz"; break;
     case CMP_OP: opcode = "cmp"; break;
     case MUL_OP: opcode = "mul"; break;
     case SET_OP: opcode = "set"; break;
