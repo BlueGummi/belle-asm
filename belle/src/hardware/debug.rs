@@ -46,7 +46,6 @@ impl CPU {
             println!("  Program Counter: {}", cpu.pc);
             println!("  Instruction Register: {:016b}", cpu.ir);
             println!("  Jump Location: {}", cpu.jloc);
-            println!("  Starts At MemAddr: {}", cpu.starts_at);
             println!("  Running state: {}", cpu.running);
             println!("  Zero flag: {}", cpu.zflag);
         } else {

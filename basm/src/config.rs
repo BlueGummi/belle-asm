@@ -27,7 +27,6 @@ pub struct Args {
     /// Display tips (may improve errors)
     #[clap(short = 't', long, default_value_t = false)]
     pub tips: bool,
-
     // /// Cow
     //#[clap(short = 'c', long, default_value_t = false)]
     //pub cow: bool,

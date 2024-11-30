@@ -5,70 +5,53 @@ impl CPU {
     pub fn execute_instruction(&mut self, ins: &Instruction) {
         match ins {
             HLT => self.running = false,
-            ADD(arg1, arg2) => {
-                let value = self.get_value(arg2);
-
-                if let Register(n) = arg1 {
-                    if *n == 6 {
-                        let new_value = self.float_reg[0] + value;
-                        if new_value.is_infinite() || new_value.is_nan() {
-                            self.oflag = true;
-                        }
-                        self.float_reg[0] = new_value;
-                    } else if *n == 7 {
-                        let new_value = self.float_reg[1] + value;
-                        if new_value.is_infinite() || new_value.is_nan() {
-                            self.oflag = true;
-                        }
-                        self.float_reg[1] = new_value;
-                    } else if *n > 5 {
-                        UnrecoverableError::InvalidRegister(
-                            self.pc,
-                            Some("The register number is too large.".to_string()),
-                        )
-                        .err();
-                    } else {
-                        let current_value = self.int_reg[*n as usize];
-                        let new_value = current_value as i32 + value as i32; // larger type for overflow
-                        if new_value > i16::MAX as i32 || new_value < i16::MIN as i32 {
-                            self.oflag = true;
-                        }
-                        self.int_reg[*n as usize] = new_value as i16;
-                    }
-                }
-            }
-            JGE(arg) => 'jge: {
-                if self.int_reg[1] < self.int_reg[0] {
-                    break 'jge;
-                }
-                if let MemAddr(n) = arg {
-                    self.pc = *n as u16;
-                    break 'jge;
-                }
-                if let SR(s) = arg {
-                    self.jloc = self.pc;
-                    self.pc = 20000 + (*s as u16 - 100);
-                }
-            }
-            CL(arg) => {
-                if let Flag(n) = arg {
-                    match n {
-                        0 => (),
-                        1 => self.zflag = false,
-                        2 => self.oflag = false,
-                        _ => RecoverableError::UnknownFlag(
-                            self.pc,
-                            Some("Unknown flag in CL instruction".to_string()),
-                        )
-                        .err(),
-                    }
-                }
-            }
+            ADD(arg1, arg2) => self.handle_add(arg1, arg2),
+            JGE(arg) => self.handle_jge(arg),
+            CL(arg) => self.handle_cl(arg),
+            DIV(arg1, arg2) => self.handle_div(arg1, arg2),
+            RET => self.handle_ret(),
+            LD(arg1, arg2) => self.handle_ld(arg1, arg2),
+            ST(arg1, arg2) => self.handle_st(arg1, arg2),
+            SWP(arg1, arg2) => self.handle_swp(arg1, arg2),
+            JZ(arg) => self.handle_jz(arg),
+            CMP(arg1, arg2) => self.handle_cmp(arg1, arg2),
+            MUL(arg1, arg2) => self.handle_mul(arg1, arg2),
+            SET(arg) => self.handle_set(arg),
+            //INT(arg) => self.handle_int(arg),
+            MOV(arg1, arg2) => self.handle_mov(arg1, arg2),
             _ => print!(""),
+        }
+        self.pc += 1;
+    }
+
+    pub fn get_register_value(&mut self, arg: &Argument) -> f32 {
+        if let Register(n) = arg {
+            match *n {
+                6 => self.float_reg[0],
+                7 => self.float_reg[1],
+                n if n > 7 => {
+                    self.report_invalid_register();
+                    0.0 // default return value
+                }
+                _ => self.int_reg[*n as usize] as f32,
+            }
+        } else {
+            0.0 // default return value if not a Register
         }
     }
 
-    fn get_value(&mut self, arg: &Argument) -> f32 {
+    pub fn set_register_value(&mut self, arg: &Argument, value: f32) {
+        if let Register(n) = arg {
+            match *n {
+                6 => self.float_reg[0] = value,
+                7 => self.float_reg[1] = value,
+                n if n > 7 => self.report_invalid_register(),
+                _ => self.int_reg[*n as usize] = value as i16,
+            }
+        }
+    }
+
+    pub fn get_value(&mut self, arg: &Argument) -> f32 {
         match arg {
             Register(n) => {
                 if *n == 6 {
@@ -96,20 +79,35 @@ impl CPU {
                 }
                 self.memory[tmp].unwrap().into()
             }
-            RegPtr(n) => todo!(),
+            RegPtr(n) => {
+                let tmp = if *n == 6 {
+                    self.float_reg[0]
+                } else if *n == 7 {
+                    self.float_reg[1]
+                } else {
+                    self.int_reg[*n as usize].into()
+                };
+                let memloc: usize = tmp as usize;
+                if self.memory[memloc].is_none() {
+                    self.handle_segmentation_fault(
+                        "Segmentation fault while dereferencing pointer. 
+                    The address the pointer references is empty.",
+                    );
+                }
+                self.memory[memloc].unwrap().into()
+            }
+            MemAddr(n) => {
+                if self.memory[*n as usize].is_none() {
+                    self.handle_segmentation_fault(
+                        "Segmentation fault while loading from memory.
+                        Memory address is empty.",
+                    );
+                }
+                self.memory[*n as usize].unwrap().into()
+            }
             _ => unreachable!(),
         }
     }
-
-    fn handle_segmentation_fault(&mut self, message: &str) {
-        UnrecoverableError::SegmentationFault(self.pc, Some(message.to_string())).err();
-        if !CONFIG.quiet {
-            println!("Attempting to recover by restarting...");
-        }
-        std::thread::sleep(std::time::Duration::from_secs(1));
-        self.pc = self.starts_at;
-    }
-
     pub fn parse_instruction(&self) -> Instruction {
         let opcode = (self.ir >> 12) & 0b0000000000001111u16 as i16;
 

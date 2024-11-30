@@ -41,13 +41,16 @@ impl CPU {
         let mut counter = 0;
         let mut start_found = false;
         let mut subr_loc = 20000;
+        let mut sr_counter = 0;
         for element in binary {
             if in_subr && (element >> 12) != RET_OP {
-                self.memory[counter + subr_loc] = Some(element);
+                self.memory[subr_loc + sr_counter] = Some(element);
+                sr_counter += 1;
                 continue;
             } else if (element >> 12) == RET_OP {
                 in_subr = false;
-                self.memory[counter + subr_loc] = Some(element);
+                self.memory[counter + sr_counter] = Some(element);
+                sr_counter = 0;
                 subr_loc += 100;
             }
             if (element >> 9) == 1 {
@@ -71,7 +74,9 @@ impl CPU {
                     println!("Element {:016b} loaded into memory", element);
                 }
             } else {
+                self.memory[subr_loc + sr_counter] = Some(element);
                 in_subr = true;
+                sr_counter += 1;
                 continue;
             }
             counter += 1;
@@ -102,11 +107,13 @@ impl CPU {
         self.pc = self.starts_at;
         if CONFIG.verbose {
             println!("Shift completed.");
-            println!("Memory: {:?}", self.memory);
         }
     }
     pub fn run(&mut self) {
         self.running = true;
+        if CONFIG.verbose {
+            println!("  Starts At MemAddr: {}", self.starts_at);
+        }
         while self.running {
             let mut clock = CLOCK.lock().unwrap(); // might panic
             *clock += 1;
@@ -129,10 +136,13 @@ impl CPU {
             self.ir = self.memory[self.pc as usize].unwrap();
             let parsed_ins = self.parse_instruction();
             self.execute_instruction(&parsed_ins);
-            self.pc += 1;
             self.record_state();
             let clock = CLOCK.lock().unwrap();
             cpu::CPU::display_state(*clock);
+            if self.oflag {
+                RecoverableError::Overflow(self.pc, Some("Overflowed a register".to_string()))
+                    .err();
+            }
         }
         if !self.running {
             if !CONFIG.quiet {

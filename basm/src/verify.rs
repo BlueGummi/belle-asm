@@ -30,13 +30,13 @@ fn check_instruction(
         "HLT" | "RET" => {
             check_no_arguments(arg1, arg2, raw_token, line_num);
         }
-        "ADD" | "LD" | "ST" | "MOV" | "MUL" | "CMP" => {
+        "SWP" | "ADD" | "LD" | "ST" | "MOV" | "MUL" | "CMP" | "DIV" => {
             check_two_arguments(arg1, arg2, raw_token, line_num);
         }
         "INT" => {
             check_one_or_no_arguments(arg1, arg2, raw_token, line_num);
         }
-        "CALL" | "SWP" | "JZ" | "SET" | "CL" | "JGE" => {
+        | "JZ" | "SET" | "CL" | "JGE" => {
             check_one_argument(arg1, arg2, raw_token, line_num);
         }
         _ => {

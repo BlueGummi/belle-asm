@@ -43,45 +43,43 @@ fn main() -> io::Result<()> {
             process::exit(1);
         }
     }
-        if CONFIG.debug {
-            println!("File is Some");
-        }
-        if fs::read_to_string(Path::new(input))?.is_empty() {
-            LineLessError(format!("file {} is empty", input).as_str()).perror();
-            process::exit(1);
-        }
-        let file = File::open(Path::new(input))?;
-        let reader = io::BufReader::new(file);
-        let include_regex = Regex::new(r#"^\s*#include\s+"([^"]+)""#).unwrap();
+    if CONFIG.debug {
+        println!("File is Some");
+    }
+    if fs::read_to_string(Path::new(input))?.is_empty() {
+        LineLessError(format!("file {} is empty", input).as_str()).perror();
+        process::exit(1);
+    }
+    let file = File::open(Path::new(input))?;
+    let reader = io::BufReader::new(file);
+    let include_regex = Regex::new(r#"^\s*#include\s+"([^"]+)""#).unwrap();
 
-        for line in reader.lines() {
-            match line {
-                Ok(content) => {
-                    if content.trim().starts_with("#include") {
-                        if let Some(captures) = include_regex.captures(content.trim()) {
-                            let include_file = captures[1].to_string();
-                            if let Ok(included_lines) = read_include_file(&include_file) {
-                                lines.extend(included_lines);
-                            } else {
-                                LineLessError(
-                                    format!("could not read included file: {}", include_file)
-                                        .as_str(),
-                                )
-                                .perror();
-                                process::exit(1);
-                            }
+    for line in reader.lines() {
+        match line {
+            Ok(content) => {
+                if content.trim().starts_with("#include") {
+                    if let Some(captures) = include_regex.captures(content.trim()) {
+                        let include_file = captures[1].to_string();
+                        if let Ok(included_lines) = read_include_file(&include_file) {
+                            lines.extend(included_lines);
+                        } else {
+                            LineLessError(
+                                format!("could not read included file: {}", include_file).as_str(),
+                            )
+                            .perror();
+                            process::exit(1);
                         }
-                    } else {
-                        lines.push(content);
                     }
-                }
-                Err(e) => {
-                    LineLessError(format!("error while reading from file: {}", e).as_str())
-                        .perror();
-
-                    has_err = true;
+                } else {
+                    lines.push(content);
                 }
             }
+            Err(e) => {
+                LineLessError(format!("error while reading from file: {}", e).as_str()).perror();
+
+                has_err = true;
+            }
+        }
     }
 
     // Clean up lines
