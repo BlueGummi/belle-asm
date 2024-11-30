@@ -120,7 +120,9 @@ impl CPU {
         while self.running {
             let mut clock = CLOCK.lock().unwrap(); // might panic
             *clock += 1;
-            std::thread::sleep(std::time::Duration::from_millis(CONFIG.time_delay.unwrap().into()));
+            std::thread::sleep(std::time::Duration::from_millis(
+                CONFIG.time_delay.unwrap().into(),
+            ));
             std::mem::drop(clock); // clock must go bye bye so it unlocks
             if self.memory[self.pc as usize].is_none() {
                 if CONFIG.verbose {

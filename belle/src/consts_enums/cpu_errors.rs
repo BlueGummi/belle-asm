@@ -1,5 +1,6 @@
 use crate::*;
 use colored::*;
+use std::sync::Arc;
 pub enum UnrecoverableError {
     // segfaults, illegal instructions, divide by 0
     SegmentationFault(u16, Option<String>), // first one is the state of the PC, second is specifically
@@ -52,6 +53,24 @@ impl UnrecoverableError {
                 eprint!(": {}", s.magenta());
             }
             eprintln!(": at memory address {}", location.to_string().green());
+        }
+        if CONFIG.debug {
+            let state = CPU_STATE.lock().unwrap();
+            let instruction: Vec<Arc<CPU>> = state
+                .values()
+                .filter(|cpu| cpu.pc == *location)
+                .cloned() // This clones the Arc, not the CPU itself
+                .collect();
+            if let Some(cpu) = instruction.first() {
+                if let Some(data) = cpu.memory[*location as usize] {
+                    eprintln!("Instruction is {}", data.to_string().magenta());
+                } else {
+                    eprintln!(
+                        "{}",
+                        "No instruction found at this program counter".red().bold()
+                    );
+                }
+            }
         }
         if !CONFIG.dont_crash {
             eprintln!("{}", "CRASHING...".red());
