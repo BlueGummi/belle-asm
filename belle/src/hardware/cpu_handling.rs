@@ -172,7 +172,7 @@ impl CPU {
                 let starting_point = self.int_reg[0];
                 let end_point = self.int_reg[1];
                 let memory = &self.memory;
-            
+
                 for index in starting_point..=end_point {
                     if let Some(value) = memory[index as usize] {
                         print!("{}", char::from_u32(value.try_into().unwrap()).unwrap());
