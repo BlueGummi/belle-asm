@@ -17,9 +17,9 @@ impl CPU {
             CMP(arg1, arg2) => self.handle_cmp(arg1, arg2),
             MUL(arg1, arg2) => self.handle_mul(arg1, arg2),
             SET(arg) => self.handle_set(arg),
-            //INT(arg) => self.handle_int(arg),
+            INT(arg) => self.handle_int(arg),
             MOV(arg1, arg2) => self.handle_mov(arg1, arg2),
-            _ => print!(""),
+            // _ => unreachable!(),
         }
         self.pc += 1;
     }

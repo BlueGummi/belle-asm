@@ -1,6 +1,7 @@
 	; $1 is x
 	; $2 is y
 .start $500
+	set #3  ; halt on overflow
 	mov %r1, #0 ; x
 	mov %r2, #1 ; y
 	st $1, %r1
@@ -17,6 +18,7 @@ loop:
 	mov %r2, %r3 ; y = z
 	st $1, %r1 ; put them back
 	st $2, %r2
+	int #3
 	set #1
 	jz @loop
 

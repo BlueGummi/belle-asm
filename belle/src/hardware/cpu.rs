@@ -15,6 +15,7 @@ pub struct CPU {
     pub running: bool,
     pub zflag: bool,
     pub oflag: bool,
+    pub hlt_on_overflow: bool,
 }
 impl Default for CPU {
     fn default() -> CPU {
@@ -34,6 +35,7 @@ impl CPU {
             running: false,
             zflag: false,
             oflag: false,
+            hlt_on_overflow: false,
         }
     }
     pub fn load_binary(&mut self, binary: Vec<i16>) {
@@ -94,7 +96,7 @@ impl CPU {
             }
         }
         // check for overflow
-        if some_count as u32 + self.starts_at as u32 > 65535 {
+        if some_count as u32 + self.starts_at as u32 > 65535 { // unused comparison
             EmuError::MemoryOverflow().err();
         }
         let mem_copy = self.memory;
@@ -142,6 +144,9 @@ impl CPU {
             if self.oflag {
                 RecoverableError::Overflow(self.pc, Some("Overflowed a register".to_string()))
                     .err();
+                if self.hlt_on_overflow {
+                    self.running = false;
+                }
             }
         }
         if !self.running {

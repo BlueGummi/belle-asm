@@ -37,6 +37,7 @@ impl CPU {
                 0 => (),
                 1 => self.zflag = false,
                 2 => self.oflag = false,
+                3 => self.hlt_on_overflow = false,
                 _ => self.report_unknown_flag("CL"),
             }
         }
@@ -140,6 +141,7 @@ impl CPU {
                 0 => (),
                 1 => self.zflag = true,
                 2 => self.oflag = true,
+                3 => self.hlt_on_overflow = true,
                 _ => self.report_unknown_flag("SET"),
             }
         }
@@ -155,6 +157,18 @@ impl CPU {
                     self.int_reg[*n as usize] = value as i16;
                 }
             }
+        }
+    }
+
+    pub fn handle_int(&mut self, arg: &Argument) {
+        let code = self.get_value(arg) as u16;
+        match code {
+            1_u16..=5_u16 => {
+                println!("{}", self.int_reg[code as usize]);
+            }
+            6 => println!("{}", self.float_reg[0]),
+            7 => println!("{}", self.float_reg[1]),
+            _ => todo!(),
         }
     }
 }
