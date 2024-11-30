@@ -3,11 +3,13 @@ use crate::Instruction::*;
 use crate::*;
 use colored::*;
 use std::vec::Vec;
+pub const MEMORY_SIZE: usize = 65536;
+pub const SR_LOC: usize = 50000;
 #[derive(Clone)]
 pub struct CPU {
     pub int_reg: [i16; 6],   // r0 thru r5
     pub float_reg: [f32; 2], // r6 and r7
-    pub memory: [Option<i16>; 65536],
+    pub memory: [Option<i16>; MEMORY_SIZE],
     pub pc: u16, // program counter
     pub ir: i16,
     pub jloc: u16, // location from which a jump was performed
@@ -28,7 +30,7 @@ impl CPU {
         CPU {
             int_reg: [0; 6],
             float_reg: [0.0; 2],
-            memory: [None; 65536],
+            memory: [None; MEMORY_SIZE],
             pc: 0,
             ir: 0,
             jloc: 0,
@@ -44,8 +46,8 @@ impl CPU {
         let mut in_subr = false;
         let mut counter = 0;
         let mut start_found = false;
-        let mut subr_loc = 20000;
         let mut sr_counter = 0;
+        let mut subr_loc = SR_LOC;
         for element in binary {
             if in_subr && (element >> 12) != RET_OP {
                 self.memory[subr_loc + sr_counter] = Some(element);
@@ -53,7 +55,7 @@ impl CPU {
                 continue;
             } else if (element >> 12) == RET_OP {
                 in_subr = false;
-                self.memory[counter + sr_counter] = Some(element);
+                self.memory[counter + subr_loc] = Some(element);
                 sr_counter = 0;
                 subr_loc += 100;
             }

@@ -27,7 +27,7 @@ impl CPU {
             self.pc = *n as u16;
         } else if let SR(s) = arg {
             self.jloc = self.pc;
-            self.pc = 20000 + ((*s as u16) * 100 - 100);
+            self.pc = (SR_LOC as u16) + ((*s as u16) * 100 - 100);
         }
     }
 
@@ -110,7 +110,7 @@ impl CPU {
             self.pc = *n as u16;
         } else if let SR(s) = arg {
             self.jloc = self.pc;
-            self.pc = 20000 + ((*s as u16) * 100 - 100);
+            self.pc = (SR_LOC as u16) + ((*s as u16) * 100 - 100);
         }
     }
 
