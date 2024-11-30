@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-static int supports_ansi() {
+static bool supports_ansi() {
     const char *term = getenv("TERM");
     return term && (strstr(term, "xterm") || strstr(term, "screen") || strstr(term, "linux"));
 }
