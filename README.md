@@ -11,6 +11,12 @@ Every executable in this repository can have the --help flag passed to display h
 ./build.sh -w && ./install.sh -c # This installs the binaries to ~/.local/bin
 ```
 
+Or, for Windows
+
+```pwsh
+.\build.ps1 -w && .\install.ps1 -c
+```
+
 The binaries can be run by calling `basm`, `belle`, or `bdump`.
 
 ## Naming
