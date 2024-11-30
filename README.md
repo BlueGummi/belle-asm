@@ -11,7 +11,7 @@ Every executable in this repository can have the --help flag passed to display h
 ./build.sh -w && ./install.sh -c # This installs the binaries to ~/.local/bin
 ```
 
-The binaries can be run by calling `basm` or `bdump`.
+The binaries can be run by calling `basm`, `belle`, or `bdump`.
 
 ## Naming
 
