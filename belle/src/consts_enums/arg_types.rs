@@ -18,7 +18,7 @@ pub enum Instruction {
     LD(Argument, Argument),
     ST(Argument, Argument),
     SWP(Argument, Argument),
-    jz(Argument),
+    JZ(Argument),
     CMP(Argument, Argument),
     MUL(Argument, Argument),
     SET(Argument),

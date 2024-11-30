@@ -5,9 +5,9 @@ pub struct CPU {
     pub float_reg: [f32; 2], // r6 and r7
     pub memory: [Option<i16>; 65536],
     pub pc: u16, // program counter
-    pub ic: u16, // instruction counter
     pub sp: u16,
     pub bp: u16,
+    pub ir: u16,
     pub jloc: u16, // location from which a jump was performed
     pub starts_at: u16,
     pub running: bool,
@@ -24,10 +24,10 @@ impl CPU {
             int_reg: [0; 6],
             float_reg: [0.0; 2],
             memory: [None; 65536],
-            pc: 0,
-            ic: 0,
+            pc: 1,
             sp: 0,
             bp: 0,
+            ir: 0,
             jloc: 0,
             starts_at: 0,
             running: false,
@@ -94,8 +94,7 @@ impl CPU {
                 self.memory[(i + self.starts_at) as usize] = mem_copy[i as usize];
             }
         }
-        self.ic = self.starts_at;
-        self.pc = self.ic + 1;
+        self.pc = self.starts_at;
         if CONFIG.verbose {
             println!("Shift completed.");
             //    println!("Memory: {:?}", self.memory);
@@ -106,10 +105,21 @@ impl CPU {
         while self.running {
             // fetch instructions
             // execute instructions
-            
-
-
+            if self.memory[self.pc as usize].is_none() {
+                UnrecoverableError::SegmentationFault(
+                    self.pc,
+                    Some("Segmentation fault while finding next instruction.".to_string()),
+                )
+                .err();
+            }
+            self.ir = self.memory[self.pc as usize].unwrap();
+            let parsed_ins = self.parse_instruction();
+            self.pc += 1;
         }
+    }
+    fn parse_instruction(&self) -> Instruction {
+        
+
     }
 }
 // we need a function to load instructions into RAM

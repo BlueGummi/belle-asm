@@ -3,7 +3,7 @@ use crate::*;
 use std::process;
 pub fn verify(ins: &Token, arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> bool {
     let instructions = [
-        "ADD", "HLT", "JGE", "CL", "DIV", "RET", "LD", "ST", "SWP", "jz", "SET", "CMP", "MUL",
+        "ADD", "HLT", "JGE", "CL", "DIV", "RET", "LD", "ST", "SWP", "JZ", "SET", "CMP", "MUL",
         "INT", "MOV",
     ];
     let raw_token = ins.get_raw().to_uppercase();

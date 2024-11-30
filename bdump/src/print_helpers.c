@@ -13,10 +13,10 @@ void print_binary(int num, int leading) {
 
 void print_help(const char *bin) { // bin is the name of the binary
     printf("The disassembler for %sBELLE-ISA%s\n\n", ANSI_BOLD, ANSI_RESET);
-    printf("%sUsage:%s %s [OPTIONS] <FILE>\n\n", ANSI_UNDERLINE, ANSI_RESET, bin);
-    printf("%sArguments:%s\n", ANSI_UNDERLINE, ANSI_RESET);
-    printf("  <FILE> Path to input\n\n");
-    printf("%sOptions:%s\n", ANSI_UNDERLINE, ANSI_RESET);
+    printf("%s%sUsage:%s %s [OPTIONS] <FILE>\n\n", ANSI_UNDERLINE, ANSI_RESET, bin);
+    printf("%s%sArguments:%s\n", ANSI_BOLD, ANSI_UNDERLINE, ANSI_RESET);
+    printf("  %s<FILE>%s Path to input\n\n", ANSI_BOLD, ANSI_RESET);
+    printf("%s%sOptions:%s\n", ANSI_BOLD, ANSI_UNDERLINE, ANSI_RESET);
     printf("  -h, --help       Show this help message and exit\n");
     printf("  -l, --line-num   Enable line numbering\n");
     printf("  -b, --binary     Print binary\n");
@@ -43,3 +43,53 @@ void print_instruction_header(int line, bool colors) {
     }
 }
 
+const char *units[] = {"",        "one",     "two",       "three",    "four",
+                       "five",    "six",     "seven",     "eight",    "nine",
+                       "ten",     "eleven",  "twelve",    "thirteen", "fourteen",
+                       "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"};
+
+const char *tens[] = {"",      "",      "twenty",  "thirty", "forty",
+                      "fifty", "sixty", "seventy", "eighty", "ninety"};
+
+const char *thousands[] = {"", "one thousand"};
+
+char *to_words(int num) {
+    if (num < 0 || num > 9999) {
+        return NULL;
+    }
+
+    if (num == 0) {
+        return strdup("zero");
+    }
+
+    char result[100] = "";
+    if (num >= 1000) {
+        strcat(result, thousands[num / 1000]);
+        strcat(result, "_");
+        num %= 1000;
+    }
+
+    if (num >= 100) {
+        strcat(result, units[num / 100]);
+        strcat(result, "_hundred");
+        strcat(result, "_");
+        num %= 100;
+    }
+
+    if (num >= 20) {
+        strcat(result, tens[num / 10]);
+        strcat(result, "_");
+        num %= 10;
+    }
+
+    if (num > 0) {
+        strcat(result, units[num]);
+        strcat(result, "_");
+    }
+
+    if (result[strlen(result) - 1] == '_') {
+        result[strlen(result) - 1] = '\0';
+    }
+
+    return strdup(result);
+}
