@@ -60,7 +60,7 @@ impl CPU {
         for element in binary {
             if in_subr {//} && (element >> 12) != RET_OP {
                 if (element >> 12) & 0b1111u16 as i16 == RET_OP {
-                    // self.memory[counter + subr_loc] = Some(element);
+                    self.memory[sr_counter + subr_loc] = Some(element);
                     sr_counter = 0;
                     subr_loc += 100;                    
                     // in_subr = false;
