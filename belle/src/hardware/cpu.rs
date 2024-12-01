@@ -59,14 +59,15 @@ impl CPU {
 
         for element in binary {
             if in_subr {//} && (element >> 12) != RET_OP {
+                if (element >> 12) & 0b1111u16 as i16 == RET_OP {
+                    // self.memory[counter + subr_loc] = Some(element);
+                    sr_counter = 0;
+                    subr_loc += 100;                    
+                    // in_subr = false;
+                    continue;
+                }
                 self.memory[subr_loc + sr_counter] = Some(element);
                 sr_counter += 1;
-                continue;
-            } else if (element >> 12) == RET_OP {
-                in_subr = false;
-                self.memory[counter + subr_loc] = Some(element);
-                sr_counter = 0;
-                subr_loc += 100;
                 continue;
             }
             if (element >> 9) == 1 {
@@ -89,7 +90,7 @@ impl CPU {
                 if CONFIG.verbose {
                     println!("Element {:016b} loaded into memory", element);
                 }
-            } else {
+            } else { // subr
                 self.memory[subr_loc + sr_counter] = Some(element);
                 in_subr = true;
                 sr_counter += 1;
@@ -162,7 +163,7 @@ impl CPU {
             self.ir = self.memory[self.pc as usize].unwrap();
             let parsed_ins = self.parse_instruction();
             self.execute_instruction(&parsed_ins);
-            if CONFIG.debug {
+            if CONFIG.debug || CONFIG.verbose {
                 self.record_state();
             }
             let clock = CLOCK.lock().unwrap();

@@ -191,9 +191,9 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Disassembled Instruction : \n  {}\n", disassemble(dbgcpu.ir));
             }
             "a" => {
-                for element in dbgcpu.memory.iter() {
+                for (index, element) in dbgcpu.memory.iter().enumerate() {
                     if element.is_some() {
-                        println!("Value is {}", disassemble(element.unwrap()));
+                        println!("Value at {} is {}", index, disassemble(element.unwrap()));
                     }
                 }
             }
