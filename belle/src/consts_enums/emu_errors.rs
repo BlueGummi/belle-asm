@@ -31,6 +31,10 @@ impl EmuError {
                 eprintln!("{}: {}", "Configuration combination not possible".red(), s);
             }
         }
-        std::process::exit(1);
+        if let EmuError::ReadFail(_) = self {
+            println!("{}", "Retrying..".yellow());
+        } else {
+            std::process::exit(1);
+        }
     }
 }

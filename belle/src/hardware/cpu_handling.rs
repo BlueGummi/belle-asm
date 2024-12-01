@@ -192,13 +192,27 @@ impl CPU {
                 println!();
             }
             9 => {
-                let mut input = String::new();
-                std::io::stdin().read_line(&mut input).unwrap();
-                match input.trim().parse::<i16>() {
-                    Ok(number) => {
-                        self.int_reg[0] = number;
+                let mut attempts = 0;
+                let max_attempts = 10;
+                
+                while attempts < max_attempts {
+                    let mut input = String::new();
+                    std::io::stdin().read_line(&mut input).unwrap();
+                    
+                    match input.trim().parse::<i16>() {
+                        Ok(number) => {
+                            self.int_reg[0] = number;
+                            break;
+                        }
+                        Err(e) => {
+                            EmuError::ReadFail(e.to_string()).err();
+                            attempts += 1;
+                            if attempts == max_attempts {
+                                println!("Failed to parse int from stdin 10 times, exiting...");
+                                std::process::exit(1);
+                            }
+                        }
                     }
-                    Err(e) => EmuError::ReadFail(e.to_string()).err(),
                 }
             }
             10 => std::thread::sleep(std::time::Duration::from_secs(1)),
