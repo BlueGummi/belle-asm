@@ -47,7 +47,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     println!("p | pmem      - Print value in memory");
                     println!("i | info      - Print CPU state at debugger's clock");
                     println!("wb            - Print CPU's starting memory address");
-                    println!("cls | clear   - Clear screen");
+                    println!("cls           - Clear screen");
                     println!("e | exc       - Execute instruction");
                 } else {
                     match arg.trim().to_lowercase().as_str() {
