@@ -59,11 +59,11 @@ impl UnrecoverableError {
             let instruction: Vec<Arc<CPU>> = state
                 .values()
                 .filter(|cpu| cpu.pc == *location)
-                .cloned() // This clones the Arc, not the CPU itself
+                .cloned()
                 .collect();
             if let Some(cpu) = instruction.first() {
                 if let Some(data) = cpu.memory[*location as usize] {
-                    eprintln!("Instruction is {}", data.to_string().magenta());
+                    eprintln!("Instruction is {}", format!("{:016b}", data).magenta());
                 } else {
                     eprintln!(
                         "{}",

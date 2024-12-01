@@ -66,15 +66,13 @@ impl CPU {
             MemPtr(n) => {
                 if self.memory[*n as usize].is_none() {
                     self.handle_segmentation_fault(
-                        "Segmentation fault while dereferencing pointer. 
-                    The pointer's location is empty.",
+                        "Segmentation fault while dereferencing pointer.\nThe pointer's location is empty.",
                     );
                 }
                 let tmp = self.memory[*n as usize].unwrap() as usize;
                 if self.memory[tmp].is_none() {
                     self.handle_segmentation_fault(
-                        "Segmentation fault while dereferencing pointer. 
-                    The address the pointer references is empty.",
+                        "Segmentation fault while dereferencing pointer.\nThe address the pointer references is empty.",
                     );
                 }
                 self.memory[tmp].unwrap().into()
@@ -90,17 +88,17 @@ impl CPU {
                 let memloc: usize = tmp as usize;
                 if self.memory[memloc].is_none() {
                     self.handle_segmentation_fault(
-                        "Segmentation fault while dereferencing pointer. 
-                    The address the pointer references is empty.",
+                        "Segmentation fault while dereferencing pointer.\nThe address the pointer references is empty.",
                     );
+                    self.running = false;
+                    return 0.0;
                 }
                 self.memory[memloc].unwrap().into()
             }
             MemAddr(n) => {
                 if self.memory[*n as usize].is_none() {
                     self.handle_segmentation_fault(
-                        "Segmentation fault while loading from memory.
-                        Memory address is empty.",
+                        "Segmentation fault while loading from memory.\nMemory address is empty.",
                     );
                 }
                 self.memory[*n as usize].unwrap().into()
@@ -178,5 +176,76 @@ impl CPU {
             MOV_OP => MOV(Register(destination), part),
             _ => unreachable!(),
         }
+    }
+}
+pub fn disassemble(ins: i16) -> Instruction {
+    let opcode = (ins >> 12) & 0b0000000000001111u16 as i16;
+
+    let ins_type = if ((ins >> 8) & 1) == 1 {
+        1
+    } else if ((ins >> 7) & 1) == 1 {
+        2
+    } else if ((ins >> 6) & 1) == 1 {
+        3
+    } else {
+        0
+    };
+    let source = match ins_type {
+        0 => ins & 0b111,
+        1 => {
+            let tmp = ins & 0b1111111;
+            if (ins & 0b10000000) >> 7 == 1 {
+                -tmp
+            } else {
+                tmp
+            }
+        }
+        2 => ins & 0b1111111,
+        _ => ins & 0b111111,
+    };
+    let destination = (ins & 0b111000000000) >> 9;
+    let part = match ins_type {
+        0 => Register(source),
+        1 => Literal(source),
+        2 => MemPtr(source),
+        _ => RegPtr(source),
+    };
+
+    // println!("{:04b}", opcode);
+    match opcode {
+        HLT_OP => HLT,
+        ADD_OP => ADD(Register(destination), part),
+        JGE_OP => {
+            if destination == 4 {
+                JGE(SR(source))
+            } else {
+                JGE(MemAddr(source))
+            }
+        }
+        CL_OP => CL(Flag(source)),
+        DIV_OP => DIV(Register(destination), part),
+        RET_OP => RET,
+        LD_OP => {
+            let part = ins & 0b111111111;
+            LD(Register(destination), MemAddr(part))
+        }
+        ST_OP => {
+            let part = (ins & 0b111111111000) >> 3;
+            ST(MemAddr(part), Register(ins & 0b111))
+        }
+        SWP_OP => SWP(Register(destination), Register(ins & 0b111)),
+        JZ_OP => {
+            if destination == 4 {
+                JZ(SR(source))
+            } else {
+                JZ(MemAddr(source))
+            }
+        }
+        CMP_OP => CMP(Register(destination), part),
+        MUL_OP => MUL(Register(destination), part),
+        SET_OP => SET(Flag(source)),
+        INT_OP => INT(Literal(source)),
+        MOV_OP => MOV(Register(destination), part),
+        _ => unreachable!(),
     }
 }

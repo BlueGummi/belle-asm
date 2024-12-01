@@ -32,15 +32,18 @@ pub struct Cli {
     #[clap(short = 't', long)]
     pub time_delay: Option<u32>,
 }
-
 pub fn declare_config() -> Cli {
     let cli = Cli::parse();
+
+    // dont_crash true if debug is true
+    let dont_crash = if cli.debug { true } else { cli.dont_crash };
+
     Cli {
         file: cli.file,
         verbose: cli.verbose,
         debug: cli.debug,
         quiet: cli.quiet,
-        dont_crash: cli.dont_crash,
+        dont_crash,
         time_delay: Some(cli.time_delay.unwrap_or(0)),
     }
 }

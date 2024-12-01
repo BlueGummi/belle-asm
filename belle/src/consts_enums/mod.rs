@@ -6,3 +6,5 @@ pub mod emu_errors;
 pub use emu_errors::*;
 pub mod arg_types;
 pub use arg_types::*;
+pub mod dbg_cmds;
+pub use dbg_cmds::*;

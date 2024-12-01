@@ -12,6 +12,9 @@ impl CPU {
         if !CONFIG.quiet {
             println!("Attempting to recover by restarting...");
         }
+        if CONFIG.debug {
+            self.running = false;
+        }
         std::thread::sleep(std::time::Duration::from_secs(1));
         self.pc = self.starts_at;
     }
@@ -29,6 +32,9 @@ impl CPU {
             .err();
         if !CONFIG.quiet {
             println!("Attempting to recover by restarting...");
+        }
+        if CONFIG.debug {
+            self.running = false;
         }
         std::thread::sleep(std::time::Duration::from_secs(1));
         self.pc = self.starts_at;
@@ -51,6 +57,9 @@ impl CPU {
         UnrecoverableError::SegmentationFault(self.pc, Some(message.to_string())).err();
         if !CONFIG.quiet {
             println!("Attempting to recover by restarting...");
+        }
+        if CONFIG.debug {
+            self.running = false;
         }
         std::thread::sleep(std::time::Duration::from_secs(1));
         self.pc = self.starts_at;

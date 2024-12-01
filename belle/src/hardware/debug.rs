@@ -14,42 +14,22 @@ impl CPU {
     }
 
     pub fn display_state(clock: u32) {
-        if !CONFIG.verbose {
+        if !CONFIG.verbose && !CONFIG.debug {
             return;
         }
         let state = CPU_STATE.lock().unwrap();
         if let Some(cpu) = state.get(&clock) {
             println!("\nCPU State for clock cycle {}:", clock);
-            println!("  Integer Registers    : {:?}", cpu.int_reg);
-            println!("  Float Registers      : {:?}", cpu.float_reg);
-            /*
-            println!("  memory:");
-            let mut none_count = 0;
-
-            for (i, &item) in cpu.memory.iter().enumerate() {
-                match item {
-                    Some(value) => {
-                        println!("    memory[{}]: Some({})", i, value);
-                        none_count = 0;
-                    }
-                    None => {
-                        println!("    memory[{}]: None", i);
-                        none_count += 1;
-                        if none_count >= 3 {
-                            println!("    ... (stopped displaying after 3 consecutive Nones)");
-                            break;
-                        }
-                    }
-                }
-            }
-            */
-            println!("  Program Counter      : {}", cpu.pc);
-            println!("  Instruction Register : {:016b}", cpu.ir);
-            println!("  Jump Location        : {}", cpu.jloc);
-            println!("  Running              : {}", cpu.running);
-            println!("  Zero flag            : {}", cpu.zflag);
-            println!("  Overflow flag        : {}", cpu.oflag);
-            println!("  Remainder flag       : {}", cpu.rflag);
+            println!("  Integer Registers        : {:?}", cpu.int_reg);
+            println!("  Float Registers          : {:?}", cpu.float_reg);
+            println!("  Program Counter          : {}", cpu.pc);
+            println!("  Instruction Register     : {:016b}", cpu.ir);
+            println!("  Jump Location            : {}", cpu.jloc);
+            println!("  Running                  : {}", cpu.running);
+            println!("  Zero flag                : {}", cpu.zflag);
+            println!("  Overflow flag            : {}", cpu.oflag);
+            println!("  Remainder flag           : {}", cpu.rflag);
+            println!("  Disassembled Instruction : \n{}", disassemble(cpu.ir));
         } else {
             println!("No CPU state found for clock: {}", clock);
         }

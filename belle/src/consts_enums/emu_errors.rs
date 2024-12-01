@@ -5,6 +5,7 @@ pub enum EmuError {
     MemoryOverflow(),
     Duplicate(String),
     ReadFail(String),
+    Impossible(String),
 }
 impl EmuError {
     pub fn err(&self) {
@@ -25,6 +26,9 @@ impl EmuError {
                     "Failed to read from stdin and parse to i16".red(),
                     s
                 );
+            }
+            EmuError::Impossible(s) => {
+                eprintln!("{}: {}", "Configuration combination not possible".red(), s);
             }
         }
         std::process::exit(1);

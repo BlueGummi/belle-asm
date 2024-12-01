@@ -15,6 +15,7 @@ pub struct CPU {
     pub jloc: u16, // location from which a jump was performed
     pub starts_at: u16,
     pub running: bool,
+    pub has_ran: bool,
     pub zflag: bool,
     pub oflag: bool,
     pub rflag: bool,
@@ -36,6 +37,7 @@ impl CPU {
             jloc: 0,
             starts_at: 0,
             running: false,
+            has_ran: false,
             zflag: false,
             oflag: false,
             rflag: false,
@@ -117,6 +119,7 @@ impl CPU {
         }
     }
     pub fn run(&mut self) {
+        self.has_ran = true; // for debugger
         self.running = true;
         if CONFIG.verbose {
             println!("  Starts At MemAddr: {}", self.starts_at);
@@ -148,7 +151,9 @@ impl CPU {
             self.execute_instruction(&parsed_ins);
             self.record_state();
             let clock = CLOCK.lock().unwrap();
-            cpu::CPU::display_state(*clock);
+            if CONFIG.verbose {
+                cpu::CPU::display_state(*clock);
+            }
             if self.oflag {
                 RecoverableError::Overflow(self.pc, Some("Overflowed a register.".to_string()))
                     .err();
@@ -166,8 +171,12 @@ impl CPU {
             std::mem::drop(clock);
             self.record_state();
             let clock = CLOCK.lock().unwrap(); // might panic
-            cpu::CPU::display_state(*clock);
-            std::process::exit(0);
+            if CONFIG.verbose {
+                cpu::CPU::display_state(*clock);
+            }
+            if !CONFIG.debug {
+                std::process::exit(0);
+            }
         }
     }
 }
