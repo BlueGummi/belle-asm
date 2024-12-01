@@ -1,6 +1,7 @@
 use crate::Argument::*;
 use crate::Instruction::*;
 use crate::*;
+use colored::*;
 impl CPU {
     pub fn execute_instruction(&mut self, ins: &Instruction) {
         match ins {
@@ -174,7 +175,14 @@ impl CPU {
             SET_OP => SET(Flag(source)),
             INT_OP => INT(Literal(source)),
             MOV_OP => MOV(Register(destination), part),
-            _ => unreachable!(),
+            0b1111 => {
+                eprintln!("Cannot parse subroutine.\nParsed instruction will do nothing.");
+                MOV(Register(0), Register(0))
+            }
+            _ => {
+                eprintln!("Cannot parse this. Code should be unreachable. {} line {}", file!(), line!());
+                MOV(Register(0), Register(0))
+            }
         }
     }
 }
@@ -246,6 +254,13 @@ pub fn disassemble(ins: i16) -> Instruction {
         SET_OP => SET(Flag(source)),
         INT_OP => INT(Literal(source)),
         MOV_OP => MOV(Register(destination), part),
-        _ => unreachable!(),
+        0b1111 => {
+            eprintln!("{}", "  Cannot parse subroutine.\n  Parsed instruction will do nothing.".red());
+            MOV(Register(0), Register(0))
+        }
+        _ => {
+            eprintln!("Cannot parse this. Code should be unreachable. {} line {}", file!(), line!());
+            MOV(Register(0), Register(0))
+        }
     }
 }
