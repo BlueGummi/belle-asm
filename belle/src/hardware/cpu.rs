@@ -2,15 +2,18 @@ use crate::Argument::*;
 use crate::Instruction::*;
 use crate::*;
 use colored::*;
+use std::sync::{Arc, Mutex};
 use std::vec::Vec;
+
 pub const MEMORY_SIZE: usize = 65536;
 pub const SR_LOC: usize = 50000;
+
 #[derive(Clone)]
 pub struct CPU {
-    pub int_reg: [i16; 6],   // r0 thru r5
-    pub float_reg: [f32; 2], // r6 and r7
-    pub memory: [Option<i16>; MEMORY_SIZE],
-    pub pc: u16, // program counter
+    pub int_reg: [i16; 6],                       // r0 thru r5
+    pub float_reg: [f32; 2],                     // r6 and r7
+    pub memory: Box<[Option<i16>; MEMORY_SIZE]>, // Use Box to allocate the array on the heap
+    pub pc: u16,                                 // program counter
     pub ir: i16,
     pub jloc: u16, // location from which a jump was performed
     pub starts_at: u16,
@@ -21,17 +24,19 @@ pub struct CPU {
     pub rflag: bool,
     pub hlt_on_overflow: bool,
 }
+
 impl Default for CPU {
     fn default() -> CPU {
         CPU::new()
     }
 }
+
 impl CPU {
     pub fn new() -> CPU {
         CPU {
             int_reg: [0; 6],
             float_reg: [0.0; 2],
-            memory: [None; MEMORY_SIZE],
+            memory: Box::new([None; MEMORY_SIZE]), // Initialize memory as a Boxed array
             pc: 0,
             ir: 0,
             jloc: 0,
@@ -44,12 +49,14 @@ impl CPU {
             hlt_on_overflow: false,
         }
     }
+
     pub fn load_binary(&mut self, binary: Vec<i16>) {
         let mut in_subr = false;
         let mut counter = 0;
         let mut start_found = false;
         let mut sr_counter = 0;
         let mut subr_loc = SR_LOC;
+
         for element in binary {
             if in_subr && (element >> 12) != RET_OP {
                 self.memory[subr_loc + sr_counter] = Some(element);
@@ -90,34 +97,39 @@ impl CPU {
             counter += 1;
         }
     }
+
     #[allow(unused_comparisons)]
     fn shift_memory(&mut self) {
         let mut some_count = 0;
         if CONFIG.verbose {
             println!("Shifting memory...");
         }
-        for element in self.memory {
+
+        for element in self.memory.iter() {
             if element.is_some() {
                 some_count += 1;
             }
         }
-        // check for overflow
+
         if some_count as u32 + self.starts_at as u32 > 65535 {
-            // unused comparison
             EmuError::MemoryOverflow().err();
         }
-        let mem_copy = self.memory;
-        self.memory = [None; 65536];
+
+        let mut new_memory = Box::new([None; MEMORY_SIZE]);
+
         for i in 0..=65535 {
-            if mem_copy[i as usize].is_some() {
-                self.memory[(i + self.starts_at) as usize] = mem_copy[i as usize];
+            if let Some(value) = self.memory[i].take() {
+                new_memory[(i as u16 + self.starts_at) as usize] = Some(value);
             }
         }
+        std::mem::swap(&mut self.memory, &mut new_memory);
         self.pc = self.starts_at;
+
         if CONFIG.verbose {
             println!("Shift completed.");
         }
     }
+
     pub fn run(&mut self) {
         self.has_ran = true; // for debugger
         self.running = true;
@@ -180,7 +192,3 @@ impl CPU {
         }
     }
 }
-// we need a function to load instructions into RAM
-// we also need interrupts for pseudo-instructions
-//
-// debug messages would be nice too

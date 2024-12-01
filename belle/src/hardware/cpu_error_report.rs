@@ -48,7 +48,9 @@ impl CPU {
                 if !CONFIG.quiet {
                     println!("Halting...");
                 }
-                std::process::exit(0); // dumb hack for a dumb bug (cpu would overflow twice)
+                if !CONFIG.debug {
+                    std::process::exit(0);
+                } // dumb hack for a dumb bug (cpu would overflow twice)
             }
         }
     }
