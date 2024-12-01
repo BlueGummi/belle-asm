@@ -26,7 +26,7 @@ impl CPU {
         if let MemAddr(n) = arg {
             self.pc = *n as u16;
         } else if let SR(s) = arg {
-            self.jloc = self.pc;
+            self.jloc = self.pc-1;
             self.pc = (SR_LOC as u16) + ((*s as u16) * 100 - 100);
         }
     }
@@ -109,7 +109,7 @@ impl CPU {
         if let MemAddr(n) = arg {
             self.pc = *n as u16;
         } else if let SR(s) = arg {
-            self.jloc = self.pc;
+            self.jloc = self.pc-1;
             self.pc = (SR_LOC as u16) + ((*s as u16) * 100 - 100);
         }
     }
@@ -219,6 +219,7 @@ impl CPU {
             11 => self.zflag = !self.zflag,
             12 => self.oflag = !self.oflag,
             13 => self.rflag = !self.rflag,
+            14 => self.zflag = self.rflag,
             _ => todo!(),
         }
     }

@@ -58,7 +58,7 @@ impl CPU {
         let mut subr_loc = SR_LOC;
 
         for element in binary {
-            if in_subr && (element >> 12) != RET_OP {
+            if in_subr {//} && (element >> 12) != RET_OP {
                 self.memory[subr_loc + sr_counter] = Some(element);
                 sr_counter += 1;
                 continue;
@@ -67,6 +67,7 @@ impl CPU {
                 self.memory[counter + subr_loc] = Some(element);
                 sr_counter = 0;
                 subr_loc += 100;
+                continue;
             }
             if (element >> 9) == 1 {
                 if start_found {
@@ -83,7 +84,7 @@ impl CPU {
                 }
                 continue;
             }
-            if (element >> 12) & 0b0000000000001111u16 as i16 != 0b1111 {
+            if (element >> 12) & 0b1111u16 as i16 != 0b1111 {
                 self.memory[counter + self.starts_at as usize] = Some(element);
                 if CONFIG.verbose {
                     println!("Element {:016b} loaded into memory", element);
@@ -161,7 +162,9 @@ impl CPU {
             self.ir = self.memory[self.pc as usize].unwrap();
             let parsed_ins = self.parse_instruction();
             self.execute_instruction(&parsed_ins);
-            self.record_state();
+            if CONFIG.debug {
+                self.record_state();
+            }
             let clock = CLOCK.lock().unwrap();
             if CONFIG.verbose {
                 cpu::CPU::display_state(*clock);

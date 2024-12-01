@@ -149,6 +149,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 if let Ok(n) = arg.parse::<usize>() {
                     if let Some(memvalue) = dbgcpu.memory[n] {
                         println!("Value in memory is:\n{:016b}\n{}", memvalue, memvalue);
+                        println!("dumped instruction: {}", disassemble(memvalue));
                     } else {
                         println!("{}", "Nothing in memory here.\n".yellow());
                     }
@@ -188,6 +189,13 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Overflow flag            : {}", dbgcpu.oflag);
                 println!("  Remainder flag           : {}", dbgcpu.rflag);
                 println!("  Disassembled Instruction : \n  {}\n", disassemble(dbgcpu.ir));
+            }
+            "a" => {
+                for element in dbgcpu.memory.iter() {
+                    if element.is_some() {
+                        println!("Value is {}", disassemble(element.unwrap()));
+                    }
+                }
             }
             "cls" | "clear" => {
                 cls();

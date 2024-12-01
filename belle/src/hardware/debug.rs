@@ -6,10 +6,16 @@ use std::sync::Mutex;
 pub static CPU_STATE: Lazy<Mutex<HashMap<u32, Arc<CPU>>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 pub static CLOCK: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
+const MEMORY_LIMIT: usize = 1024 * 100;
 impl CPU {
     pub fn record_state(&self) {
         let mut state = CPU_STATE.lock().unwrap();
         let clock = CLOCK.lock().unwrap();
+        if state.len() * std::mem::size_of::<(u32, Arc<CPU>)>() > MEMORY_LIMIT {
+            println!("Memory limit exceeded, skipping state recording.");
+            std::process::exit(1);
+        }
+
         state.insert(*clock, Arc::new(self.clone()));
     }
 
