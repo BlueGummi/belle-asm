@@ -95,7 +95,6 @@ default_build() {
                 spinner $pid "Building BELLE-asm..."
                 cp -f target/release/basm ../bin
                 cd ..
-                print_message "basm build complete" blue
                 ;;
             bdump)
                 cd bdump
@@ -104,7 +103,6 @@ default_build() {
                 spinner $pid "Building BELLE-dump..."
                 cp -f bdump ../bin
                 cd ..
-                print_message "bdump build complete" blue
                 ;;
             belle)
                 cd belle
@@ -113,7 +111,6 @@ default_build() {
                 spinner $pid "Building BELLE..."
                 cp -f target/release/belle ../bin
                 cd ..
-                print_message "belle build complete" blue
                 ;;
         esac
     done
