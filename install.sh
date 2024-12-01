@@ -10,13 +10,22 @@ FILE3="belle"
 print_message() {
     local message="$1"
     local color="$2"
-    case "$color" in
-        green) echo -e "\e[32m$message\e[0m" ;;
-        red) echo -e "\e[31m$message\e[0m" ;;
-        yellow) echo -e "\e[33m$message\e[0m" ;;
-        blue) echo -e "\e[34m$message\e[0m" ;;
-        *) echo "$message" ;;
-    esac
+
+    local color_supported=$(tput colors 2>/dev/null)
+
+    if [[ -t 1 && (${color_supported:-0} -ge 8) ]]; then
+        case "$color" in
+            green) tput setaf 2 ;;
+            red) tput setaf 1 ;;
+            yellow) tput setaf 3 ;;
+            blue) tput setaf 4 ;;
+            *) tput sgr0 ;;
+        esac
+        echo "$message"
+        tput sgr0
+    else
+        echo "$message"
+    fi
 }
 
 install() {
@@ -56,8 +65,18 @@ install() {
 }
 
 print_help() {
+    local color_supported=$(tput colors 2>/dev/null)
+
+    if [[ -t 1 && (${color_supported:-0} -ge 8) ]]; then
+        underline=$(tput smul)
+        reset=$(tput sgr0)
+    else
+        underline=""
+        reset=""
+    fi
+
     printf "The install script for the BELLE programs and utilities\n\n"
-    printf "\e[4mUsage\e[0m: $1 [OPTIONS]\n"
+    printf "${underline}Usage${reset}: $1 [OPTIONS]\n"
     printf "Options:\n"
     printf "  -c, --cleanup        Clean the binary directory\n"
     printf "  -h, --help           Display this help message\n"
