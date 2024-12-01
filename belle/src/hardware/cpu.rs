@@ -175,7 +175,7 @@ impl CPU {
             }
         }
         if !self.running {
-            if !CONFIG.quiet {
+            if !CONFIG.verbose {
                 println!("Halting...");
             }
             let mut clock = CLOCK.lock().unwrap(); // might panic

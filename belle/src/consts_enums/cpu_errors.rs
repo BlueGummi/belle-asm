@@ -81,7 +81,7 @@ impl UnrecoverableError {
 // keep working on this
 impl RecoverableError {
     pub fn err(&self) {
-        if CONFIG.quiet {
+        if !CONFIG.verbose {
             return;
         }
         eprint!("{} ", "RECOVERABLE ERROR:".yellow());

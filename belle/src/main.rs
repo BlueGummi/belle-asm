@@ -8,6 +8,9 @@ fn main() -> io::Result<()> {
     if CONFIG.debug && CONFIG.verbose {
         EmuError::Impossible("Cannot have both debug and verbose flags".to_string()).err();
     }
+    if CONFIG.quiet && CONFIG.verbose {
+        EmuError::Impossible("Cannot have both debug and quiet flags".to_string()).err();
+    }
     let executable_path = &CONFIG.file;
     if File::open(Path::new(executable_path)).is_err() {
         EmuError::FileNotFound().err();

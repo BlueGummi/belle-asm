@@ -45,7 +45,7 @@ impl CPU {
             self.oflag = true;
             if self.hlt_on_overflow {
                 self.running = false;
-                if !CONFIG.quiet {
+                if CONFIG.verbose {
                     println!("Halting...");
                 }
                 if !CONFIG.debug {
