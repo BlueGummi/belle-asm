@@ -23,13 +23,6 @@
 #define MOV_OP 0b1110
 #define SR_OP 0b1111
 
-    static bool
-    supports_ansi() {
-    const char *term = getenv("TERM");
-    return term && (strstr(term, "xterm") || strstr(term, "screen") || strstr(term, "linux"));
-}
-
-#ifdef ENABLE_ANSI
 #define ANSI_RESET "\033[0m"
 #define ANSI_BOLD "\033[1m"
 #define ANSI_UNDERLINE "\033[4m"
@@ -51,28 +44,4 @@
 #define ANSI_BG_MAGENTA "\033[45m"
 #define ANSI_BG_CYAN "\033[46m"
 #define ANSI_BG_WHITE "\033[47m"
-#else
-#define ANSI_RESET ""
-#define ANSI_BOLD ""
-#define ANSI_UNDERLINE ""
-#define ANSI_BLACK ""
-#define ANSI_RED ""
-#define ANSI_GREEN ""
-#define ANSI_YELLOW ""
-#define ANSI_BLUE ""
-#define ANSI_MAGENTA ""
-#define ANSI_CYAN ""
-#define ANSI_WHITE ""
-#define ANSI_GRAY ""
-#define ANSI_LIGHT_GRAY ""
-#define ANSI_BG_BLACK ""
-#define ANSI_BG_RED ""
-#define ANSI_BG_GREEN ""
-#define ANSI_BG_YELLOW ""
-#define ANSI_BG_BLUE ""
-#define ANSI_BG_MAGENTA ""
-#define ANSI_BG_CYAN ""
-#define ANSI_BG_WHITE ""
 #endif
-
-#endif // CONSTS_H
