@@ -34,12 +34,19 @@ impl CPU {
 
     pub fn handle_pop(&mut self, arg: &Argument) {
         if let Register(_) = arg {
-            match self.memory[self.sp as usize] {
+            let temp: i32 = if self.sp >= self.bp {
+                (self.sp - 1).into()
+            } else {
+                (self.sp + 1).into()
+            };
+            match self.memory[temp as usize] {
                 Some(v) => {
                     self.set_register_value(arg, v.into());
                     if self.sp > self.bp {
+                        self.memory[(self.sp - 1) as usize] = None;
                         self.sp -= 1;
                     } else {
+                        self.memory[(self.sp + 1) as usize] = None;
                         self.sp += 1;
                     }
                 }
@@ -49,13 +56,13 @@ impl CPU {
                         Some("Segmentation fault whilst POPping off the stack".to_string()),
                     )
                     .err();
-
                     if !CONFIG.debug {
                         std::process::exit(1);
                     }
                 }
             }
         }
+        
     }
 
     pub fn handle_div(&mut self, arg1: &Argument, arg2: &Argument) {
@@ -173,28 +180,29 @@ impl CPU {
     pub fn handle_push(&mut self, arg: &Argument) {
         let mut val: f32 = 0.0;
         if let Literal(l) = arg {
-            // this will ALWAYS
-            val = (*l).into(); // be a register or literal
+            val = (*l).into();
         }
 
         if let Register(_) = arg {
             val = self.get_register_value(arg);
         }
-        if self.sp > self.bp {
-            for i in self.bp..self.sp {
+        if self.sp >= self.bp {
+            for i in self.bp..=self.sp {
                 if self.memory[i as usize].is_none() {
                     self.memory[i as usize] = Some(val as i16);
-                    self.sp = i;
+                    self.sp = i + 1;
                     break;
                 }
             }
         } else {
-            for i in self.sp..self.bp {
+            let mut i = self.bp;
+            while i >= self.sp {
                 if self.memory[i as usize].is_none() {
                     self.memory[i as usize] = Some(val as i16);
-                    self.sp = i; // set the stack pointer
+                    self.sp = i - 1; // set the stack pointer
                     break;
                 }
+                i -= 1; // down by one
             }
         }
     }

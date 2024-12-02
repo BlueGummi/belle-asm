@@ -194,6 +194,8 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Zero flag                : {}", dbgcpu.zflag);
                 println!("  Overflow flag            : {}", dbgcpu.oflag);
                 println!("  Remainder flag           : {}", dbgcpu.rflag);
+                println!("  Stack pointer            : {}", dbgcpu.sp);
+                println!("  Base pointer             : {}", dbgcpu.bp);
                 println!(
                     "  Disassembled Instruction : \n  {}\n",
                     disassemble(dbgcpu.ir)

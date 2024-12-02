@@ -1,24 +1,26 @@
 	; $1 is x
 	; $2 is y
+.sbp $100
+.ssp $1
 .start $500
-	set #3  ; halt on overflow
-	mov %r1, #0 ; x
-	mov %r2, #1 ; y
-	st $1, %r1
-	st $2, %r2
-	set #1
+	int #15  ; halt on overflow
+	mov %r0, #0 ; x
+	mov %r1, #1 ; y
+	push %r0
+    push %r1
+	int #11
 	jz @loop
 loop:
-	mov %r3, #0 ; z
-	ld %r1, $1 ; load them back
-	ld %r2, $2
-	add %r3, %r2 ; z = z + y
-	add %r3, %r1 ; z = z + x
-	mov %r1, %r2 ; x = y
-	mov %r2, %r3 ; y = z
-	st $1, %r1 ; put them back
-	st $2, %r2
-	int #3
-	set #1
+	mov %r2, #0 ; z
+	pop %r1 ; load them back
+	pop %r0
+	add %r2, %r1 ; z = z + y
+	add %r2, %r0 ; z = z + x
+	mov %r0, %r1 ; x = y
+	mov %r1, %r2 ; y = z
+	push %r0 ; put them back
+	push %r1
+	int #2
+	int #11
 	jz @loop
 
