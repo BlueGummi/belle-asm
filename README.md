@@ -20,7 +20,7 @@ Or, for Windows
 The binaries can be run by calling `basm`, `belle`, or `bdump`.
 
 ### BELLE and the BELLE utilities in action:
-![BELLE Usage GIF](https://github.com/BlueGummi/belle/tree/main/media/belle-usage.gif)
+![BELLE Usage GIF](https://github.com/BlueGummi/belle/blob/master/media/belle-usage.gif)
 
 ## Naming
 
