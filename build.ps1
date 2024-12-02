@@ -87,7 +87,6 @@ function Default-Build {
                     $PPid = $_.Id
                     Spinner $PPid "Building BELLE-asm..."
                     Copy-Item -Path "target\release\basm.exe" -Destination "../bin" -Force
-                    Print-Message "basm build complete" "green"
                 }
                 Set-Location ..
             }
@@ -97,7 +96,6 @@ function Default-Build {
                     $PPid = $_.Id
                     Spinner $PPid "Building BELLE-dump..."
                     Copy-Item -Path "bdump.exe" -Destination "../bin" -Force
-                    Print-Message "bdump build complete" "green"
                 }
                 Set-Location ..
             }
@@ -107,7 +105,6 @@ function Default-Build {
                     $PPid = $_.Id
                     Spinner $PPid "Building BELLE..."
                     Copy-Item -Path "target\release\belle.exe" -Destination "../bin" -Force
-                    Print-Message "belle build complete" "green"
                 }
                 Set-Location ..
             }
