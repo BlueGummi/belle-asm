@@ -9,7 +9,7 @@ formatLine :: String -> String
 formatLine line
   | ";" `isInfixOf` line = ""
   | isSuffixOf ":" line || isPrefixOf "." line = line
-  | otherwise = "\t" ++ line
+  | otherwise = "    " ++ line
 
 main :: IO ()
 main = do
