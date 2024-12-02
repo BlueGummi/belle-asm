@@ -76,7 +76,7 @@ impl CPU {
             }
         }
     }
-    
+
     fn handle_ret_error(&mut self, message: &str) {
         UnrecoverableError::SegmentationFault(self.pc, Some(message.to_string())).err();
         if !CONFIG.debug {
@@ -212,11 +212,11 @@ impl CPU {
             9 => {
                 let mut attempts = 0;
                 let max_attempts = 10;
-                
+
                 while attempts < max_attempts {
                     let mut input = String::new();
                     std::io::stdin().read_line(&mut input).unwrap();
-                    
+
                     match input.trim().parse::<i16>() {
                         Ok(number) => {
                             self.int_reg[0] = number;

@@ -180,7 +180,11 @@ impl CPU {
                 MOV(Register(0), Register(0))
             }
             _ => {
-                eprintln!("Cannot parse this. Code should be unreachable. {} line {}", file!(), line!());
+                eprintln!(
+                    "Cannot parse this. Code should be unreachable. {} line {}",
+                    file!(),
+                    line!()
+                );
                 MOV(Register(0), Register(0))
             }
         }
@@ -255,11 +259,18 @@ pub fn disassemble(ins: i16) -> Instruction {
         INT_OP => INT(Literal(source)),
         MOV_OP => MOV(Register(destination), part),
         0b1111 => {
-            eprintln!("{}", "  Cannot parse subroutine.\n  Parsed instruction will do nothing.".red());
+            eprintln!(
+                "{}",
+                "  Cannot parse subroutine.\n  Parsed instruction will do nothing.".red()
+            );
             MOV(Register(0), Register(0))
         }
         _ => {
-            eprintln!("Cannot parse this. Code should be unreachable. {} line {}", file!(), line!());
+            eprintln!(
+                "Cannot parse this. Code should be unreachable. {} line {}",
+                file!(),
+                line!()
+            );
             MOV(Register(0), Register(0))
         }
     }

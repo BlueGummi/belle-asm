@@ -60,11 +60,12 @@ impl CPU {
         let mut subr_loc = SR_LOC;
 
         for element in binary {
-            if in_subr {//} && (element >> 12) != RET_OP {
+            if in_subr {
+                //} && (element >> 12) != RET_OP {
                 if (element >> 12) & 0b1111u16 as i16 == RET_OP {
                     self.memory[sr_counter + subr_loc] = Some(element);
                     sr_counter = 0;
-                    subr_loc += 100;                    
+                    subr_loc += 100;
                     // in_subr = false;
                     continue;
                 }
@@ -92,7 +93,8 @@ impl CPU {
                 if CONFIG.verbose {
                     println!("Element {:016b} loaded into memory", element);
                 }
-            } else { // subr
+            } else {
+                // subr
                 self.memory[subr_loc + sr_counter] = Some(element);
                 in_subr = true;
                 sr_counter += 1;

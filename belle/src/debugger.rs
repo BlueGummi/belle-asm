@@ -188,7 +188,10 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Zero flag                : {}", dbgcpu.zflag);
                 println!("  Overflow flag            : {}", dbgcpu.oflag);
                 println!("  Remainder flag           : {}", dbgcpu.rflag);
-                println!("  Disassembled Instruction : \n  {}\n", disassemble(dbgcpu.ir));
+                println!(
+                    "  Disassembled Instruction : \n  {}\n",
+                    disassemble(dbgcpu.ir)
+                );
             }
             "a" => {
                 for (index, element) in dbgcpu.memory.iter().enumerate() {
