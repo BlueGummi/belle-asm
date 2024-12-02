@@ -7,19 +7,20 @@ TARGET = bdump
 ifeq ($(OS),Windows_NT)
     RM = del
     RM_FLAGS = /Q
+    OBJ_DIR = $(SRCDIR)\*.o
 else
     RM = rm -f
+    OBJ_DIR = $(SRCDIR)/*.o
 endif
 
 all: $(TARGET)
-	$(RM) $(SRCDIR)\*.o $(RM_FLAGS)
 
 $(TARGET): $(SRCDIR)/$(OBJ)
-	$(CC) $(SRCDIR)/$(OBJ) -o $(TARGET) $(CFLAGS)
+	$(CC) $^ -o $@ $(CFLAGS)
 
 $(SRCDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(SRCDIR)\*.o $(RM_FLAGS)
-	$(RM) $(OBJ) $(TARGET)
+	$(RM) $(OBJ_DIR) $(RM_FLAGS)
+	$(RM) $(TARGET)
