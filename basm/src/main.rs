@@ -8,19 +8,6 @@ use std::io::{self, BufRead, Write};
 use std::path::Path;
 use std::process;
 fn main() -> io::Result<()> {
-    /*
-    if CONFIG.cow {
-        println!(" _______________________ ");
-        println!("< Install Gentoo Linux! >");
-        println!(" ----------------------- ");
-        println!("        \\  ^__^         ");
-        println!("         \\ (oo)\\_______   ");
-        println!("           (__)\\       )\\/\\");
-        println!("               ||----w |    ");
-        println!("               ||     ||    ");
-        process::exit(0);
-    }
-    */
     if CONFIG.debug {
         println!("Main func started."); // bc yk the main function sometimes doesn't start
     }
