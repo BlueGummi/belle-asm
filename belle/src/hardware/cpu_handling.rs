@@ -20,7 +20,7 @@ impl CPU {
     }
 
     pub fn handle_jge(&mut self, arg: &Argument) {
-        if self.int_reg[1] < self.int_reg[0] {
+        if self.sflag || !self.zflag {
             return;
         }
         if let MemAddr(n) = arg {
@@ -118,7 +118,9 @@ impl CPU {
         let src = self.get_value(arg2);
         if let Register(_) = arg1 {
             let value = self.get_register_value(arg1);
-            self.zflag = (value - src).abs() < f32::EPSILON;
+            let result = value - src;
+            self.zflag = (result).abs() < f32::EPSILON;
+            self.sflag = result < 0.0;
         }
     }
 

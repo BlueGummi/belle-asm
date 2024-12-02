@@ -22,6 +22,7 @@ pub struct CPU {
     pub zflag: bool,
     pub oflag: bool,
     pub rflag: bool,
+    pub sflag: bool,
     pub hlt_on_overflow: bool,
 }
 
@@ -46,6 +47,7 @@ impl CPU {
             zflag: false,
             oflag: false,
             rflag: false,
+            sflag: false,
             hlt_on_overflow: false,
         }
     }
