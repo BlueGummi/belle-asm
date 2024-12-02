@@ -19,6 +19,9 @@ Or, for Windows
 
 The binaries can be run by calling `basm`, `belle`, or `bdump`.
 
+### BELLE and the BELLE utilities in action:
+![BELLE Usage GIF](https://github.com/BlueGummi/belle/tree/main/media/belle-usage.gif)
+
 ## Naming
 
 **BELLE** is the *emulator*, whilst **BELLE-ISA/ISABELLE** is the *instruction set*.
