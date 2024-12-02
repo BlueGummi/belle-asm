@@ -12,6 +12,8 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
     let prompt = "(bdb)> ".green();
     let mut dbgcpu = CPU::new();
     let mut clock = 0;
+    println!("Welcome to the BELLE-debugger!");
+    println!("First time? Type 'h' or 'help'\n");
     loop {
         let _ = ctrlc::set_handler(move || {
             println!("\nExiting...");
@@ -42,15 +44,20 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     println!("h | help      - Print help on BDB or a specific command");
                     println!("l | load      - Load program");
                     println!("r | run       - Run program");
-                    println!("spc           - Set program counter");
-                    println!("c | setclk    - Set clock");
+                    println!("cls           - Clear screen\n");
+                    println!("Can be used whether or not the CPU has ran:");
+                    println!("spc           - Set program counter to a given value");
                     println!("p | pmem      - Print value in memory");
-                    println!("i | info      - Print CPU state at debugger's clock");
-                    println!("wb            - Print CPU's starting memory address");
-                    println!("cls           - Clear screen");
-                    println!("a             - Print all memory as instructions");
-                    println!("e | exc       - Execute instruction");
-                    println!("s | step      - Step the program");
+                    println!("a             - Print all memory");
+                    println!("c | setclk    - Set clock");
+                    println!("wb            - Print CPU's starting memory address\n");
+
+                    println!("Used to step through the program:");
+                    println!("set           - Set the program counter to the starting value\n");
+                    println!("e | exc       - Execute instruction\n");
+
+                    println!("Can only be used after the CPU has ran");
+                    println!("i | info      - Print CPU state at debugger's clock\n");
                 } else {
                     match arg.trim().to_lowercase().as_str() {
                         "q" | "quit" | ":q" => {
@@ -109,6 +116,10 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                         "a" => {
                             println!("'all instructions' takes no arguments");
                             println!("'a' prints everything in memory as an instruction if it is a value\n");
+                        }
+                        "set" => {
+                            println!("'set' takes no arguments");
+                            println!("'set' sets the program counter to the starting\nexecution address in memory\n");
                         }
                         _ => {
                             println!("Unknown command: '{}'", arg);
@@ -207,6 +218,21 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                         println!("Value at {} is {}", index, disassemble(element.unwrap()));
                     }
                 }
+                for (index, element) in dbgcpu.memory.iter().enumerate() {
+                    if element.is_some() {
+                        println!("Value at {} is {:016b}", index, element.unwrap());
+                    }
+                }
+            }
+            "set" => 'set: {
+                if dbgcpu.memory.iter().all(|&x| x.is_none()) {
+                    eprintln!(
+                        "{}",
+                        "CPU memory is empty.\nTry to load the program first.\n".red()
+                    );
+                    break 'set;
+                }
+                dbgcpu.pc = dbgcpu.starts_at;
             }
             "cls" | "clear" => {
                 cls();

@@ -4,6 +4,7 @@ use crate::*;
 use colored::*;
 impl CPU {
     pub fn execute_instruction(&mut self, ins: &Instruction) {
+        self.has_ran = true; // for debugger
         match ins {
             HLT => self.running = false,
             ADD(arg1, arg2) => self.handle_add(arg1, arg2),
