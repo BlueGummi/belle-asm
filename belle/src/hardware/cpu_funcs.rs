@@ -8,7 +8,7 @@ impl CPU {
             HLT => self.running = false,
             ADD(arg1, arg2) => self.handle_add(arg1, arg2),
             JGE(arg) => self.handle_jge(arg),
-            CL(arg) => self.handle_cl(arg),
+            POP(arg) => self.handle_pop(arg),
             DIV(arg1, arg2) => self.handle_div(arg1, arg2),
             RET => self.handle_ret(),
             LD(arg1, arg2) => self.handle_ld(arg1, arg2),
@@ -17,7 +17,7 @@ impl CPU {
             JZ(arg) => self.handle_jz(arg),
             CMP(arg1, arg2) => self.handle_cmp(arg1, arg2),
             MUL(arg1, arg2) => self.handle_mul(arg1, arg2),
-            SET(arg) => self.handle_set(arg),
+            PUSH(arg) => self.handle_push(arg),
             INT(arg) => self.handle_int(arg),
             MOV(arg1, arg2) => self.handle_mov(arg1, arg2),
             // _ => unreachable!(),
@@ -151,7 +151,7 @@ impl CPU {
                     JGE(MemAddr(source))
                 }
             }
-            CL_OP => CL(Flag(source)),
+            POP_OP => POP(Register(source)),
             DIV_OP => DIV(Register(destination), part),
             RET_OP => RET,
             LD_OP => {
@@ -172,7 +172,7 @@ impl CPU {
             }
             CMP_OP => CMP(Register(destination), part),
             MUL_OP => MUL(Register(destination), part),
-            SET_OP => SET(Flag(source)),
+            PUSH_OP => PUSH(Register(source)),
             INT_OP => INT(Literal(source)),
             MOV_OP => MOV(Register(destination), part),
             0b1111 => {
@@ -234,7 +234,7 @@ pub fn disassemble(ins: i16) -> Instruction {
                 JGE(MemAddr(source))
             }
         }
-        CL_OP => CL(Flag(source)),
+        POP_OP => POP(Register(source)),
         DIV_OP => DIV(Register(destination), part),
         RET_OP => RET,
         LD_OP => {
@@ -255,7 +255,7 @@ pub fn disassemble(ins: i16) -> Instruction {
         }
         CMP_OP => CMP(Register(destination), part),
         MUL_OP => MUL(Register(destination), part),
-        SET_OP => SET(Flag(source)),
+        PUSH_OP => PUSH(Register(source)),
         INT_OP => INT(Literal(source)),
         MOV_OP => MOV(Register(destination), part),
         0b1111 => {

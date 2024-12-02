@@ -12,6 +12,7 @@ pub enum UnrecoverableError {
 pub enum RecoverableError {
     UnknownFlag(u16, Option<String>), // Recoverable error: unknown flag (print in yellow)
     Overflow(u16, Option<String>),
+    StackOverflow(u16, Option<String>),
 }
 impl UnrecoverableError {
     pub fn err(&self) {
@@ -88,16 +89,19 @@ impl RecoverableError {
         let err_type = match self {
             RecoverableError::UnknownFlag(_, _) => "Unknown flag",
             RecoverableError::Overflow(_, _) => "Overflow",
+            RecoverableError::StackOverflow(_, _) => "Stack overflow",
         };
 
         let msg = match self {
             RecoverableError::UnknownFlag(_, s) => s,
             RecoverableError::Overflow(_, s) => s,
+            RecoverableError::StackOverflow(_, s) => s,
         };
 
         let location = match self {
             RecoverableError::UnknownFlag(n, _) => n,
             RecoverableError::Overflow(n, _) => n,
+            RecoverableError::StackOverflow(n, _) => n,
         };
         eprint!("{}", err_type.yellow());
         if let Some(s) = msg {

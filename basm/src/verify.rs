@@ -3,7 +3,7 @@ use crate::*;
 use std::process;
 pub fn verify(ins: &Token, arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> bool {
     let instructions = [
-        "ADD", "HLT", "JGE", "CL", "DIV", "RET", "LD", "ST", "SWP", "JZ", "SET", "CMP", "MUL",
+        "ADD", "HLT", "JGE", "POP", "DIV", "RET", "LD", "ST", "SWP", "JZ", "PUSH", "CMP", "MUL",
         "INT", "MOV",
     ];
     let raw_token = ins.get_raw().to_uppercase();
@@ -36,7 +36,7 @@ fn check_instruction(
         "INT" => {
             check_one_or_no_arguments(arg1, arg2, raw_token, line_num);
         }
-        | "JZ" | "SET" | "CL" | "JGE" => {
+        "JZ" | "PUSH" | "POP" | "JGE" => {
             check_one_argument(arg1, arg2, raw_token, line_num);
         }
         _ => {

@@ -32,15 +32,28 @@ impl CPU {
         }
     }
 
-    pub fn handle_cl(&mut self, arg: &Argument) {
-        if let Flag(n) = arg {
-            match n {
-                0 => (),
-                1 => self.zflag = false,
-                2 => self.oflag = false,
-                3 => self.hlt_on_overflow = false,
-                4 => self.rflag = false,
-                _ => self.report_unknown_flag("CL"),
+    pub fn handle_pop(&mut self, arg: &Argument) {
+        if let Register(_) = arg {
+            match self.memory[self.sp as usize] {
+                Some(v) => {
+                    self.set_register_value(arg, v.into());
+                    if self.sp > self.bp {
+                        self.sp -= 1;
+                    } else {
+                        self.sp += 1;
+                    }
+                }
+                None => {
+                    UnrecoverableError::SegmentationFault(
+                        self.pc,
+                        Some("Segmentation fault whilst POPping off the stack".to_string()),
+                    )
+                    .err();
+
+                    if !CONFIG.debug {
+                        std::process::exit(1);
+                    }
+                }
             }
         }
     }
@@ -157,15 +170,31 @@ impl CPU {
         }
     }
 
-    pub fn handle_set(&mut self, arg: &Argument) {
-        if let Flag(n) = arg {
-            match n {
-                0 => (),
-                1 => self.zflag = true,
-                2 => self.oflag = true,
-                3 => self.hlt_on_overflow = true,
-                4 => self.rflag = true,
-                _ => self.report_unknown_flag("SET"),
+    pub fn handle_push(&mut self, arg: &Argument) {
+        let mut val: f32 = 0.0;
+        if let Literal(l) = arg {
+            // this will ALWAYS
+            val = (*l).into(); // be a register or literal
+        }
+
+        if let Register(_) = arg {
+            val = self.get_register_value(arg);
+        }
+        if self.sp > self.bp {
+            for i in self.bp..self.sp {
+                if self.memory[i as usize].is_none() {
+                    self.memory[i as usize] = Some(val as i16);
+                    self.sp = i;
+                    break;
+                }
+            }
+        } else {
+            for i in self.sp..self.bp {
+                if self.memory[i as usize].is_none() {
+                    self.memory[i as usize] = Some(val as i16);
+                    self.sp = i; // set the stack pointer
+                    break;
+                }
             }
         }
     }
@@ -234,10 +263,27 @@ impl CPU {
                 }
             }
             10 => std::thread::sleep(std::time::Duration::from_secs(1)),
-            11 => self.zflag = !self.zflag,
-            12 => self.oflag = !self.oflag,
-            13 => self.rflag = !self.rflag,
-            14 => self.zflag = self.rflag,
+            11 => self.zflag = true,
+            12 => self.oflag = true,
+            13 => self.rflag = true,
+            14 => self.sflag = true,
+            15 => self.hlt_on_overflow = true,
+
+            21 => self.zflag = false,
+            22 => self.oflag = false,
+            23 => self.rflag = false,
+            24 => self.sflag = false,
+            25 => self.hlt_on_overflow = false,
+
+            31 => self.zflag = !self.zflag,
+            32 => self.oflag = !self.oflag,
+            33 => self.rflag = !self.rflag,
+            34 => self.sflag = !self.sflag,
+            35 => self.hlt_on_overflow = !self.hlt_on_overflow,
+
+            // 10 - 20 set flags
+            // 20 - 30 unset them
+            // 30 - 40 invert them
             _ => todo!(),
         }
     }

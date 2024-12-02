@@ -35,6 +35,8 @@ impl CPU {
             println!("  Zero flag                : {}", cpu.zflag);
             println!("  Overflow flag            : {}", cpu.oflag);
             println!("  Remainder flag           : {}", cpu.rflag);
+            println!("  Stack pointer            : {}", cpu.sp);
+            println!("  Base pointer             : {}", cpu.bp);
             println!("  Disassembled Instruction : \n{}", disassemble(cpu.ir));
         } else {
             println!("No CPU state found for clock: {}", clock);

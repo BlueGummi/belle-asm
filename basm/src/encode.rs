@@ -74,6 +74,8 @@ pub fn argument_to_binary(arg: Option<&Token>, line_num: u32) -> i16 {
         Some(Token::Label(keyword)) => {
             let label_val: i16 = match keyword.as_str() {
                 "start" => 1,
+                "ssp" => 2,
+                "sbp" => 3,
                 _ => {
                     InvalidSyntax("label not recognized after '.'", line_num, Some(1)).perror();
                     Tip::Try("change the label name to a valid one\nsuch as .start").display_tip();
@@ -133,9 +135,9 @@ pub fn encode_instruction(
                 }
                 JGE_OP // 2
             }
-            "CL" => {
+            "POP" => {
                 ins_type = "one_arg";
-                CL_OP // 3
+                POP_OP // 3
             }
             "DIV" => {
                 DIV_OP // 4
@@ -163,9 +165,9 @@ pub fn encode_instruction(
             "CMP" => CMP_OP, // 10
             "MUL" => MUL_OP, // 11
             // mul mainly exists because MOV and LD and ST cannot handle big numbers
-            "SET" => {
+            "PUSH" => {
                 ins_type = "one_arg";
-                SET_OP // 12
+                PUSH_OP // 12
             }
             "INT" => {
                 ins_type = "one_arg";

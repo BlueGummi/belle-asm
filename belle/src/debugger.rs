@@ -48,7 +48,9 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     println!("i | info      - Print CPU state at debugger's clock");
                     println!("wb            - Print CPU's starting memory address");
                     println!("cls           - Clear screen");
+                    println!("a             - Print all memory as instructions");
                     println!("e | exc       - Execute instruction");
+                    println!("s | step      - Step the program");
                 } else {
                     match arg.trim().to_lowercase().as_str() {
                         "q" | "quit" | ":q" => {
@@ -101,8 +103,12 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                             println!("'clear' takes no arguments and resets the cursor to the top left\nof the terminal\n");
                         }
                         "wb" => {
-                            println!("'where begins' takes no arugments");
+                            println!("'where begins' takes no arguments");
                             println!("'wb' prints the starting memory address of the CPU\n")
+                        }
+                        "a" => {
+                            println!("'all instructions' takes no arguments");
+                            println!("'a' prints everything in memory as an instruction if it is a value\n");
                         }
                         _ => {
                             println!("Unknown command: '{}'", arg);

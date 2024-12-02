@@ -32,7 +32,7 @@ char *match_opcode(Instruction *s) {
     case HLT_OP: opcode = "hlt"; break;
     case ADD_OP: opcode = "add"; break;
     case JGE_OP: opcode = "jge"; break;
-    case CL_OP: opcode = "cl"; break;
+    case POP_OP: opcode = "pop"; break;
     case DIV_OP: opcode = "div"; break;
     case RET_OP: opcode = "ret"; break;
     case LD_OP: opcode = "ld"; break;
@@ -41,7 +41,7 @@ char *match_opcode(Instruction *s) {
     case JZ_OP: opcode = "jz"; break;
     case CMP_OP: opcode = "cmp"; break;
     case MUL_OP: opcode = "mul"; break;
-    case SET_OP: opcode = "set"; break;
+    case PUSH_OP: opcode = "push"; break;
     case INT_OP: opcode = "int"; break;
     case MOV_OP: opcode = "mov"; break;
     case SR_OP: opcode = "sr"; break;

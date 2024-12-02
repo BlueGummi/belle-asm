@@ -24,6 +24,8 @@ pub struct CPU {
     pub rflag: bool,
     pub sflag: bool,
     pub hlt_on_overflow: bool,
+    pub sp: u16,
+    pub bp: u16,
 }
 
 impl Default for CPU {
@@ -49,6 +51,8 @@ impl CPU {
             rflag: false,
             sflag: false,
             hlt_on_overflow: false,
+            sp: 0,
+            bp: 0,
         }
     }
 
@@ -85,6 +89,18 @@ impl CPU {
                 self.shift_memory();
                 if CONFIG.verbose {
                     println!("program starts at {}", self.starts_at);
+                }
+                continue;
+            } else if (element >> 9) == 2 {
+                self.sp = (element & 0b111111111) as u16;
+                if CONFIG.verbose {
+                    println!(".ssp directive found");
+                }
+                continue;
+            } else if (element >> 9) == 3 {
+                self.bp = (element & 0b111111111) as u16;
+                if CONFIG.verbose {
+                    println!(".sbp directive found");
                 }
                 continue;
             }

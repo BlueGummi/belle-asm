@@ -9,7 +9,7 @@
 #define HLT_OP 0b0000
 #define ADD_OP 0b0001
 #define JGE_OP 0b0010
-#define CL_OP 0b0011
+#define POP_OP 0b0011
 #define DIV_OP 0b0100
 #define RET_OP 0b0101
 #define LD_OP 0b0110
@@ -18,7 +18,7 @@
 #define JZ_OP 0b1001
 #define CMP_OP 0b1010
 #define MUL_OP 0b1011
-#define SET_OP 0b1100
+#define PUSH_OP 0b1100
 #define INT_OP 0b1101
 #define MOV_OP 0b1110
 #define SR_OP 0b1111

@@ -83,6 +83,22 @@ void print_hlt_instruction(Instruction *ins, bool colors) {
         } else {
             printf(".start $%d\n", ins->type);
         }
+    } else if (ins->destination == 2) {
+        ins->type = (ins->type << 8) | ins->source;
+        if (colors) {
+            printf("%s.ssp%s%s $%d%s\n", ANSI_GREEN, ANSI_RESET, ANSI_YELLOW, ins->type,
+                   ANSI_RESET);
+        } else {
+            printf(".sbp $%d\n", ins->type);
+        }
+    } else if (ins->destination == 3) {
+        ins->type = (ins->type << 8) | ins->source;
+        if (colors) {
+            printf("%s.sbp%s%s $%d%s\n", ANSI_GREEN, ANSI_RESET, ANSI_YELLOW, ins->type,
+                   ANSI_RESET);
+        } else {
+            printf(".sbp $%d\n", ins->type);
+        }
     } else {
         if (colors) {
             printf("%shlt%s\n", ANSI_YELLOW, ANSI_RESET);
@@ -163,11 +179,19 @@ void print_output(Instruction *ins) {
         } else {
             printf("$%d, %%r%d\n", ins->destination, ins->source);
         }
-    } else if (strcmp(op, "set") == 0 || strcmp(op, "cl") == 0) {
-        if (colors) {
-            printf("%s#%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+    } else if (strcmp(op, "push") == 0 || strcmp(op, "pop") == 0) {
+        if (type == 0) {
+            if (colors) {
+                printf("%s%%%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+            } else {
+                printf("%%%d\n", ins->source);
+            }
         } else {
-            printf("#%d\n", ins->source);
+            if (colors) {
+                printf("%s#%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+            } else {
+                printf("#%d\n", ins->source);
+            }
         }
     }
     line++;
