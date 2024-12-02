@@ -26,7 +26,7 @@ impl CPU {
         if let MemAddr(n) = arg {
             self.pc = *n as u16;
         } else if let SR(s) = arg {
-            self.jloc = self.pc-1;
+            self.jloc = self.pc;
             self.pc = (SR_LOC as u16) + ((*s as u16) * 100 - 100);
         }
     }
@@ -109,7 +109,7 @@ impl CPU {
         if let MemAddr(n) = arg {
             self.pc = *n as u16;
         } else if let SR(s) = arg {
-            self.jloc = self.pc-1;
+            self.jloc = self.pc;
             self.pc = (SR_LOC as u16) + ((*s as u16) * 100 - 100);
         }
     }
