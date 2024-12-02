@@ -62,7 +62,6 @@ impl CPU {
                 }
             }
         }
-        
     }
 
     pub fn handle_div(&mut self, arg1: &Argument, arg2: &Argument) {
