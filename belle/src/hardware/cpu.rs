@@ -15,7 +15,7 @@ pub struct CPU {
     pub memory: Box<[Option<i16>; MEMORY_SIZE]>, // Use Box to allocate the array on the heap
     pub pc: u16,                                 // program counter
     pub ir: i16,
-    pub jloc: u16, // location from which a jump was performed
+    pub jlocs: Vec<u16>, // location from which a jump was performed
     pub starts_at: u16,
     pub running: bool,
     pub has_ran: bool,
@@ -40,7 +40,7 @@ impl CPU {
             memory: Box::new([None; MEMORY_SIZE]), // Initialize memory as a Boxed array
             pc: 0,
             ir: 0,
-            jloc: 0,
+            jlocs: Vec::new(),
             starts_at: 0,
             running: false,
             has_ran: false,

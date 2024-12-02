@@ -24,9 +24,10 @@ impl CPU {
             return;
         }
         if let MemAddr(n) = arg {
+            self.jlocs.push(self.pc);
             self.pc = *n as u16;
         } else if let SR(s) = arg {
-            self.jloc = self.pc;
+            self.jlocs.push(self.pc);
             self.pc = (SR_LOC as u16) + ((*s as u16) * 100 - 100);
         }
     }
@@ -68,7 +69,21 @@ impl CPU {
     }
 
     pub fn handle_ret(&mut self) {
-        self.pc = self.jloc;
+        match self.jlocs.pop() {
+            Some(n) => self.pc = n,
+            None => {
+                self.handle_ret_error("Cannot return.");
+            }
+        }
+    }
+    
+    fn handle_ret_error(&mut self, message: &str) {
+        UnrecoverableError::SegmentationFault(self.pc, Some(message.to_string())).err();
+        if !CONFIG.debug {
+            std::process::exit(1);
+        }
+        println!("Resetting...");
+        self.pc = self.starts_at;
     }
 
     pub fn handle_ld(&mut self, arg1: &Argument, arg2: &Argument) {
@@ -107,9 +122,10 @@ impl CPU {
             return;
         }
         if let MemAddr(n) = arg {
+            self.jlocs.push(self.pc);
             self.pc = *n as u16;
         } else if let SR(s) = arg {
-            self.jloc = self.pc;
+            self.jlocs.push(self.pc);
             self.pc = (SR_LOC as u16) + ((*s as u16) * 100 - 100);
         }
     }

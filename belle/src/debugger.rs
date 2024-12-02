@@ -183,7 +183,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Float Registers          : {:?}", dbgcpu.float_reg);
                 println!("  Program Counter          : {}", dbgcpu.pc);
                 println!("  Instruction Register     : {:016b}", dbgcpu.ir);
-                println!("  Jump Location            : {}", dbgcpu.jloc);
+                println!("  Jump Location            : {:?}", dbgcpu.jlocs);
                 println!("  Running                  : {}", dbgcpu.running);
                 println!("  Zero flag                : {}", dbgcpu.zflag);
                 println!("  Overflow flag            : {}", dbgcpu.oflag);
