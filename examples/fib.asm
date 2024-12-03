@@ -3,7 +3,7 @@
 .sbp $100
 .ssp $1
 .start $500
-	int #15  ; halt on overflow
+	int #51  ; halt on overflow
 	mov %r0, #0 ; x
 	mov %r1, #1 ; y
 	push %r0

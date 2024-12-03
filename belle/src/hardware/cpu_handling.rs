@@ -271,22 +271,24 @@ impl CPU {
             }
             10 => std::thread::sleep(std::time::Duration::from_secs(1)),
             11 => self.zflag = true,
-            12 => self.oflag = true,
-            13 => self.rflag = true,
-            14 => self.sflag = true,
-            15 => self.hlt_on_overflow = true,
-
-            21 => self.zflag = false,
+            12 => self.zflag = false,
+            13 => self.zflag = !self.zflag,
+            
+            21 => self.oflag = true,
             22 => self.oflag = false,
-            23 => self.rflag = false,
-            24 => self.sflag = false,
-            25 => self.hlt_on_overflow = false,
-
-            31 => self.zflag = !self.zflag,
-            32 => self.oflag = !self.oflag,
+            23 => self.oflag = !self.oflag,
+            
+            31 => self.rflag = true,
+            32 => self.rflag = false,
             33 => self.rflag = !self.rflag,
-            34 => self.sflag = !self.sflag,
-            35 => self.hlt_on_overflow = !self.hlt_on_overflow,
+            
+            41 => self.sflag = true,
+            42 => self.sflag = false,
+            43 => self.sflag = !self.sflag,
+            
+            51 => self.hlt_on_overflow = true,
+            52 => self.hlt_on_overflow = false,
+            53 => self.hlt_on_overflow = !self.hlt_on_overflow,
 
             // 10 - 20 set flags
             // 20 - 30 unset them
