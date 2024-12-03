@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 
 pub const MEMORY_SIZE: usize = 65536;
-pub const SR_LOC: usize = 50000;
+pub const SR_LOC: usize = 30000;
 
 #[derive(Clone)]
 pub struct CPU {
