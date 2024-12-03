@@ -1,12 +1,6 @@
 use crate::Error::*;
 use crate::*;
-use once_cell::sync::Lazy;
-use std::collections::HashMap;
 use std::process;
-use std::sync::Mutex;
-pub static SUBROUTINE_MAP: Lazy<Mutex<HashMap<String, u32>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
-static SUBROUTINE_COUNTER: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(1));
 
 pub struct Lexer<'a> {
     location: u32,
@@ -261,7 +255,6 @@ impl<'a> Lexer<'a> {
     fn lex_identifier(&mut self, c: char) {
         let mut ident = String::new();
         ident.push(c);
-
         while let Some(&next) = self.chars.peek() {
             if next.is_alphanumeric() || next == '_' {
                 ident.push(self.chars.next().unwrap());
@@ -269,36 +262,13 @@ impl<'a> Lexer<'a> {
                 break;
             }
         }
-
         if let Some(&next) = self.chars.peek() {
             if next == ':' {
-                self.chars.next(); // consume the colon
-                self.register_subroutine(&ident);
-            } else {
-                self.tokens.push(Token::Ident(ident));
+                self.chars.next();
+                return;
             }
-        } else {
-            self.tokens.push(Token::Ident(ident));
         }
-    }
-
-    fn register_subroutine(&mut self, ident: &String) {
-        let mut map = SUBROUTINE_MAP.lock().unwrap();
-        if !map.contains_key(ident) {
-            let mut counter = SUBROUTINE_COUNTER.lock().unwrap();
-            map.insert(ident.to_string(), *counter);
-            *counter += 1;
-            self.tokens.push(Token::SR(ident.to_string()));
-        } else {
-            OtherError(
-                format!("duplicate subroutine declaration: '{}'", ident).as_str(),
-                self.line_number,
-                Some(self.location),
-            )
-            .perror();
-            Tip::Try("remove one of the subroutines").display_tip();
-            process::exit(1);
-        }
+        self.tokens.push(Token::Ident(ident));
     }
 
     fn lex_literal(&mut self, c: char) {

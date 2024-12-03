@@ -5,8 +5,7 @@ use colored::*;
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 
-pub const MEMORY_SIZE: usize = 65536;
-pub const SR_LOC: usize = 30000;
+pub const MEMORY_SIZE: usize = 512;
 
 #[derive(Clone)]
 pub struct CPU {
@@ -39,11 +38,11 @@ impl CPU {
         CPU {
             int_reg: [0; 6],
             float_reg: [0.0; 2],
-            memory: Box::new([None; MEMORY_SIZE]), // Initialize memory as a Boxed array
+            memory: Box::new([None; MEMORY_SIZE]),
             pc: 0,
             ir: 0,
             jlocs: Vec::new(),
-            starts_at: 0,
+            starts_at: 100,
             running: false,
             has_ran: false,
             zflag: false,
@@ -52,31 +51,15 @@ impl CPU {
             sflag: false,
             hlt_on_overflow: false,
             sp: 0,
-            bp: 0,
+            bp: 100,
         }
     }
 
     pub fn load_binary(&mut self, binary: Vec<i16>) {
-        let mut in_subr = false;
         let mut counter = 0;
         let mut start_found = false;
-        let mut sr_counter = 0;
-        let mut subr_loc = SR_LOC;
 
         for element in binary {
-            if in_subr {
-                //} && (element >> 12) != RET_OP {
-                if (element >> 12) & 0b1111u16 as i16 == RET_OP {
-                    self.memory[sr_counter + subr_loc] = Some(element);
-                    sr_counter = 0;
-                    subr_loc += 100;
-                    // in_subr = false;
-                    continue;
-                }
-                self.memory[subr_loc + sr_counter] = Some(element);
-                sr_counter += 1;
-                continue;
-            }
             if (element >> 9) == 1 {
                 if start_found {
                     EmuError::Duplicate(".start directives".to_string()).err();
@@ -86,7 +69,6 @@ impl CPU {
                     println!(".start directive found.");
                 }
                 start_found = true;
-                self.shift_memory();
                 if CONFIG.verbose {
                     println!("program starts at {}", self.starts_at);
                 }
@@ -109,19 +91,28 @@ impl CPU {
                 if CONFIG.verbose {
                     println!("Element {:016b} loaded into memory", element);
                 }
-            } else {
-                // subr
-                self.memory[subr_loc + sr_counter] = Some(element);
-                in_subr = true;
-                sr_counter += 1;
-                continue;
             }
             counter += 1;
         }
+        self.pc = self.starts_at;
+        // self.shift_memory();
     }
 
     #[allow(unused_comparisons)]
+    #[allow(dead_code)]
     fn shift_memory(&mut self) {
+        let mut first_val = usize::MAX;
+        for (i, element) in self.memory.iter().enumerate() {
+            if element.is_some() {
+                first_val = i;
+                break;
+            }
+        }
+
+        if first_val != usize::MAX && self.pc == first_val as u16 {
+            return;
+        }
+
         let mut some_count = 0;
         if CONFIG.verbose {
             println!("Shifting memory...");
@@ -133,13 +124,13 @@ impl CPU {
             }
         }
 
-        if some_count as u32 + self.starts_at as u32 > 65535 {
+        if some_count as u32 + self.starts_at as u32 > MEMORY_SIZE.try_into().unwrap() {
             EmuError::MemoryOverflow().err();
         }
 
         let mut new_memory = Box::new([None; MEMORY_SIZE]);
 
-        for i in 0..=65535 {
+        for i in 0..MEMORY_SIZE {
             if let Some(value) = self.memory[i].take() {
                 new_memory[(i as u16 + self.starts_at) as usize] = Some(value);
             }

@@ -83,6 +83,7 @@ fn main() -> io::Result<()> {
     let mut encoded_instructions = Vec::new();
     let mut line_count: u32 = 1; // bigger numbers with 32
     let mut write_to_file: bool = true; // defines if we should write to file (duh)
+    load_subroutines();
     for line in lines {
         let mut lexer = Lexer::new(&line, line_count);
         let tokens = lexer.lex();
@@ -113,15 +114,18 @@ fn main() -> io::Result<()> {
         }
         if let Some(ins) = instruction {
             let encoded_instruction = encode_instruction(ins, operand1, operand2, line_count);
+            if encoded_instruction.is_none() {
+                continue;
+            }
             if verify(ins, operand1, operand2, line_count) {
                 write_to_file = false;
                 has_err = true;
             }
-            encoded_instructions.extend(&encoded_instruction.to_be_bytes());
+            encoded_instructions.extend(&encoded_instruction.unwrap().to_be_bytes());
             if CONFIG.verbose || CONFIG.debug {
-                println!("Instruction: {:016b}", encoded_instruction);
+                println!("Instruction: {:016b}", encoded_instruction.unwrap());
             }
-            let ins_str: String = format!("{:016b}", encoded_instruction);
+            let ins_str: String = format!("{:016b}", encoded_instruction.unwrap());
             if CONFIG.debug {
                 if let Some(ins) = ins_str.get(0..4) {
                     // fixed length instructions my beloved
@@ -157,7 +161,6 @@ fn main() -> io::Result<()> {
     if CONFIG.debug {
         print_subroutine_map();
     }
-
     match &CONFIG.output {
         Some(output_file) if write_to_file => {
             write_encoded_instructions_to_file(output_file, &encoded_instructions)?;

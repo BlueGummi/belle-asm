@@ -25,10 +25,7 @@ impl CPU {
         }
         if let MemAddr(n) = arg {
             self.jlocs.push(self.pc);
-            self.pc = *n as u16;
-        } else if let SR(s) = arg {
-            self.jlocs.push(self.pc);
-            self.pc = (SR_LOC as u16) + ((*s as u16) * 100 - 100);
+            self.pc = (*n as u16) - 2;
         }
     }
 
@@ -142,10 +139,7 @@ impl CPU {
         }
         if let MemAddr(n) = arg {
             self.jlocs.push(self.pc);
-            self.pc = *n as u16;
-        } else if let SR(s) = arg {
-            self.jlocs.push(self.pc);
-            self.pc = (SR_LOC as u16) + ((*s as u16) * 100 - 100);
+            self.pc = (*n as u16) - 2;
         }
     }
 

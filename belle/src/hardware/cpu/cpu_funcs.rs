@@ -131,7 +131,7 @@ impl CPU {
                 }
             }
             2 => self.ir & 0b1111111,
-            _ => self.ir & 0b111111,
+            _ => self.ir & 0b1111111,
         };
         let destination = (self.ir & 0b111000000000) >> 9;
         let part = match ins_type {
@@ -176,10 +176,6 @@ impl CPU {
             PUSH_OP => PUSH(Register(source)),
             INT_OP => INT(Literal(source)),
             MOV_OP => MOV(Register(destination), part),
-            0b1111 => {
-                eprintln!("Cannot parse subroutine.\nParsed instruction will do nothing.");
-                MOV(Register(0), Register(0))
-            }
             _ => {
                 eprintln!(
                     "Cannot parse this. Code should be unreachable. {} line {}",
