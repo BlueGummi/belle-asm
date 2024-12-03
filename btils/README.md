@@ -1,4 +1,4 @@
-# btils - the BELLE Utils
+# btils - The BELLE Utils
 
 Currently, there is one program in the BTILS program set - bfmt - the BELLE formatter, written in Haskell and in OCaml and C++.
 
