@@ -1,4 +1,4 @@
-# basm - the assembler for BELLE
+# basm - The assembler for BELLE
 
 ## Quickstart
 
