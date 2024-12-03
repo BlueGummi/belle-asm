@@ -1,4 +1,4 @@
-# bdump - the disassembler for BELLE
+# bdump - The disassembler for BELLE
 
 ## Quickstart
 
