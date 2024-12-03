@@ -238,7 +238,7 @@ impl CPU {
                     } else {
                         println!();
                         self.handle_segmentation_fault(
-                            "Segmentation fault. Memory index out of bounds on interrupt call.",
+                            "Segmentation fault. Memory index out of bounds on interrupt call 8.",
                         );
                         return;
                     }
@@ -273,19 +273,19 @@ impl CPU {
             11 => self.zflag = true,
             12 => self.zflag = false,
             13 => self.zflag = !self.zflag,
-            
+
             21 => self.oflag = true,
             22 => self.oflag = false,
             23 => self.oflag = !self.oflag,
-            
+
             31 => self.rflag = true,
             32 => self.rflag = false,
             33 => self.rflag = !self.rflag,
-            
+
             41 => self.sflag = true,
             42 => self.sflag = false,
             43 => self.sflag = !self.sflag,
-            
+
             51 => self.hlt_on_overflow = true,
             52 => self.hlt_on_overflow = false,
             53 => self.hlt_on_overflow = !self.hlt_on_overflow,
