@@ -1,7 +1,7 @@
 # belle - The Big Endian, Low Level Emulator
 
 
-### This document is a short overview of the emulator. For further documentation, visit [docs/basm](https://github.com/BlueGummi/belle/blob/master/docs/belle.md)
+### This document is a short overview of the emulator. For further documentation, visit [docs/belle.md](https://github.com/BlueGummi/belle/blob/master/docs/belle.md)
 
 ## Quickstart
 

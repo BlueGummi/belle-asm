@@ -23,13 +23,13 @@ The binaries can be run by calling `basm`, `belle`, or `bdump`.
 
 ### ISA (Instruction set) - [docs/isa](https://github.com/BlueGummi/belle/tree/master/docs/isa)
 
-### Assembler - [docs/basm](https://github.com/BlueGummi/belle/blob/master/docs/basm)
+### Assembler - [docs/basm.md](https://github.com/BlueGummi/belle/blob/master/docs/basm.md)
 
-### Emulator - [docs/belle](https://github.com/BlueGummi/belle/blob/master/docs/belle)
+### Emulator - [docs/belle.md](https://github.com/BlueGummi/belle/blob/master/docs/belle.md)
 
-### Disassembler - [docs/bdump](https://github.com/BlueGummi/belle/blob/master/docs/bdump)
+### Disassembler - [docs/bdump.md](https://github.com/BlueGummi/belle/blob/master/docs/bdump.md)
 
-### Utilities - [docs/btils](https://github.com/BlueGummi/belle/blob/master/docs/btils)
+### Utilities - [docs/btils.md](https://github.com/BlueGummi/belle/blob/master/docs/btils.md)
 
 ### BELLE and the BELLE utilities in action:
 ![BELLE Usage GIF](https://github.com/BlueGummi/belle/blob/master/media/belle-usage.gif)
