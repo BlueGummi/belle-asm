@@ -248,7 +248,8 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Base pointer             : {}", dbgcpu.bp);
                 println!(
                     "  Disassembled Instruction : \n  {}\n",
-                    disassemble(dbgcpu.ir));
+                    disassemble(dbgcpu.ir)
+                );
             }
             "cls" | "clear" => {
                 cls();
@@ -269,16 +270,17 @@ pub fn bin_to_vec(file_path: &str) -> io::Result<Vec<i16>> {
     let mut file = File::open(file_path)?;
     let mut buffer = Vec::new();
     file.read_to_end(&mut buffer)?;
-    
+
     let mut result: Vec<i16> = Vec::new();
-    
+
     // Iterate over the buffer in chunks of 2 bytes
     for chunk in buffer.chunks(2) {
-        if chunk.len() == 2 { // Only process full chunks of 2 bytes
+        if chunk.len() == 2 {
+            // Only process full chunks of 2 bytes
             let value = i16::from_be_bytes([chunk[0], chunk[1]]);
             result.push(value);
         }
     }
-    
+
     Ok(result)
 }
