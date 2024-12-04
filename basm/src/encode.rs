@@ -111,6 +111,7 @@ pub fn encode_instruction(
                 ins_type = "one_arg";
                 INT_OP // 13
             }
+            "NOP" => NOP_OP,
             "MOV" => MOV_OP, // 14
             _ => {
                 InvalidSyntax("instruction not recognized", line_num, None).perror();

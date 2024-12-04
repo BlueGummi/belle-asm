@@ -21,6 +21,7 @@ impl CPU {
             PUSH(arg) => self.handle_push(arg),
             INT(arg) => self.handle_int(arg),
             MOV(arg1, arg2) => self.handle_mov(arg1, arg2),
+            NOP => (),
             // _ => unreachable!(),
         }
         self.pc += 1;
@@ -121,7 +122,6 @@ impl CPU {
             0
         };
         let source = match ins_type {
-            0 => self.ir & 0b111,
             1 => {
                 let tmp = self.ir & 0b1111111;
                 if (self.ir & 0b10000000) >> 7 == 1 {
@@ -130,7 +130,6 @@ impl CPU {
                     tmp
                 }
             }
-            2 => self.ir & 0b1111111,
             _ => self.ir & 0b1111111,
         };
         let destination = (self.ir & 0b111000000000) >> 9;
@@ -145,13 +144,7 @@ impl CPU {
         match opcode {
             HLT_OP => HLT,
             ADD_OP => ADD(Register(destination), part),
-            JGE_OP => {
-                if destination == 4 {
-                    JGE(SR(source))
-                } else {
-                    JGE(MemAddr(source))
-                }
-            }
+            JGE_OP => JGE(MemAddr(source)),
             POP_OP => POP(Register(source)),
             DIV_OP => DIV(Register(destination), part),
             RET_OP => RET,
@@ -164,18 +157,16 @@ impl CPU {
                 ST(MemAddr(part), Register(self.ir & 0b111))
             }
             SWP_OP => SWP(Register(destination), Register(self.ir & 0b111)),
-            JZ_OP => {
-                if destination == 4 {
-                    JZ(SR(source))
-                } else {
-                    JZ(MemAddr(source))
-                }
-            }
+            JZ_OP => JZ(MemAddr(source)),
             CMP_OP => CMP(Register(destination), part),
             MUL_OP => MUL(Register(destination), part),
             PUSH_OP => PUSH(Register(source)),
             INT_OP => INT(Literal(source)),
             MOV_OP => MOV(Register(destination), part),
+            NOP_OP => {
+                println!("nop");
+                NOP
+            }
             _ => {
                 eprintln!(
                     "Cannot parse this. Code should be unreachable. {} line {}",
@@ -200,7 +191,6 @@ pub fn disassemble(ins: i16) -> Instruction {
         0
     };
     let source = match ins_type {
-        0 => ins & 0b111,
         1 => {
             let tmp = ins & 0b1111111;
             if (ins & 0b10000000) >> 7 == 1 {
@@ -209,8 +199,7 @@ pub fn disassemble(ins: i16) -> Instruction {
                 tmp
             }
         }
-        2 => ins & 0b1111111,
-        _ => ins & 0b111111,
+        _ => ins & 0b1111111,
     };
     let destination = (ins & 0b111000000000) >> 9;
     let part = match ins_type {
@@ -220,17 +209,10 @@ pub fn disassemble(ins: i16) -> Instruction {
         _ => RegPtr(source),
     };
 
-    // println!("{:04b}", opcode);
     match opcode {
         HLT_OP => HLT,
         ADD_OP => ADD(Register(destination), part),
-        JGE_OP => {
-            if destination == 4 {
-                JGE(SR(source))
-            } else {
-                JGE(MemAddr(source))
-            }
-        }
+        JGE_OP => JGE(MemAddr(source)),
         POP_OP => POP(Register(source)),
         DIV_OP => DIV(Register(destination), part),
         RET_OP => RET,
@@ -243,32 +225,20 @@ pub fn disassemble(ins: i16) -> Instruction {
             ST(MemAddr(part), Register(ins & 0b111))
         }
         SWP_OP => SWP(Register(destination), Register(ins & 0b111)),
-        JZ_OP => {
-            if destination == 4 {
-                JZ(SR(source))
-            } else {
-                JZ(MemAddr(source))
-            }
-        }
+        JZ_OP => JZ(MemAddr(source)),
         CMP_OP => CMP(Register(destination), part),
         MUL_OP => MUL(Register(destination), part),
         PUSH_OP => PUSH(Register(source)),
         INT_OP => INT(Literal(source)),
         MOV_OP => MOV(Register(destination), part),
-        0b1111 => {
-            eprintln!(
-                "{}",
-                "  Cannot parse subroutine.\n  Parsed instruction will do nothing.".red()
-            );
-            MOV(Register(0), Register(0))
-        }
+        NOP_OP => NOP,
         _ => {
             eprintln!(
                 "Cannot parse this. Code should be unreachable. {} line {}",
                 file!(),
                 line!()
             );
-            MOV(Register(0), Register(0))
+            NOP
         }
     }
 }

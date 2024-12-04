@@ -27,6 +27,7 @@ pub enum Instruction {
     PUSH(Argument),
     INT(Argument),
     MOV(Argument, Argument),
+    NOP,
 }
 
 impl fmt::Display for Argument {
@@ -62,6 +63,7 @@ impl fmt::Display for Instruction {
             Instruction::PUSH(arg) => write!(f, "PUSH {}", arg),
             Instruction::INT(arg) => write!(f, "INT {}", arg),
             Instruction::MOV(arg1, arg2) => write!(f, "MOV {}, {}", arg1, arg2),
+            Instruction::NOP => write!(f, "NOP"),
         }
     }
 }

@@ -13,4 +13,4 @@ pub const MUL_OP: i16 = 0b1011; // we need this
 pub const PUSH_OP: i16 = 0b1100; // we need this
 pub const INT_OP: i16 = 0b1101; // we need this
 pub const MOV_OP: i16 = 0b1110; // we need this
-pub const SR_OP: i16 = 0b1111; // we need this
+pub const NOP_OP: i16 = 0b1111; // we need this
