@@ -74,7 +74,7 @@ print_help() {
     printf "  -q, --quiet        Suppress output\n"
     printf "  -h, --help         Display this help message\n"
     printf "\nTargets:\n"
-    printf "  bdump, basm, belle (default: all)\n"
+    printf "  bdump, basm, belle, btils (default: all)\n"
     exit 0
 }
 
@@ -112,6 +112,12 @@ default_build() {
                 cp -f target/release/belle ../bin
                 cd ..
                 ;;
+            btils)
+                cp ./btils/bfmt.py ./btils/bfmt
+                chmod +x ./btils/bfmt
+                cp -f ./btils/bfmt ./bin
+                rm ./btils/bfmt
+                ;;
         esac
     done
 
@@ -139,14 +145,14 @@ for arg in "$@"; do
         --help|-h|help)
             print_help "$0"
             ;;
-        bdump|basm|belle)
+        bdump|basm|belle|btils)
             targets+=("$arg")
             ;;
     esac
 done
 
 if [ ${#targets[@]} -eq 0 ]; then
-    targets=(bdump basm belle)
+    targets=(bdump basm belle btils)
 fi
 
 default_build
