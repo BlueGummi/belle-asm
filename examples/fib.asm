@@ -4,7 +4,7 @@
 .ssp $1
 .start $100
 	int #51  ; halt on overflow
-	mov %r0, #1 ; x
+	mov %r0, #0 ; x
 	mov %r1, #1 ; y
 	push %r0
 	push %r1
