@@ -1,4 +1,5 @@
-	; $1 is x
+; This program calculates the fibonacci sequence to the largest signed 16 bit integer value
+    ; $1 is x
 	; $2 is y
 .sbp $10
 .ssp $1
