@@ -137,7 +137,6 @@ pub fn encode_instruction(
 
     // Handle instruction types and generate binary encoding
     match ins_type.trim().to_lowercase().as_str() {
-        "subr" => None,
         "one_arg" => Some((instruction_bin << 12) | argument_to_binary(arg1, line_num)),
         "st" => Some(
             (instruction_bin << 12)

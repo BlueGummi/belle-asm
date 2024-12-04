@@ -163,10 +163,7 @@ impl CPU {
             PUSH_OP => PUSH(Register(source)),
             INT_OP => INT(Literal(source)),
             MOV_OP => MOV(Register(destination), part),
-            NOP_OP => {
-                println!("nop");
-                NOP
-            }
+            NOP_OP => NOP,
             _ => {
                 eprintln!(
                     "Cannot parse this. Code should be unreachable. {} line {}",
