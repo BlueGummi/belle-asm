@@ -1,4 +1,4 @@
-; This program increments the number being printed to stdin, then detects an overflow, before decrementing it again
+; This program increments the number being printed to stdout, then detects an overflow, before decrementing it again
 ; It is indefinite
 .start $300
 	mov %r5, #31
