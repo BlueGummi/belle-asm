@@ -1,7 +1,9 @@
 # basm - The assembler for BELLE
 
-## Quickstart
+### This document is a short overview of the assembler. For further documentation, visit [docs/basm](https://github.com/BlueGummi/belle/tree/master/docs/basm)
 
+
+## Quickstart
 
 ```cargo build --release```
 

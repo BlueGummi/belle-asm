@@ -1,5 +1,7 @@
 # bdump - The disassembler for BELLE
 
+### This document is a short overview of the disassembler. For further documentation, visit [docs/basm](https://github.com/BlueGummi/belle/tree/master/docs/bdump)
+
 ## Quickstart
 
 
