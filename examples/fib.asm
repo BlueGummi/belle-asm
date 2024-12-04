@@ -4,13 +4,12 @@
 .ssp $1
 .start $100
 	int #51  ; halt on overflow
-	mov %r0, #1 ; x
+	mov %r0, #0 ; x
 	mov %r1, #1 ; y
 	push %r0
 	push %r1
 	int #11
-	jz @loop
-loop:
+	jz $108
 	mov %r2, #0 ; z
 	mov %r1, #0
 	mov %r0, #0
@@ -24,5 +23,5 @@ loop:
 	push %r1
 	int #2
 	int #11
-	jz @loop
+	jz $108
 
