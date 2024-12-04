@@ -19,9 +19,9 @@ Or, for Windows
 
 The binaries can be run by calling `basm`, `belle`, or `bdump`.
 
-## Further documentation - [docs](https://github.come/BlueGummi/belle/blob/main/docs)
+## Further documentation - [docs](https://github.com/BlueGummi/belle/blob/main/docs)
 
-ISA (Instruction set) - [docs/isa](https://github.come/BlueGummi/belle/blob/main/docs/isa)
+ISA (Instruction set) - [docs/isa](https://github.com/BlueGummi/belle/blob/main/docs/isa)
 Assembler - [docs/basm](https://github.com/BlueGummi/belle/blob/main/docs/basm)
 Emulator - [docs/belle](https://github.com/BlueGummi/belle/blob/main/docs/belle)
 Disassembler - [docs/bdump](https://github.com/BlueGummi/belle/blob/main/docs/bdump)
