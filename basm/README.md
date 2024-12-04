@@ -1,6 +1,6 @@
 # basm - The assembler for BELLE
 
-### This document is a short overview of the assembler. For further documentation, visit [docs/basm](https://github.com/BlueGummi/belle/tree/master/docs/basm)
+### This document is a short overview of the assembler. For further documentation, visit [docs/basm](https://github.com/BlueGummi/belle/blob/master/docs/basm.md)
 
 
 ## Quickstart

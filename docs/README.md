@@ -6,11 +6,11 @@
 
 ### ISA (Instruction set) - [docs/isa](https://github.com/BlueGummi/belle/tree/master/docs/isa)
 
-### Assembler - [docs/basm](https://github.com/BlueGummi/belle/tree/master/docs/basm)
+### Assembler - [docs/basm](https://github.com/BlueGummi/belle/blob/master/docs/basm.md)
 
-### Emulator - [docs/belle](https://github.com/BlueGummi/belle/tree/master/docs/belle)
+### Emulator - [docs/belle](https://github.com/BlueGummi/belle/blob/master/docs/belle.md)
 
-### Disassembler - [docs/bdump](https://github.com/BlueGummi/belle/tree/master/docs/bdump)
+### Disassembler - [docs/bdump](https://github.com/BlueGummi/belle/blob/master/docs/bdump.md)
 
-### Utilities - [docs/btils](https://github.com/BlueGummi/belle/tree/master/docs/btils)
+### Utilities - [docs/btils](https://github.com/BlueGummi/belle/blob/master/docs/btils.md)
 
