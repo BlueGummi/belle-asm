@@ -13,7 +13,7 @@ pub struct CPU {
     pub float_reg: [f32; 2],                     // r6 and r7
     pub memory: Box<[Option<i16>; MEMORY_SIZE]>, // Use Box to allocate the array on the heap
     pub pc: u16,                                 // program counter
-    pub ir: i16, // location from which a jump was performed
+    pub ir: i16,                                 // location from which a jump was performed
     pub starts_at: u16,
     pub running: bool,
     pub has_ran: bool,
