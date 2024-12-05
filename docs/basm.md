@@ -2,11 +2,11 @@
 
 ## Chapters
 
-1. [Quickstart](https://github.com/BlueGummi/belle/blob/master/docs/basm.d#quickstart)
-2. [Syntax](https://github.com/BlueGummi/belle/blob/master/docs/basm.d#syntax)
-3. [Errors and debugging](https://github.com/BlueGummi/belle/blob/master/docs/basm.d#errors-and-debugging)
-4. [Other](https://github.com/BlueGummi/belle/blob/master/docs/basm.d#other)
-5. [Technical details](https://github.com/BlueGummi/belle/blob/master/docs/basm.d#technical-details)
+1. [Quickstart](https://github.com/BlueGummi/belle/blob/master/docs/basm.md#quickstart)
+2. [Syntax](https://github.com/BlueGummi/belle/blob/master/docs/basm.md#syntax)
+3. [Errors and debugging](https://github.com/BlueGummi/belle/blob/master/docs/basm.md#errors-and-debugging)
+4. [Other](https://github.com/BlueGummi/belle/blob/master/docs/basm.md#other)
+5. [Technical details](https://github.com/BlueGummi/belle/blob/master/docs/basm.md#technical-details)
 
 ## Quickstart
 
