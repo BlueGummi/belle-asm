@@ -1,4 +1,3 @@
-bool in_sr = false;
 int line = 1;
 void print_binary(int num, int leading) {
     if (args.binary == 1) {
@@ -41,55 +40,4 @@ void print_instruction_header(int line, bool colors) {
     } else {
         printf("line %*d: ", 3, line);
     }
-}
-
-const char *units[] = {"",        "one",     "two",       "three",    "four",
-                       "five",    "six",     "seven",     "eight",    "nine",
-                       "ten",     "eleven",  "twelve",    "thirteen", "fourteen",
-                       "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"};
-
-const char *tens[] = {"",      "",      "twenty",  "thirty", "forty",
-                      "fifty", "sixty", "seventy", "eighty", "ninety"};
-
-const char *thousands[] = {"", "one thousand"};
-
-char *to_words(int num) {
-    if (num < 0 || num > 9999) {
-        return NULL;
-    }
-
-    if (num == 0) {
-        return strdup("zero");
-    }
-
-    char result[100] = "";
-    if (num >= 1000) {
-        strcat(result, thousands[num / 1000]);
-        strcat(result, "_");
-        num %= 1000;
-    }
-
-    if (num >= 100) {
-        strcat(result, units[num / 100]);
-        strcat(result, "_hundred");
-        strcat(result, "_");
-        num %= 100;
-    }
-
-    if (num >= 20) {
-        strcat(result, tens[num / 10]);
-        strcat(result, "_");
-        num %= 10;
-    }
-
-    if (num > 0) {
-        strcat(result, units[num]);
-        strcat(result, "_");
-    }
-
-    if (result[strlen(result) - 1] == '_') {
-        result[strlen(result) - 1] = '\0';
-    }
-
-    return strdup(result);
 }

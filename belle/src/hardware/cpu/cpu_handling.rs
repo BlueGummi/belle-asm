@@ -24,7 +24,7 @@ impl CPU {
             return;
         }
         if let MemAddr(n) = arg {
-            self.jlocs.push(self.pc);
+            self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
             self.pc = (*n as u16) - 2;
         }
     }
@@ -85,10 +85,27 @@ impl CPU {
     }
 
     pub fn handle_ret(&mut self) {
-        match self.jlocs.pop() {
-            Some(n) => self.pc = n,
+        let temp: i32 = if self.sp >= self.bp {
+            (self.sp - 1).into()
+        } else {
+            (self.sp + 1).into()
+        };
+        match self.memory[temp as usize] {
+            Some(v) => {
+                self.pc = v as u16;
+                if self.sp > self.bp {
+                    self.memory[(self.sp - 1) as usize] = None;
+                    self.sp -= 1;
+                } else {
+                    self.memory[(self.sp + 1) as usize] = None;
+                    self.sp += 1;
+                }
+            }
             None => {
                 self.handle_ret_error("Cannot return.");
+                if !CONFIG.debug {
+                    std::process::exit(1);
+                }
             }
         }
     }
@@ -138,7 +155,7 @@ impl CPU {
             return;
         }
         if let MemAddr(n) = arg {
-            self.jlocs.push(self.pc);
+            self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
             self.pc = (*n as u16) - 2;
         }
     }

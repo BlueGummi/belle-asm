@@ -44,7 +44,7 @@ char *match_opcode(Instruction *s) {
     case PUSH_OP: opcode = "push"; break;
     case INT_OP: opcode = "int"; break;
     case MOV_OP: opcode = "mov"; break;
-    case SR_OP: opcode = "sr"; break;
+    case 0b1111: opcode = "nop"; break;
     default: puts("OPCODE not recognized."); exit(1);
     }
     return opcode;

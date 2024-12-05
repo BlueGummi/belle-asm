@@ -98,6 +98,7 @@ default_build() {
                 ;;
             bdump)
                 cd bdump
+                make clean --quiet
                 make --quiet &
                 pid=$!
                 spinner $pid "Building BELLE-dump..."

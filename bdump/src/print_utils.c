@@ -54,23 +54,13 @@ void print_two_reg_args(Instruction *ins, bool colors) {
 }
 
 void print_jump_instruction(Instruction *ins, bool colors) {
-    if (ins->destination == 4) {
-        char *sr = to_words(ins->source);
-        if (colors) {
-            printf("%s@%s%s\n", ANSI_GREEN, sr, ANSI_RESET);
-        } else {
-            printf("@%s\n", sr);
-        }
-        free(sr);
+    ins->destination = (ins->destination << 1) | ins->type;
+    ins->destination = (ins->destination << 8) | ins->source;
+    ins->source = ins->destination;
+    if (colors) {
+        printf("%s$%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
     } else {
-        ins->destination = (ins->destination << 1) | ins->type;
-        ins->destination = (ins->destination << 8) | ins->source;
-        ins->source = ins->destination;
-        if (colors) {
-            printf("%s$%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
-        } else {
-            printf("$%d\n", ins->source);
-        }
+        printf("$%d\n", ins->source);
     }
 }
 
@@ -116,10 +106,11 @@ void print_output(Instruction *ins) {
     }
 
     if (strcmp(op, "sr") != 0 && strcmp(op, "hlt") != 0) {
-        if (in_sr && args.debug == 0 && args.binary == 0) {
-            printf("   ");
-        }
         print_operation(op, ins->destination, colors);
+    }
+    if (strcmp(op, "nop") == 0) {
+        printf("\n");
+        return;
     }
 
     bool two_reg_args =
@@ -129,24 +120,14 @@ void print_output(Instruction *ins) {
     if (two_reg_args) {
         print_two_reg_args(ins, colors);
     } else if (strcmp(op, "sr") == 0) {
-        in_sr = true;
-        char *sr = to_words(ins->source);
         if (colors) {
-            printf("%s%s:%s\n", ANSI_GREEN, sr, ANSI_RESET);
+            printf("%sasdfnop%s\n", ANSI_GREEN, ANSI_RESET);
         } else {
-            printf("%s:\n", sr);
+            printf("%snop\n");
         }
-        free(sr);
     } else if (strcmp(op, "jz") == 0 || strcmp(op, "jge") == 0) {
         print_jump_instruction(ins, colors);
     } else if (strcmp(op, "ret") == 0) {
-        if (!in_sr && args.verbosity >= 1) {
-            if (colors)
-                printf(" %s; note: returning outside of a subroutine%s", ANSI_GRAY, ANSI_RESET);
-            else
-                printf(" ; note: returning outside of a subroutine");
-        }
-        in_sr = false;
         printf("\n");
     } else if (strcmp(op, "int") == 0) {
         if (colors) {
