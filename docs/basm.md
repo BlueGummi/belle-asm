@@ -1,5 +1,13 @@
 # The BELLE assembler - basm
 
+## Chapters
+
+1. [Quickstart](https://github.com/BlueGummi/belle/blob/master/docs/basm.d#quickstart)
+2. [Syntax](https://github.com/BlueGummi/belle/blob/master/docs/basm.d#syntax)
+3. [Errors and debugging](https://github.com/BlueGummi/belle/blob/master/docs/basm.d#errors-and-debugging)
+4. [Other](https://github.com/BlueGummi/belle/blob/master/docs/basm.d#other)
+5. [Technical details](https://github.com/BlueGummi/belle/blob/master/docs/basm.d#technical-details)
+
 ## Quickstart
 
 If the build script **has not been executed yet**, run this.
@@ -34,11 +42,13 @@ Different flags can be passed to make the assembler **emit different output**, b
 
 # Syntax
 
+### Note: it is recommended to read the [ISA documentation](https://github.com/BlueGummi/belle/tree/master/docs/isa) before delving into the documentation for the assembler. This document may be overly technical without prior knowledge of the ISA and assembly code.
+
 ## Instruction syntax
 
-The BELLE assembler is **case-agnostic**, as when data is parsed, it either gets **converted to upper or lowercase** for further processing.
+The BELLE assembler is mostly **case-agnostic**, as when data is parsed, it either gets **converted to upper or lowercase** for further processing.
 
-All instructions will be formatted **Instruction** destination, **source**.
+All instructions will be formatted **instruction** destination, **source**.
 
 ```asm
     mov %r0, #4 ; this is valid
@@ -50,14 +60,28 @@ Different operands, depending on the type of operand, will have a **different pr
 
 | Symbol | Meaning | Description | Example |
 | :----- | :------ | :------ | :------|
+| `;`    | Comment | A comment in the code. All following data on the line is ignored by the assembler | `; This is a comment` | 
 | `#`    | Literal | A literal value to be used as the source for an operation | `#4 ; Literal 4` |
 | `%r`   | Register | A register to be used as the source or destination for an operation | `%r3 ; Register 3` | 
 | `$`    | Memory address | A memory address to be used as the source or destination for an operation | `$400 ; Memory address 400` |
 | `&r`   | Register pointer | A register that contains a memory address that can be accessed by treating the register as a pointer | `&r4 ; Treat the value in register 4 as a memory address and obtain the value at that memory address` | 
 | `&$` | Memory address pointer | A memory address whose value is treated as a pointer | `&$10 ; Treat the value in memory address 10 as a pointer and obtain the value at the memory address` | 
 | `@`  | Subroutine call | A symbol used to refer to the memory address of a subroutine later in the program | `@foo ; This is replaced with the memory address of the 'foo' subroutine at compile time` | 
-| `.` | CPU directive | A one-time directive given to the CPU when the memory is loaded. Expanded upon later | `.ssp $40 ; Set stack pointer to memory address 40` | 
+| `.` | CPU directive | A one-time directive given to the CPU when the memory is loaded. Expanded upon later | `.ssp $40 ; Set stack pointer to memory address 40` |
 
+As with operands, symbols for registers are also case-agnostic. However, subroutine calls are **not**. Therefore, a subroutine called `banana` is **different** from a subroutine called `BaNaNa`.
+
+## Subroutines:
+
+Subroutines are an abstraction at an assembly language level that allows the programmer to define certain locations in the code. Subroutines must be suffixed with a `:`, and they can contain any lower and uppercase levels, as well as underscores, and they can begin with underscores and have as many as the programmer desires.
+
+When a subroutine is called with either the `jz @subroutine` or `jge @subroutine` instructions, the subroutine will be replaced with the actual memory address of the subroutine in the code.
+
+When a subroutine is jumped to, the memory address for the current location is pushed onto the call stack, and when a `ret` instruction is received to return from a subroutine, the value on the top of the stack is popped off and into the program counter.
+
+### Note:
+
+The value at the top of the stack may not always be the most recent jump, and the value at the top of the stack can be saved immediately after a jump by popping that value into a register. `r4` and `r5` are typically used to store the value.
 
 ## Assembler directives
 
@@ -124,4 +148,18 @@ The assembler can also emit tips for any **instance of invalid syntax**, and a b
 
 ## Inspecting output
 
+On most operating systems, there is a utility known as `xxd` that can be utilized to view the contents of a binary file in binary form. `xxd -b <binary>` can be executed to view the binary of the code, and `xxd -b -c 2 <binary>` can be used to view the binary, 16 bits at a time (as the instruction length is fixed to 16 bits).
 
+## Re-assembling binary
+
+There is a utility in the BELLE program set known as `bdump`, which is the BELLE disassembler. `bdump` can be called with a binary name to emit the original assembly code. Do note that subroutines will not exist in the diassembled code, as all subroutine calls are simply replaced with memory addresses, and there is no way to make `basm` emit binaries that contain subroutines that can be then disassembled.
+
+# Technical details
+
+## The pipeline
+
+The assembler follows a pipeline to emit the binary code. First, the code is read for `#include` directives.
+
+Then, the assembler makes one pass of the code to identify subroutines, and appending them to a global map of subroutines with their respective memory addresses.
+
+Once this is completed, the assembler makes one last pass of the code to assemble the source code, and subroutines are replaced with their respective memory addresses
