@@ -2,7 +2,7 @@
 
 ## Navigation:
 
-### This directory contains the **full-length** documentation of the emulator, instruction set, assembler, disassembler, and utilities for **BELLE**. If you are looking for a tutorial, please head over to [this link](https://github.com/BlueGummi/belle/tree/master/tutorial)
+### This directory contains the **full-length** documentation of the emulator, instruction set, assembler, disassembler, and utilities for **BELLE**. If you are looking for a **tutorial**, please head over to [this link](https://github.com/BlueGummi/belle/tree/master/tutorial)
 
 ### ISA (Instruction set) - [docs/isa](https://github.com/BlueGummi/belle/tree/master/docs/isa)
 

@@ -139,7 +139,13 @@ impl CPU {
                     }
                 }
             }
-            _ => self.ir & 0b1111111,
+            _ => {
+                if opcode == JZ_OP || opcode == JGE_OP {
+                    self.ir & 0b111111111111
+                } else {
+                    self.ir & 0b1111111
+                }
+            }
         };
         let destination = (self.ir & 0b111000000000) >> 9;
         let part = match ins_type {

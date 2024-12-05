@@ -2,13 +2,13 @@
 
 ## Quickstart
 
-Cargo, RustC, GCC, and Makefile compatibility must be present on the system if these programs are to be installed.
+Cargo, RustC, GCC, and Makefile **compatibility must be present on the system** if these programs are to be installed.
 
-Every executable in this repository can have the --help flag passed to display helpful information.
+Every executable in this repository can have the `--help` flag passed to display helpful information.
 
 
 ```
-./build.sh -w && ./install.sh -c # This installs the binaries to ~/.local/bin
+./build.sh -w && ./install.sh -c # This installs the binaries to ~/.local/bin on Unix OS's
 ```
 
 Or, for Windows
