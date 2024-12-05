@@ -60,7 +60,6 @@ The assembler will only read the include directive from the main file that is to
 ## CPU directives
 
 
-
 The BELLE-ISA allows for parts of the CPU to be adjusted based on certain directives that it receives. The parts that it changes are only changed when the program is loaded into memory, and at runtime the changes will not be made.
 
 | Directive | Property changed | Description | Example |
@@ -80,7 +79,6 @@ The assembler is *very* lenient with arguments passed to each operation (ADD can
 If the code passed to the assembler contains an error, it will stop assembling, emit the error, and exit.
 
 
-
 The following is a list of possible reasons for the assembler to emit an error.
  - A register value is too big
  - A non-valid syntactical token is found
@@ -96,21 +94,16 @@ The following is a list of possible reasons for the assembler to emit an error.
 The assembler may emit an error depending on whether or not the code's syntax is valid. Refer to [docs/isa](https://github.com/BlueGummi/belle/tree/master/docs/isa) to view the ISA and syntax for the assembly code.
 
 
-
 If the error happened at the syntax symbol and token validation stage (the lexer), the assembler will also print a red carrot (^) pointing to the location of the error in the line that contained an error.
-
 
 
 The assembler will only emit one error (for brevity's sake) and will emit the first one it sees.
 
 
-
 Passing certain flags to the assembler, such as `-d` or `-v` will emit different output.
 
 
-
 The `-d` flag will display the entire process of assembling source code, and will show every token that the assembler lexes from the input file. The `-v` flag will create verbose output, allowing examination of the binary output for every line, if interested.
-
 
 
 The assembler can also emit tips for any instance of invalid syntax, and a bug report/issue/PR can be opened if an idea for better tip messages comes to mind for certain errors.

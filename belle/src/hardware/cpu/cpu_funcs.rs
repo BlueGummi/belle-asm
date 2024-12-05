@@ -110,8 +110,7 @@ impl CPU {
         }
     }
     pub fn parse_instruction(&self) -> Instruction {
-        let opcode = (self.ir >> 12) & 0b0000000000001111u16 as i16;
-
+        let opcode = (self.ir >> 12) & 0b1111u16 as i16;
         let ins_type = if ((self.ir >> 8) & 1) == 1 {
             1
         } else if ((self.ir >> 7) & 1) == 1 {
@@ -123,11 +122,15 @@ impl CPU {
         };
         let source = match ins_type {
             1 => {
-                let tmp = self.ir & 0b1111111;
-                if (self.ir & 0b10000000) >> 7 == 1 {
-                    -tmp
+                if opcode == JZ_OP || opcode == JGE_OP {
+                    self.ir & 0b111111111111
                 } else {
-                    tmp
+                    let tmp = self.ir & 0b1111111;
+                    if (self.ir & 0b10000000) >> 7 == 1 {
+                        -tmp
+                    } else {
+                        tmp
+                    }
                 }
             }
             _ => self.ir & 0b1111111,
@@ -176,8 +179,7 @@ impl CPU {
     }
 }
 pub fn disassemble(ins: i16) -> Instruction {
-    let opcode = (ins >> 12) & 0b0000000000001111u16 as i16;
-
+    let opcode = (ins >> 12) & 0b1111u16 as i16;
     let ins_type = if ((ins >> 8) & 1) == 1 {
         1
     } else if ((ins >> 7) & 1) == 1 {
@@ -189,11 +191,15 @@ pub fn disassemble(ins: i16) -> Instruction {
     };
     let source = match ins_type {
         1 => {
-            let tmp = ins & 0b1111111;
-            if (ins & 0b10000000) >> 7 == 1 {
-                -tmp
+            if opcode == JZ_OP || opcode == JGE_OP {
+                ins & 0b111111111111
             } else {
-                tmp
+                let tmp = ins & 0b1111111;
+                if (ins & 0b10000000) >> 7 == 1 {
+                    -tmp
+                } else {
+                    tmp
+                }
             }
         }
         _ => ins & 0b1111111,
@@ -206,6 +212,7 @@ pub fn disassemble(ins: i16) -> Instruction {
         _ => RegPtr(source),
     };
 
+    // println!("{:04b}", opcode);
     match opcode {
         HLT_OP => HLT,
         ADD_OP => ADD(Register(destination), part),
@@ -235,7 +242,7 @@ pub fn disassemble(ins: i16) -> Instruction {
                 file!(),
                 line!()
             );
-            NOP
+            MOV(Register(0), Register(0))
         }
     }
 }
