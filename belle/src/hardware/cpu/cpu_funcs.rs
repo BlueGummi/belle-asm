@@ -2,6 +2,7 @@ use crate::Argument::*;
 use crate::Instruction::*;
 use crate::*;
 use colored::*;
+use std::arch::asm;
 impl CPU {
     pub fn execute_instruction(&mut self, ins: &Instruction) {
         self.has_ran = true; // for debugger
@@ -21,7 +22,11 @@ impl CPU {
             PUSH(arg) => self.handle_push(arg),
             INT(arg) => self.handle_int(arg),
             MOV(arg1, arg2) => self.handle_mov(arg1, arg2),
-            NOP => (),
+            NOP => {
+                unsafe {
+                    asm!("nop");
+                }
+            } // NOP
             // _ => unreachable!(),
         }
         self.pc += 1;
