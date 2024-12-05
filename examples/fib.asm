@@ -7,10 +7,11 @@
 	int #51  ; halt on overflow
 	mov %r0, #0 ; x
 	mov %r1, #1 ; y
-	push %r0
+	push %r0 ;r0 onto stack
 	push %r1
 	int #11
 	jz $108
+    pop %r4 ; pop jump
 	mov %r2, #0 ; z
 	mov %r1, #0
 	mov %r0, #0
