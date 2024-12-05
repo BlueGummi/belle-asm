@@ -65,7 +65,7 @@ function Print-Help {
     Write-Host "  -q, --quiet        Suppress output"
     Write-Host "  -h, --help         Display this help message"
     Write-Host "`nTargets:"
-    Write-Host "  bdump, basm, belle (default: all)"
+    Write-Host "  bdump, basm, belle, bfmt (default: all)"
     exit
 }
 
@@ -108,6 +108,15 @@ function Default-Build {
                 }
                 Set-Location ..
             }
+            "bfmt" {
+                Copy-Item -Path "btils\bfmt.py" -Destination "bin" -Force
+                $bfmtPath = "bin\bfmt"
+                if (Test-Path $bfmtPath) {
+                    Remove-Item $bfmtPath -Force
+                }
+                $batchContent = "@echo off`npython ""%~dp0bfmt"" %*"
+                Set-Content -Path "bin\bfmt.bat" -Value $batchContent
+            }
         }
     }
 
@@ -134,11 +143,12 @@ foreach ($Arg in $args) {
         "bdump"   { $Targets += "bdump" }
         "basm"    { $Targets += "basm" }
         "belle"   { $Targets += "belle" }
+	"bfmt"    { $Targets += "bfmt" }
     }
 }
 
 if ($Targets.Count -eq 0) {
-    $Targets += "bdump", "basm", "belle"
+    $Targets += "bdump", "basm", "belle", "bfmt"
 }
 
 Default-Build

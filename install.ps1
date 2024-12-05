@@ -5,6 +5,7 @@ $DIR = "bin"
 $FILE1 = "basm.exe"
 $FILE2 = "bdump.exe"
 $FILE3 = "belle.exe"
+$FILE4 = "bfmt.py" 
 
 function Print-Message {
     param (
@@ -30,7 +31,7 @@ function Install {
         New-Item -ItemType Directory -Path $localBinPath -Force | Out-Null
     }
 
-    $files = @($FILE1, $FILE2, $FILE3)
+    $files = @($FILE1, $FILE2, $FILE3, $FILE4)  # Include bfmt in the list
     foreach ($file in $files) {
         $sourcePath = Join-Path -Path $DIR -ChildPath $file
         if (Test-Path $sourcePath) {
@@ -68,6 +69,7 @@ function Install {
         Remove-Item -Path $DIR -Recurse -Force -ErrorAction SilentlyContinue
     }
 }
+
 function Print-Help {
     param (
         [string]$ScriptName
@@ -98,9 +100,10 @@ if (-not (Test-Path $DIR)) {
     $FILE1_PATH = "$DIR\$FILE1"
     $FILE2_PATH = "$DIR\$FILE2"
     $FILE3_PATH = "$DIR\$FILE3"
+    $FILE4_PATH = "$DIR\$FILE4"
 
-    if (-not (Test-Path $FILE1_PATH) -and -not (Test-Path $FILE2_PATH) -and -not (Test-Path $FILE3_PATH)) {
-        Print-Message "All binaries '$FILE1', '$FILE2', and '$FILE3' do not exist in '$DIR'." "red"
+    if (-not (Test-Path $FILE1_PATH) -and -not (Test-Path $FILE2_PATH) -and -not (Test-Path $FILE3_PATH) -and -not (Test-Path $FILE4_PATH)) {
+        Print-Message "All binaries '$FILE1', '$FILE2', '$FILE3', and '$FILE4' do not exist in '$DIR'." "red"
         $BUILD = $true
     } elseif (-not (Test-Path $FILE1_PATH)) {
         Print-Message "Binary '$FILE1' does not exist in '$DIR'." "red"
@@ -110,6 +113,9 @@ if (-not (Test-Path $DIR)) {
         $BUILD = $true
     } elseif (-not (Test-Path $FILE3_PATH)) {
         Print-Message "Binary '$FILE3' does not exist in '$DIR'." "red"
+        $BUILD = $true
+    } elseif (-not (Test-Path $FILE4_PATH)) {
+        Print-Message "Binary '$FILE4' does not exist in '$DIR'." "red"
         $BUILD = $true
     }
 }
