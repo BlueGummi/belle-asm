@@ -22,7 +22,7 @@ impl CPU {
             PUSH(arg) => self.handle_push(arg),
             INT(arg) => self.handle_int(arg),
             MOV(arg1, arg2) => self.handle_mov(arg1, arg2),
-            NOP => {
+            NOP => { // SAFETY: NOP
                 unsafe {
                     asm!("nop");
                 }

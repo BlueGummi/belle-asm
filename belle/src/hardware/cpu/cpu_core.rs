@@ -86,11 +86,12 @@ impl CPU {
                 }
                 continue;
             }
-            self.memory[counter + self.starts_at as usize] = Some(element);
-            if CONFIG.verbose {
-                println!("Element {:016b} loaded into memory", element);
+            if (element >> 12) & 0b1111u16 as i16 != 0b1111 {
+                self.memory[counter + self.starts_at as usize] = Some(element);
+                if CONFIG.verbose {
+                    println!("Element {:016b} loaded into memory", element);
+                }
             }
-
             counter += 1;
         }
         self.pc = self.starts_at;
