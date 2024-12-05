@@ -13,8 +13,7 @@ pub struct CPU {
     pub float_reg: [f32; 2],                     // r6 and r7
     pub memory: Box<[Option<i16>; MEMORY_SIZE]>, // Use Box to allocate the array on the heap
     pub pc: u16,                                 // program counter
-    pub ir: i16,
-    pub jlocs: Vec<u16>, // location from which a jump was performed
+    pub ir: i16, // location from which a jump was performed
     pub starts_at: u16,
     pub running: bool,
     pub has_ran: bool,
@@ -41,7 +40,6 @@ impl CPU {
             memory: Box::new([None; MEMORY_SIZE]),
             pc: 0,
             ir: 0,
-            jlocs: Vec::new(),
             starts_at: 100,
             running: false,
             has_ran: false,
@@ -86,12 +84,11 @@ impl CPU {
                 }
                 continue;
             }
-            if (element >> 12) & 0b1111u16 as i16 != 0b1111 {
-                self.memory[counter + self.starts_at as usize] = Some(element);
-                if CONFIG.verbose {
-                    println!("Element {:016b} loaded into memory", element);
-                }
+            self.memory[counter + self.starts_at as usize] = Some(element);
+            if CONFIG.verbose {
+                println!("Element {:016b} loaded into memory", element);
             }
+
             counter += 1;
         }
         self.pc = self.starts_at;

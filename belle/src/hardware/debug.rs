@@ -30,7 +30,6 @@ impl CPU {
             println!("  Float Registers          : {:?}", cpu.float_reg);
             println!("  Program Counter          : {}", cpu.pc);
             println!("  Instruction Register     : {:016b}", cpu.ir);
-            println!("  Jump Location            : {:?}", cpu.jlocs);
             println!("  Running                  : {}", cpu.running);
             println!("  Zero flag                : {}", cpu.zflag);
             println!("  Overflow flag            : {}", cpu.oflag);
