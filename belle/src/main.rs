@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024 BlueGummi
+ * All rights reserved.
+ *
+ * This code is licensed under the BSD 3-Clause License.
+ */
 use belle::*;
 use std::fs::File;
 use std::io;
