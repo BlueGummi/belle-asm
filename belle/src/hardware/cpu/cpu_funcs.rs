@@ -45,7 +45,7 @@ impl CPU {
                 _ => self.int_reg[*n as usize] as f32,
             }
         } else {
-            0.0 // default return value if not a Register
+            0.0 // default return value if not a register
         }
     }
 
@@ -112,7 +112,7 @@ impl CPU {
                 }
                 self.memory[*n as usize].unwrap().into()
             }
-            _ => unreachable!(),
+            _ => unreachable!("Argument types are invalid (how did you get here?)"),
         }
     }
     pub fn parse_instruction(&self) -> Instruction {
@@ -187,74 +187,6 @@ impl CPU {
                 );
                 MOV(Register(0), Register(0))
             }
-        }
-    }
-}
-pub fn disassemble(ins: i16) -> Instruction {
-    let opcode = (ins >> 12) & 0b1111u16 as i16;
-    let ins_type = if ((ins >> 8) & 1) == 1 {
-        1
-    } else if ((ins >> 7) & 1) == 1 {
-        2
-    } else if ((ins >> 6) & 1) == 1 {
-        3
-    } else {
-        0
-    };
-    let source = match ins_type {
-        1 => {
-            if opcode == JZ_OP || opcode == JGE_OP {
-                ins & 0b111111111111
-            } else {
-                let tmp = ins & 0b1111111;
-                if (ins & 0b10000000) >> 7 == 1 {
-                    -tmp
-                } else {
-                    tmp
-                }
-            }
-        }
-        _ => ins & 0b1111111,
-    };
-    let destination = (ins & 0b111000000000) >> 9;
-    let part = match ins_type {
-        0 => Register(source),
-        1 => Literal(source),
-        2 => MemPtr(source),
-        _ => RegPtr(source),
-    };
-
-    // println!("{:04b}", opcode);
-    match opcode {
-        HLT_OP => HLT,
-        ADD_OP => ADD(Register(destination), part),
-        JGE_OP => JGE(MemAddr(source)),
-        POP_OP => POP(Register(source)),
-        DIV_OP => DIV(Register(destination), part),
-        RET_OP => RET,
-        LD_OP => {
-            let part = ins & 0b111111111;
-            LD(Register(destination), MemAddr(part))
-        }
-        ST_OP => {
-            let part = (ins & 0b111111111000) >> 3;
-            ST(MemAddr(part), Register(ins & 0b111))
-        }
-        SWP_OP => SWP(Register(destination), Register(ins & 0b111)),
-        JZ_OP => JZ(MemAddr(source)),
-        CMP_OP => CMP(Register(destination), part),
-        MUL_OP => MUL(Register(destination), part),
-        PUSH_OP => PUSH(Register(source)),
-        INT_OP => INT(Literal(source)),
-        MOV_OP => MOV(Register(destination), part),
-        NOP_OP => NOP,
-        _ => {
-            eprintln!(
-                "Cannot parse this. Code should be unreachable. {} line {}",
-                file!(),
-                line!()
-            );
-            MOV(Register(0), Register(0))
         }
     }
 }

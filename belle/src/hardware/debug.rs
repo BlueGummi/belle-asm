@@ -3,10 +3,11 @@ use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
+
 pub static CPU_STATE: Lazy<Mutex<HashMap<u32, Arc<CPU>>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 pub static CLOCK: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
-const MEMORY_LIMIT: usize = 1024 * 100;
+const MEMORY_LIMIT: usize = 1024 * 1024 * 5;
 impl CPU {
     pub fn record_state(&self) {
         let mut state = CPU_STATE.lock().unwrap();
@@ -36,7 +37,7 @@ impl CPU {
             println!("  Remainder flag           : {}", cpu.rflag);
             println!("  Stack pointer            : {}", cpu.sp);
             println!("  Base pointer             : {}", cpu.bp);
-            println!("  Disassembled Instruction : \n{}", disassemble(cpu.ir));
+            println!("  Disassembled Instruction : \n{}", cpu.parse_instruction());
         } else {
             println!("No CPU state found for clock: {}", clock);
         }

@@ -1,12 +1,10 @@
 use crate::CPU;
-use crate::*;
 use colored::*;
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::vec::Vec;
 fn cls() {
     print!("\x1B[2J\x1B[1;1H");
-    std::io::stdout().flush().unwrap();
 }
 pub fn run_bdb(executable_path: &str) -> io::Result<()> {
     let prompt = "(bdb)> ".green();
@@ -53,8 +51,9 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     println!("wb            - Print CPU's starting memory address\n");
 
                     println!("Used to step through the program:");
-                    println!("set           - Set the program counter to the starting value\n");
-                    println!("e | exc       - Execute instruction\n");
+                    println!("set           - Set the program counter to the starting value");
+                    println!("e | exc       - Execute instruction");
+                    println!("w             - View the state of the CPU\n");
 
                     println!("Can only be used after the CPU has ran");
                     println!("i | info      - Print CPU state at debugger's clock\n");
@@ -121,6 +120,10 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                             println!("'set' takes no arguments");
                             println!("'set' sets the program counter to the starting\nexecution address in memory\n");
                         }
+                        "w" => {
+                            println!("'w' takes no arguments");
+                            println!("'w' prints the state of the CPU as-is\n")
+                        }
                         _ => {
                             println!("Unknown command: '{}'", arg);
                             println!("Type 'h' or 'help' for a list of available commands.\n");
@@ -166,7 +169,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 if let Ok(n) = arg.parse::<usize>() {
                     if let Some(memvalue) = dbgcpu.memory[n] {
                         println!("Value in memory is:\n{:016b}\n{}", memvalue, memvalue);
-                        println!("dumped instruction: {}", disassemble(memvalue));
+                        println!("dumped instruction: {}", dbgcpu.parse_instruction());
                     } else {
                         println!("{}", "Nothing in memory here.\n".yellow());
                     }
@@ -208,13 +211,15 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Base pointer             : {}", dbgcpu.bp);
                 println!(
                     "  Disassembled Instruction : \n  {}\n",
-                    disassemble(dbgcpu.ir)
+                    dbgcpu.parse_instruction()
                 );
             }
             "a" => {
                 for (index, element) in dbgcpu.memory.iter().enumerate() {
                     if element.is_some() {
-                        println!("Value at {} is {}", index, disassemble(element.unwrap()));
+                        let mut tmpcpu = CPU::new();
+                        tmpcpu.ir = element.unwrap();
+                        println!("Value at {} is {}", index, tmpcpu.parse_instruction());
                     }
                 }
                 for (index, element) in dbgcpu.memory.iter().enumerate() {
@@ -246,7 +251,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Base pointer             : {}", dbgcpu.bp);
                 println!(
                     "  Disassembled Instruction : \n  {}\n",
-                    disassemble(dbgcpu.ir)
+                    dbgcpu.parse_instruction()
                 );
             }
             "cls" | "clear" => {

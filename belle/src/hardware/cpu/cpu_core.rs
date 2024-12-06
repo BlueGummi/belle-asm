@@ -59,6 +59,7 @@ impl CPU {
 
         for element in binary {
             if (element >> 9) == 1 {
+                // start directive
                 if start_found {
                     EmuError::Duplicate(".start directives".to_string()).err();
                 }
@@ -91,35 +92,22 @@ impl CPU {
 
             counter += 1;
         }
+        self.shift_memory();
         self.pc = self.starts_at;
-        // self.shift_memory();
     }
 
-    #[allow(unused_comparisons)]
-    #[allow(dead_code)]
     fn shift_memory(&mut self) {
-        let mut first_val = usize::MAX;
-        for (i, element) in self.memory.iter().enumerate() {
-            if element.is_some() {
-                first_val = i;
-                break;
+        if let Some(first_val) = self.memory.iter().position(|&e| e.is_some()) {
+            if self.pc == first_val as u16 {
+                return;
             }
         }
 
-        if first_val != usize::MAX && self.pc == first_val as u16 {
-            return;
-        }
-
-        let mut some_count = 0;
         if CONFIG.verbose {
             println!("Shifting memory...");
         }
 
-        for element in self.memory.iter() {
-            if element.is_some() {
-                some_count += 1;
-            }
-        }
+        let some_count = self.memory.iter().filter(|&&e| e.is_some()).count();
 
         if some_count as u32 + self.starts_at as u32 > MEMORY_SIZE.try_into().unwrap() {
             EmuError::MemoryOverflow().err();
@@ -127,11 +115,14 @@ impl CPU {
 
         let mut new_memory = Box::new([None; MEMORY_SIZE]);
 
-        for i in 0..MEMORY_SIZE {
-            if let Some(value) = self.memory[i].take() {
-                new_memory[(i as u16 + self.starts_at) as usize] = Some(value);
+        let first_some_index = self.memory.iter().position(|&e| e.is_some()).unwrap_or(0);
+        for (i, value) in self.memory.iter().enumerate() {
+            if let Some(val) = value {
+                let new_index = (self.starts_at + (i - first_some_index) as u16) as usize;
+                new_memory[new_index] = Some(*val);
             }
         }
+
         std::mem::swap(&mut self.memory, &mut new_memory);
         self.pc = self.starts_at;
 
@@ -146,7 +137,12 @@ impl CPU {
         if CONFIG.verbose {
             println!("  Starts At MemAddr: {}", self.starts_at);
         }
+        let mut restart_count = 0;
         while self.running {
+            let _ = ctrlc::set_handler(move || {
+                println!("Halting...");
+                std::process::exit(0);
+            });
             let mut clock = CLOCK.lock().unwrap(); // might panic
             *clock += 1;
             std::thread::sleep(std::time::Duration::from_millis(
@@ -155,18 +151,23 @@ impl CPU {
             std::mem::drop(clock); // clock must go bye bye so it unlocks
             if self.memory[self.pc as usize].is_none() {
                 if CONFIG.verbose {
-                    println!("pc: {}", self.pc);
+                    println!("PC: {}", self.pc);
                 }
                 UnrecoverableError::SegmentationFault(
                     self.pc,
                     Some("Segmentation fault while finding next instruction".to_string()),
                 )
                 .err();
+                if restart_count > 10 {
+                    println!("More than ten restarts have been attempted.\nExiting...");
+                    return;
+                }
                 if !CONFIG.quiet {
-                    println!("Attempting to recover by restarting...")
+                    println!("Attempting to recover by restarting...");
                 }
                 std::thread::sleep(std::time::Duration::from_secs(1));
                 self.pc = self.starts_at;
+                restart_count += 1;
             }
             self.ir = self.memory[self.pc as usize].unwrap();
             let parsed_ins = self.parse_instruction();

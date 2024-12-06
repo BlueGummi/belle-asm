@@ -9,7 +9,7 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 use std::process;
-
+#[deny(clippy::panic)]
 fn main() -> io::Result<()> {
     if CONFIG.debug && CONFIG.verbose {
         EmuError::Impossible("Cannot have both debug and verbose flags".to_string()).err();
