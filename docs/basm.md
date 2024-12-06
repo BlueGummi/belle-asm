@@ -148,7 +148,7 @@ The assembler can also emit tips for any **instance of invalid syntax**, and a b
 
 ## Inspecting output
 
-On most operating systems, there is a utility known as `xxd` that can be utilized to view the contents of a binary file in binary form. `xxd -b <binary>` can be executed to view the binary of the code, and `xxd -b -c 2 <binary>` can be used to view the binary, 16 bits at a time (as the instruction length is fixed to 16 bits).
+On most operating systems, there is a utility known as `xxd` that can be utilized to view the contents of a binary file in binary form. `xxd -b <binary>` can be executed to view the binary of the code, and `xxd -b -c 2 <binary>` can be used to view the binary, 16 bits per row (as the instruction length is fixed to 16 bits).
 
 ## Re-assembling binary
 
