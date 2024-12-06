@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024 BlueGummi
+ * All rights reserved.
+ *
+ * This code is licensed under the BSD 3-Clause License.
+ */
 #include "bdump.h"
 
 int main(int argc, char *argv[]) {
