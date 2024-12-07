@@ -1,0 +1,47 @@
+---
+title: 'BELLE - The complete program utility set for the Big Endian, Low Level Emulator'
+author: 'BlueGummi'
+---
+
+## Quickstart
+
+```
+git clone https://github.com/BlueGummi/belle
+```
+
+
+Cargo, RustC, GCC, and Makefile **compatibility must be present on the system** if these programs are to be installed.
+
+Every executable in this repository can have the `--help` flag passed to display helpful information.
+
+
+```
+./build.sh -w && ./install.sh -c # This installs the binaries to ~/.local/bin on Unix OS's
+```
+
+Or, for Windows
+
+```pwsh
+.\build.ps1 -w && .\install.ps1 -c
+```
+
+The binaries can be run by calling `basm`, `belle`, or `bdump`.
+
+### ISA (Instruction set) - [docs/isa](isa)
+
+### Assembler - [docs/basm.md](basm.md)
+
+### Emulator - [docs/belle.md](belle.md)
+
+### Disassembler - [docs/bdump.md](bdump.md)
+
+### Utilities - [docs/btils.md](btils.md)
+
+### BELLE and the BELLE utilities in action:
+![BELLE Usage GIF](belle-usage.gif)
+
+
+## Naming
+
+**BELLE** is the *emulator*, whilst **BELLE-ISA/ISABELLE** is the *instruction set*.
+
