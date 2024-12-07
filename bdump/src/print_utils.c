@@ -54,7 +54,7 @@ void print_two_reg_args(Instruction *ins, bool colors) {
 }
 
 void print_jump_instruction(Instruction *ins, bool colors) {
-    ins->destination = (ins->destination << 1) | ins->type;
+    //ins->destination = (ins->destination << 1) | ins->type;
     ins->destination = (ins->destination << 8) | ins->source;
     ins->source = ins->destination;
     if (colors) {

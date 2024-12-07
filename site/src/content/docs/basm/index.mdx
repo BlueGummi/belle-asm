@@ -4,11 +4,11 @@ author: BlueGummi
 ---
 ## Chapters
 
-1. [Quickstart](https://github.com/BlueGummi/belle/blob/master/docs/basm.md#quickstart)
-2. [Syntax](https://github.com/BlueGummi/belle/blob/master/docs/basm.md#syntax)
-3. [Errors and debugging](https://github.com/BlueGummi/belle/blob/master/docs/basm.md#errors-and-debugging)
-4. [Other](https://github.com/BlueGummi/belle/blob/master/docs/basm.md#other)
-5. [Technical details](https://github.com/BlueGummi/belle/blob/master/docs/basm.md#technical-details)
+1. [Quickstart](#quickstart)
+2. [Syntax](#syntax)
+3. [Errors and debugging](#errors-and-debugging)
+4. [Other](#other)
+5. [Technical details](#technical-details)
 
 ## Quickstart
 
@@ -46,7 +46,7 @@ Different flags can be passed to make the assembler **emit different output**, b
 
 ### Note:
 
-It is recommended to read the [ISA documentation](https://github.com/BlueGummi/belle/tree/master/docs/isa) before delving into the documentation for the assembler. This document may be overly technical without prior knowledge of the ISA and assembly code.
+It is recommended to read the [ISA documentation](isa) before delving into the documentation for the assembler. This document may be overly technical without prior knowledge of the ISA and assembly code.
 
 ## Instruction syntax
 
@@ -130,7 +130,7 @@ The following is a list of possible reasons for the assembler to emit an error.
 ## Debugging source code
 
 
-The assembler may emit an error **depending on whether or not the code's syntax is valid**. Refer to [docs/isa](https://github.com/BlueGummi/belle/tree/master/docs/isa) to view the **ISA and syntax** for the assembly code.
+The assembler may emit an error **depending on whether or not the code's syntax is valid**. Refer to [docs/isa](isa) to view the **ISA and syntax** for the assembly code.
 
 
 If the error happened at the syntax symbol and **token validation stage** (the lexer), the assembler will also print a red carrot (^) pointing to the **location of the error** in the line that contained an error.

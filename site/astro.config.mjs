@@ -10,19 +10,20 @@ export default defineConfig({
             },
             sidebar: [
                 {
-                    label: 'Documentation',
+                    label: 'Program Documentation',
                     items: [
                         { label: 'Overview', slug: '' },
-			{ label: 'Assember', slug: 'basm'},
-			{ label: 'Emulator', slug: 'belle'},
-			{ label: 'Diassembler', slug: 'bdump'},
-			{ label: 'Utilities', slug: 'btils'},
-			{ label: 'Instruction Set', slug: 'isa'},
+			            { label: 'Assembler', slug: 'basm'},
+			            { label: 'Emulator', slug: 'belle'},
+			            { label: 'Diassembler', slug: 'bdump'},
+			            { label: 'Utilities', slug: 'btils'},
                     ],
                 },
                 {
                     label: 'Reference',
-                    autogenerate: { directory: 'reference' },
+                    items: [
+                        { label: 'Instruction Set', slug: 'isa'},
+                    ],
                 },
             ],
         }),
