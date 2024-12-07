@@ -3,6 +3,39 @@ title: BELLE - The Big Endian, Low Level Emulator
 author: BlueGummi
 ---
 
+## Chapters
+
+
+1. [Quickstart](#quickstart)
+2. [Usage](#usage)
+3. [Errors and debugging](#errors-and-debugging)
+4. [Other](#other)
+5. [Technical details](#technical-details)
+
+
+## Quickstart
+
+
+If the build script **has not been executed yet**, run this.
+
+```
+cargo build --release
+```
+
+To **run a binary**, execute this.
+
+```
+cargo run --release -- input_binary
+```
+
+Or, **if the emulator has been installed**, run 
+```
+belle <binary>
+```
+from any directory.
+
+Different flags can be passed to make the emulator operate differently.
+
 
 | Field          | CLI                 | Variable type | Default value | Example    |
 | :------------- | :------------------ | :------------ | :-----------: | :--------- |
@@ -10,6 +43,28 @@ author: BlueGummi
 | Quiet output   | `-q` or `--quiet`   | Boolean       | `false`       | `-q`       |
 | Verbose output | `-v` or `--verbose` | Boolean       | `false`       | `-v`       |
 | Run debugger   | `-d` or `--debug`   | Boolean       | `false`       | `-d`       |
-| Time delay     | `-t` or `--time-delay`    | Boolean       | `false`       | `-t`       |
+| Time delay     | `-t` or `--time-delay`    | Integer       | `0`       | `-t`       |
 | Display help   | `-h` or `--help`    | Boolean       | `false`       | `-h`       |
+
+# Usage
+
+The repository that this emulator is a part of contains example programs. It's recommended to read the [assembler documentation](basm) before continuing with the CPU emulator.
+
+To try out an example program, change the working directory to the `./examples` directory.
+
+Then, assemble an example program. 
+
+e.g.
+
+```
+basm -o fib fib.asm
+```
+
+Now that there is a binary, the program can be executed by invoking the emulator with 
+
+```
+belle fib
+```
+
+The runtime performance of the emulator is typically comparable to native Rust code runtime speeds, with a 10-20% overhead.
 
