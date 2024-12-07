@@ -28,3 +28,7 @@ export default defineConfig({
         }),
     ],
 });
+
+export default {
+  outDir: './bever/dist',
+};
