@@ -27,8 +27,7 @@ jobs:
 
       - name: Run clippy on BELLE
         run: cd ./belle
-        run:  |
-          cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
+        run: cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
         continue-on-error: true
 
       - name: Build the BELLE-assembler
@@ -37,8 +36,7 @@ jobs:
 
       - name: Run clippy on basm
         run: cd ./basm
-        run:  |
-          cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
+        run: cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
         continue-on-error: true
 
       - name: Build the BELLE-disassembler
