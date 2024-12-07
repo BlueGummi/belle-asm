@@ -24,26 +24,18 @@ pub struct Cli {
     #[clap(short = 'q', long, default_value_t = false)]
     pub quiet: bool,
 
-    /// Don't crash (may lead to undefined behavior)
-    #[clap(short = 'c', long, default_value_t = false)]
-    pub dont_crash: bool,
-
     /// Clock cycle delay (milliseconds)
     #[clap(short = 't', long)]
     pub time_delay: Option<u32>,
 }
-pub fn declare_config() -> Cli {
+#[must_use] pub fn declare_config() -> Cli {
     let cli = Cli::parse();
-
-    // dont_crash true if debug is true
-    let dont_crash = if cli.debug { true } else { cli.dont_crash };
 
     Cli {
         file: cli.file,
         verbose: cli.verbose,
         debug: cli.debug,
         quiet: cli.quiet,
-        dont_crash,
         time_delay: Some(cli.time_delay.unwrap_or(0)),
     }
 }

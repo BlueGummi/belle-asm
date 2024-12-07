@@ -1,6 +1,6 @@
 use crate::Argument::*;
 use crate::Instruction::*;
-use crate::*;
+use crate::{CLOCK, CONFIG, EmuError, RecoverableError, UnrecoverableError, cpu};
 use colored::*;
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
@@ -33,7 +33,7 @@ impl Default for CPU {
 }
 
 impl CPU {
-    pub fn new() -> CPU {
+    #[must_use] pub fn new() -> CPU {
         CPU {
             int_reg: [0; 6],
             float_reg: [0.0; 2],
@@ -87,7 +87,7 @@ impl CPU {
             }
             self.memory[counter + self.starts_at as usize] = Some(element);
             if CONFIG.verbose {
-                println!("Element {:016b} loaded into memory", element);
+                println!("Element {element:016b} loaded into memory");
             }
 
             counter += 1;
@@ -109,7 +109,7 @@ impl CPU {
 
         let some_count = self.memory.iter().filter(|&&e| e.is_some()).count();
 
-        if some_count as u32 + self.starts_at as u32 > MEMORY_SIZE.try_into().unwrap() {
+        if some_count as u32 + u32::from(self.starts_at) > MEMORY_SIZE.try_into().unwrap() {
             EmuError::MemoryOverflow().err();
         }
 

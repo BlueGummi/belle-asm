@@ -1,5 +1,5 @@
-use crate::*;
-use colored::*;
+use crate::CONFIG;
+use colored::Colorize;
 pub enum EmuError {
     FileNotFound(),
     MemoryOverflow(),

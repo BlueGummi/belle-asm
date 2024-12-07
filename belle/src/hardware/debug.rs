@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{CONFIG, CPU};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -26,7 +26,7 @@ impl CPU {
         }
         let state = CPU_STATE.lock().unwrap();
         if let Some(cpu) = state.get(&clock) {
-            println!("\nCPU State for clock cycle {}:", clock);
+            println!("\nCPU State for clock cycle {clock}:");
             println!("  Integer Registers        : {:?}", cpu.int_reg);
             println!("  Float Registers          : {:?}", cpu.float_reg);
             println!("  Program Counter          : {}", cpu.pc);
@@ -39,7 +39,7 @@ impl CPU {
             println!("  Base pointer             : {}", cpu.bp);
             println!("  Disassembled Instruction : \n{}", cpu.parse_instruction());
         } else {
-            println!("No CPU state found for clock: {}", clock);
+            println!("No CPU state found for clock: {clock}");
         }
     }
 }

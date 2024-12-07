@@ -1,6 +1,6 @@
-use crate::Argument::*;
+use crate::Argument::{Literal, MemAddr, Register};
 use crate::Instruction::*;
-use crate::*;
+use crate::{Argument, CONFIG, CPU, EmuError, UnrecoverableError};
 impl CPU {
     pub fn handle_add(&mut self, arg1: &Argument, arg2: &Argument) {
         let value = self.get_value(arg2);
@@ -11,7 +11,7 @@ impl CPU {
                 n if n > 5 => self.report_invalid_register(),
                 _ => {
                     let current_value = self.int_reg[*n as usize];
-                    let new_value = current_value as i32 + value as i32;
+                    let new_value = i32::from(current_value) + value as i32;
                     self.check_overflow(new_value);
                     self.int_reg[*n as usize] = new_value as i16;
                 }
@@ -36,26 +36,23 @@ impl CPU {
             } else {
                 (self.sp + 1).into()
             };
-            match self.memory[temp as usize] {
-                Some(v) => {
-                    self.set_register_value(arg, v.into());
-                    if self.sp > self.bp {
-                        self.memory[(self.sp - 1) as usize] = None;
-                        self.sp -= 1;
-                    } else {
-                        self.memory[(self.sp + 1) as usize] = None;
-                        self.sp += 1;
-                    }
+            if let Some(v) = self.memory[temp as usize] {
+                self.set_register_value(arg, v.into());
+                if self.sp > self.bp {
+                    self.memory[(self.sp - 1) as usize] = None;
+                    self.sp -= 1;
+                } else {
+                    self.memory[(self.sp + 1) as usize] = None;
+                    self.sp += 1;
                 }
-                None => {
-                    UnrecoverableError::SegmentationFault(
-                        self.pc,
-                        Some("Segmentation fault whilst POPping off the stack".to_string()),
-                    )
-                    .err();
-                    if !CONFIG.debug {
-                        std::process::exit(1);
-                    }
+            } else {
+                UnrecoverableError::SegmentationFault(
+                    self.pc,
+                    Some("Segmentation fault whilst POPping off the stack".to_string()),
+                )
+                .err();
+                if !CONFIG.debug {
+                    std::process::exit(1);
                 }
             }
         }
@@ -75,10 +72,10 @@ impl CPU {
                 n if n > 5 => self.report_invalid_register(),
                 _ => {
                     let current_value = self.int_reg[*n as usize];
-                    if current_value as f32 % divisor != 0.0 {
+                    if f32::from(current_value) % divisor != 0.0 {
                         self.rflag = true;
                     }
-                    self.int_reg[*n as usize] = (current_value as i32 / divisor as i32) as i16;
+                    self.int_reg[*n as usize] = (i32::from(current_value) / divisor as i32) as i16;
                 }
             }
         }
@@ -90,22 +87,19 @@ impl CPU {
         } else {
             (self.sp + 1).into()
         };
-        match self.memory[temp as usize] {
-            Some(v) => {
-                self.pc = v as u16;
-                if self.sp > self.bp {
-                    self.memory[(self.sp - 1) as usize] = None;
-                    self.sp -= 1;
-                } else {
-                    self.memory[(self.sp + 1) as usize] = None;
-                    self.sp += 1;
-                }
+        if let Some(v) = self.memory[temp as usize] {
+            self.pc = v as u16;
+            if self.sp > self.bp {
+                self.memory[(self.sp - 1) as usize] = None;
+                self.sp -= 1;
+            } else {
+                self.memory[(self.sp + 1) as usize] = None;
+                self.sp += 1;
             }
-            None => {
-                self.handle_ret_error("Cannot return.");
-                if !CONFIG.debug {
-                    std::process::exit(1);
-                }
+        } else {
+            self.handle_ret_error("Cannot return.");
+            if !CONFIG.debug {
+                std::process::exit(1);
             }
         }
     }
@@ -179,7 +173,7 @@ impl CPU {
                 n if n > 5 => self.report_invalid_register(),
                 _ => {
                     let current_value = self.int_reg[*n as usize];
-                    let new_value = current_value as i32 * value as i32;
+                    let new_value = i32::from(current_value) * value as i32;
                     self.check_overflow(new_value);
                     self.int_reg[*n as usize] = new_value as i16;
                 }

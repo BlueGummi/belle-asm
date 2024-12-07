@@ -1,5 +1,5 @@
-use crate::*;
-use colored::*;
+use crate::{CONFIG, CPU_STATE};
+use colored::Colorize;
 
 pub enum UnrecoverableError {
     SegmentationFault(u16, Option<String>),
@@ -17,11 +17,8 @@ pub enum RecoverableError {
 
 impl UnrecoverableError {
     pub fn err(&self) {
-        if CONFIG.quiet && !CONFIG.dont_crash {
+        if CONFIG.quiet {
             std::process::exit(1);
-        }
-        if CONFIG.quiet && CONFIG.dont_crash {
-            return;
         }
 
         eprint!("{} ", "UNRECOVERABLE ERROR:".red());
@@ -41,10 +38,8 @@ impl UnrecoverableError {
             self.debug_info(location);
         }
 
-        if !CONFIG.dont_crash {
-            eprintln!("{}", "CRASHING...".red());
-            std::process::exit(1);
-        }
+        eprintln!("{}", "CRASHING...".red());
+        std::process::exit(1);
     }
 
     fn details(&self) -> (&str, u16, &Option<String>) {
@@ -60,7 +55,7 @@ impl UnrecoverableError {
         let state = CPU_STATE.lock().unwrap();
         if let Some(cpu) = state.values().find(|cpu| cpu.pc == location) {
             if let Some(data) = cpu.memory[location as usize] {
-                eprintln!("Instruction is {}", format!("{:016b}", data).magenta());
+                eprintln!("Instruction is {}", format!("{data:016b}").magenta());
             } else {
                 eprintln!(
                     "{}",

@@ -1,5 +1,5 @@
 use crate::CPU;
-use colored::*;
+use colored::Colorize;
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::vec::Vec;
@@ -18,7 +18,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
             std::process::exit(0);
         });
         let bin = bin_to_vec(executable_path)?;
-        print!("{}", prompt);
+        print!("{prompt}");
         io::stdout().flush().unwrap();
         let mut input = String::new();
         io::stdin().read_line(&mut input)?;
@@ -46,6 +46,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     println!("Can be used whether or not the CPU has ran:");
                     println!("spc           - Set program counter to a given value");
                     println!("p | pmem      - Print value in memory");
+                    println!("pk            - Set a new value for a location in memory");
                     println!("a             - Print all memory");
                     println!("c | setclk    - Set clock");
                     println!("wb            - Print CPU's starting memory address\n");
@@ -95,11 +96,11 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                         "p" | "pmem" => {
                             println!("'print memory' takes one argument.");
                             println!("'pmem' prints the value at the specified memory address.");
-                            println!("If nothing is there, it will say so.\n")
+                            println!("If nothing is there, it will say so.\n");
                         }
                         "e" | "exc" => {
                             println!("'execute' takes no arguments");
-                            println!("'e' executes the instruction at the current memory address (program counter)\n")
+                            println!("'e' executes the instruction at the current memory address (program counter)\n");
                         }
                         "i" | "info" => {
                             println!("'info' takes no arguments.");
@@ -110,7 +111,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                         }
                         "wb" => {
                             println!("'where begins' takes no arguments");
-                            println!("'wb' prints the starting memory address of the CPU\n")
+                            println!("'wb' prints the starting memory address of the CPU\n");
                         }
                         "a" => {
                             println!("'all instructions' takes no arguments");
@@ -122,10 +123,15 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                         }
                         "w" => {
                             println!("'w' takes no arguments");
-                            println!("'w' prints the state of the CPU as-is\n")
+                            println!("'w' prints the state of the CPU as-is\n");
+                        }
+                        "pk" => {
+                            println!("'pk' takes one argument");
+                            println!("'pk' will print the value in memory and ask for a new value");
+                            println!("if an invalid value is entered or nothing is entered, it will not do anything\n");
                         }
                         _ => {
-                            println!("Unknown command: '{}'", arg);
+                            println!("Unknown command: '{arg}'");
                             println!("Type 'h' or 'help' for a list of available commands.\n");
                         }
                     }
@@ -168,8 +174,11 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
             "p" | "pmem" => {
                 if let Ok(n) = arg.parse::<usize>() {
                     if let Some(memvalue) = dbgcpu.memory[n] {
-                        println!("Value in memory is:\n{:016b}\n{}", memvalue, memvalue);
+                        println!("Value in memory is:\n{memvalue:016b}\n{memvalue}");
+                        let oldvalue = dbgcpu.ir;
+                        dbgcpu.ir = memvalue;
                         println!("dumped instruction: {}", dbgcpu.parse_instruction());
+                        dbgcpu.ir = oldvalue;
                     } else {
                         println!("{}", "Nothing in memory here.\n".yellow());
                     }
@@ -189,12 +198,9 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 }
             }
             "e" | "exc" => 'exc: {
-                dbgcpu.ir = match dbgcpu.memory[dbgcpu.pc as usize] {
-                    Some(value) => value,
-                    None => {
-                        eprintln!("Nothing at PC {}", dbgcpu.pc);
-                        break 'exc;
-                    }
+                dbgcpu.ir = if let Some(value) = dbgcpu.memory[dbgcpu.pc as usize] { value } else {
+                    eprintln!("Nothing at PC {}", dbgcpu.pc);
+                    break 'exc;
                 };
                 let parsed_ins = dbgcpu.parse_instruction();
                 dbgcpu.execute_instruction(&parsed_ins);
@@ -256,6 +262,30 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
             }
             "cls" | "clear" => {
                 cls();
+            }
+            "pk" => 'pk: {
+                if let Ok(n) = arg.parse::<usize>() {
+                    if let Some(memvalue) = dbgcpu.memory[n] {
+                        println!("Value in memory is:\n{memvalue:016b}\n{memvalue}");
+                        let oldvalue = dbgcpu.ir;
+                        dbgcpu.ir = memvalue;
+                        println!("dumped instruction: {}", dbgcpu.parse_instruction());
+                        dbgcpu.ir = oldvalue;
+                        let mut buffer = String::new();
+                        io::stdin().read_line(&mut buffer)?;
+                        if buffer.is_empty() {
+                            break 'pk;
+                        }
+                        if let Ok(v) = buffer.parse::<i16>() {
+                            println!("Value in memory address {n} set to {v}");
+                            dbgcpu.memory[n] = Some(v);
+                        }
+                    } else {
+                        println!("{}", "Nothing in memory here.\n".yellow());
+                    }
+                } else {
+                    eprintln!("{} requires a numeric argument\n", "pk".red());
+                }
             }
             _ => unknown_command(&command),
         }

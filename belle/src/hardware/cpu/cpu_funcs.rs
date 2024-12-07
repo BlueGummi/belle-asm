@@ -1,6 +1,6 @@
-use crate::Argument::*;
-use crate::Instruction::*;
-use crate::*;
+use crate::Argument::{Literal, MemAddr, MemPtr, RegPtr, Register};
+use crate::Instruction::{ADD, CMP, DIV, HLT, INT, JGE, JZ, LD, MOV, MUL, NOP, POP, PUSH, RET, ST, SWP};
+use crate::{ADD_OP, Argument, CMP_OP, CPU, DIV_OP, HLT_OP, INT_OP, Instruction, JGE_OP, JZ_OP, LD_OP, MOV_OP, MUL_OP, NOP_OP, POP_OP, PUSH_OP, RET_OP, ST_OP, SWP_OP};
 use colored::*;
 use std::arch::asm;
 impl CPU {
@@ -42,7 +42,7 @@ impl CPU {
                     self.report_invalid_register();
                     0.0 // default return value
                 }
-                _ => self.int_reg[*n as usize] as f32,
+                _ => f32::from(self.int_reg[*n as usize]),
             }
         } else {
             0.0 // default return value if not a register
@@ -115,7 +115,7 @@ impl CPU {
             _ => unreachable!("Argument types are invalid (how did you get here?)"),
         }
     }
-    pub fn parse_instruction(&self) -> Instruction {
+    #[must_use] pub fn parse_instruction(&self) -> Instruction {
         let opcode = (self.ir >> 12) & 0b1111u16 as i16;
         let ins_type = if ((self.ir >> 8) & 1) == 1 {
             1

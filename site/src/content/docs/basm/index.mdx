@@ -44,7 +44,7 @@ Different flags can be passed to make the assembler **emit different output**, b
 
 # Syntax
 
-### Note:
+### Note
 
 It is recommended to read the [ISA documentation](isa) before delving into the documentation for the assembler. This document may be overly technical without prior knowledge of the ISA and assembly code.
 
@@ -75,7 +75,7 @@ Different operands, depending on the type of operand, will have a **different pr
 
 As with operands, symbols for registers are also case-agnostic. However, subroutine calls are **not**. Therefore, a subroutine called `banana` is **different** from a subroutine called `BaNaNa`.
 
-## Subroutines:
+## Subroutines
 
 Subroutines are an abstraction at an assembly language level that allows the programmer to define certain locations in the code. Subroutines must be suffixed with a `:`, and they can contain any lower and uppercase levels, as well as underscores, and they can begin with underscores and have as many as the programmer desires.
 
@@ -83,17 +83,13 @@ When a subroutine is called with either the `jz @subroutine` or `jge @subroutine
 
 When a subroutine is jumped to, the memory address for the current location is pushed onto the call stack, and when a `ret` instruction is received to return from a subroutine, the value on the top of the stack is popped off and into the program counter.
 
-### Note:
+### Note
 
 The value at the top of the stack may not always be the most recent jump, and the value at the top of the stack can be saved immediately after a jump by popping that value into a register. `r4` and `r5` are typically used to store the value.
 
 ## Assembler directives
 
 The BELLE assembler has a `#include` directive, similar to C/C++, where the user can **specify a file to include to the top** of the file, allowing for projects to be split across multiple directories and many files.
-
-
-
-The assembler will **only read the include directive from the main file that is to be assembled**, and once a line after the first line is no longer an `#include`, the assembler will stop trying to look for the directive, and simply throw an error if an `#include` is found.
 
 
 ## CPU directives
