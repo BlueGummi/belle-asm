@@ -20,7 +20,7 @@ export default defineConfig({
                     ],
                 },
                 {
-                    label: 'Reference',
+                    label: 'Hardware and ISA',
                     items: [
                         { label: 'Instruction Set', slug: 'isa'},
                     ],
