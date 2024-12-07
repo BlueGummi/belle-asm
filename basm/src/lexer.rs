@@ -1,5 +1,5 @@
-use crate::Error::*;
-use crate::*;
+use crate::Error::{ExpectedArgument, InvalidSyntax, UnknownCharacter};
+use crate::{CONFIG, SUBROUTINE_MAP, Tip, Token};
 use std::process;
 
 pub struct Lexer<'a> {
@@ -10,7 +10,7 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    pub fn new(line: &'a str, line_number: u32) -> Self {
+    #[must_use] pub fn new(line: &'a str, line_number: u32) -> Self {
         Self {
             location: 1,
             line_number,
@@ -76,7 +76,7 @@ impl<'a> Lexer<'a> {
         pointer.push(c);
 
         let is_reg = match self.chars.peek() {
-            Some(&'r') | Some(&'R') => {
+            Some(&'r' | &'R') => {
                 self.location += 1;
                 pointer.push(self.chars.next().unwrap());
 
@@ -287,17 +287,14 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        let num_value = match number[1..].parse::<i16>() {
-            Ok(value) => value,
-            Err(_) => {
-                InvalidSyntax(
-                    "value after # must be a numeric literal",
-                    self.line_number,
-                    Some(self.location),
-                )
-                .perror();
-                process::exit(1);
-            }
+        let num_value = if let Ok(value) = number[1..].parse::<i16>() { value } else {
+            InvalidSyntax(
+                "value after # must be a numeric literal",
+                self.line_number,
+                Some(self.location),
+            )
+            .perror();
+            process::exit(1);
         };
 
         if !(-128..=127).contains(&num_value) {
@@ -316,7 +313,7 @@ impl<'a> Lexer<'a> {
         } else {
             num_value as u8
         };
-        self.tokens.push(Token::Literal(stored_value as i16));
+        self.tokens.push(Token::Literal(i16::from(stored_value)));
     }
 
     fn lex_memory_address(&mut self, c: char) {
@@ -369,7 +366,7 @@ pub fn print_subroutine_map() {
     let map = SUBROUTINE_MAP.lock().unwrap();
     for (name, counter) in map.iter() {
         if CONFIG.verbose | CONFIG.debug {
-            println!("Subroutine: {}, Counter: {}", name, counter);
+            println!("Subroutine: {name}, Counter: {counter}");
         }
     }
 }

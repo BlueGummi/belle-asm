@@ -1,5 +1,5 @@
-use crate::consts_enums::Error::*;
-use crate::*;
+use crate::consts_enums::Error::{InvalidSyntax, NonexistentData};
+use crate::{ADD_OP, CMP_OP, DIV_OP, HLT_OP, INT_OP, JGE_OP, JZ_OP, LD_OP, MOV_OP, MUL_OP, NOP_OP, POP_OP, PUSH_OP, RET_OP, ST_OP, SWP_OP, Tip, Token};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::process;
@@ -23,13 +23,13 @@ pub fn argument_to_binary(arg: Option<&Token>, line_num: u32) -> i16 {
         }
         // all looks good
         Some(Token::Literal(literal)) => (1 << 8) | *literal,
-        Some(Token::SR(sr)) | Some(Token::SRCall(sr)) => {
+        Some(Token::SR(sr) | Token::SRCall(sr)) => {
             let map = SUBROUTINE_MAP.lock().unwrap();
             if let Some(&address) = map.get(sr) {
                 address as i16
             } else {
                 NonexistentData(
-                    format!("subroutine \"{}\" does not exist", sr).as_str(),
+                    format!("subroutine \"{sr}\" does not exist").as_str(),
                     line_num,
                     None,
                 )
@@ -58,7 +58,7 @@ pub fn argument_to_binary(arg: Option<&Token>, line_num: u32) -> i16 {
     }
 }
 
-pub fn encode_instruction(
+#[must_use] pub fn encode_instruction(
     ins: &Token,
     arg1: Option<&Token>,
     arg2: Option<&Token>,

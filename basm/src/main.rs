@@ -4,9 +4,9 @@
  *
  * This code is licensed under the BSD 3-Clause License.
  */
-use basm::Error::*;
-use basm::*;
-use colored::*;
+use basm::Error::{LineLessError, OtherError};
+use basm::{CONFIG, Lexer, Token, encode_instruction, load_subroutines, print_subroutine_map, process_start, verify};
+use colored::Colorize;
 use regex::Regex;
 use std::fs;
 use std::fs::File;
@@ -27,12 +27,12 @@ fn main() -> io::Result<()> {
         process::exit(1);
     }
     if File::open(file).is_err() {
-        LineLessError(format!("file {} does not exist", input).as_str()).perror();
+        LineLessError(format!("file {input} does not exist").as_str()).perror();
         process::exit(1);
     }
     if let Ok(metadata) = fs::metadata(input) {
         if metadata.is_dir() {
-            LineLessError(format!("{} is a directory", input).as_str()).perror();
+            LineLessError(format!("{input} is a directory").as_str()).perror();
             process::exit(1);
         }
     }
@@ -107,7 +107,7 @@ fn main() -> io::Result<()> {
             }
         } else {
             OtherError(
-                format!("not enough lines to encode instruction {}", line).as_str(),
+                format!("not enough lines to encode instruction {line}").as_str(),
                 line_count,
                 None,
             )
@@ -147,7 +147,7 @@ fn process_includes(input: &String) -> io::Result<Vec<String>> {
         let content = match line {
             Ok(content) => content,
             Err(e) => {
-                LineLessError(format!("error while reading from file: {}", e).as_str()).perror();
+                LineLessError(format!("error while reading from file: {e}").as_str()).perror();
                 process::exit(1);
             }
         };
@@ -159,7 +159,7 @@ fn process_includes(input: &String) -> io::Result<Vec<String>> {
                     included_lines.extend(included);
                 } else {
                     LineLessError(
-                        format!("could not read included file: {}", include_file).as_str(),
+                        format!("could not read included file: {include_file}").as_str(),
                     )
                     .perror();
                     process::exit(1);
@@ -182,8 +182,8 @@ fn read_include_file(file_name: &str) -> io::Result<Vec<String>> {
         match line {
             Ok(content) => included_lines.push(content),
             Err(e) => {
-                LineLessError(format!("error while reading from include file: {}", e).as_str())
-                    .perror()
+                LineLessError(format!("error while reading from include file: {e}").as_str())
+                    .perror();
             }
         }
     }

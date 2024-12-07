@@ -1,7 +1,7 @@
-use crate::Error::*;
-use crate::*;
+use crate::Error::{ExpectedArgument, OtherError};
+use crate::Token;
 use std::process;
-pub fn verify(ins: &Token, arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> bool {
+#[must_use] pub fn verify(ins: &Token, arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> bool {
     let instructions = [
         "ADD", "HLT", "JGE", "POP", "DIV", "RET", "LD", "ST", "SWP", "JZ", "PUSH", "CMP", "MUL",
         "INT", "MOV",
@@ -60,7 +60,7 @@ fn check_no_arguments(
 ) {
     if is_arg(arg1) || is_arg(arg2) {
         ExpectedArgument(
-            format!("{} requires no arguments", instruction).as_str(),
+            format!("{instruction} requires no arguments").as_str(),
             line_num,
             None,
         )
@@ -77,7 +77,7 @@ fn check_two_arguments(
 ) {
     if !is_arg(arg1) || !is_arg(arg2) {
         ExpectedArgument(
-            format!("{} requires two arguments", instruction).as_str(),
+            format!("{instruction} requires two arguments").as_str(),
             line_num,
             None,
         )
@@ -95,7 +95,7 @@ fn check_one_or_no_arguments(
     let args_satisfied = (is_arg(arg1) || is_arg(arg2)) || (!is_arg(arg1) && !is_arg(arg2));
     if !args_satisfied {
         ExpectedArgument(
-            format!("{} requires one or no arguments", instruction).as_str(),
+            format!("{instruction} requires one or no arguments").as_str(),
             line_num,
             None,
         )
@@ -112,7 +112,7 @@ fn check_one_argument(
 ) {
     if !is_arg(arg1) || is_arg(arg2) {
         ExpectedArgument(
-            format!("{} requires one argument", instruction).as_str(),
+            format!("{instruction} requires one argument").as_str(),
             line_num,
             None,
         )

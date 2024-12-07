@@ -1,5 +1,5 @@
-use crate::*;
-use colored::*;
+use crate::CONFIG;
+use colored::Colorize;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
@@ -37,11 +37,11 @@ impl Error<'_> {
         };
 
         let error_message = match self {
-            Error::InvalidSyntax(s, _, _) => format!("invalid syntax: \n{}", s),
-            Error::ExpectedArgument(s, _, _) => format!("expected an argument: \n{}", s),
-            Error::NonexistentData(s, _, _) => format!("nonexistent data: \n{}", s),
-            Error::UnknownCharacter(s, _, _) => format!("has unknown character: \n{}", s),
-            Error::OtherError(s, _, _) => s.to_string(),
+            Error::InvalidSyntax(s, _, _) => format!("invalid syntax: \n{s}"),
+            Error::ExpectedArgument(s, _, _) => format!("expected an argument: \n{s}"),
+            Error::NonexistentData(s, _, _) => format!("nonexistent data: \n{s}"),
+            Error::UnknownCharacter(s, _, _) => format!("has unknown character: \n{s}"),
+            Error::OtherError(s, _, _) => (*s).to_string(),
             _ => unreachable!(),
         };
         let location = match self {

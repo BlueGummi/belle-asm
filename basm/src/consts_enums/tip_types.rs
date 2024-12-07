@@ -1,5 +1,5 @@
-use crate::*;
-use colored::*;
+use crate::CONFIG;
+use colored::Colorize;
 #[derive(Debug)]
 // tips
 pub enum Tip<'a> {
