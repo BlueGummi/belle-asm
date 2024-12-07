@@ -20,14 +20,20 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          path: site
           node-version: '20'
 
+      - name: Change directory to ./site
+        run: cd site
+
       - name: Install dependencies
-        run: npm install
+        run: |
+          cd site
+          npm install
 
       - name: Build Astro site
-        run: npm run build
+        run: |
+          cd site
+          npm run build
 
   deploy:
     needs: build
