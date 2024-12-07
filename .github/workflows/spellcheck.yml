@@ -1,0 +1,28 @@
+name: Spellcheck
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  spellcheck:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y aspell aspell-en
+
+      - name: Spellcheck markdown files
+        run: |
+          find . -name '*.md' -o -name '*.mdx' | xargs aspell list | while read -r word; do
+            echo "::warning file=${word}::Spelling error found: $word"
+          done

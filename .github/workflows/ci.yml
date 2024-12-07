@@ -21,5 +21,27 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Build tests
-        run: ./build.sh -n
+      - name: Build BELLE
+        run: cd ./belle
+        run: cargo build --release --verbose
+
+      - name: Run clippy on BELLE
+        run: cd ./belle
+        run:  |
+          cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
+        continue-on-error: true
+
+      - name: Build the BELLE-assembler
+        run: cd ./basm
+        run: cargo build --release --verbose
+
+      - name: Run clippy on basm
+        run: cd ./basm
+        run:  |
+          cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
+        continue-on-error: true
+
+      - name: Build the BELLE-disassembler
+        run: cd ./bdump
+        run: make
+
