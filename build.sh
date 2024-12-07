@@ -100,7 +100,12 @@ default_build() {
                 cd basm
                 cargo build --release --quiet &
                 pid=$!
-                spinner $pid "Building BELLE-asm..."
+                if [ -z "$no_spin" ]; then
+                    spinner $pid "Building BELLE-asm..."
+                else
+                    echo "Building BELLE-asm..."
+                    wait $pid
+                fi
                 cp -f target/release/basm ../bin
                 cd ..
                 ;;
@@ -109,7 +114,12 @@ default_build() {
                 make clean --quiet
                 make --quiet &
                 pid=$!
-                spinner $pid "Building BELLE-dump..."
+                if [ -z "$no_spin" ]; then
+                    spinner $pid "Building BELLE-dump..."
+                else
+                    echo "Building BELLE-dump..."
+                    wait $pid
+                fi
                 cp -f bdump ../bin
                 cd ..
                 ;;
@@ -117,7 +127,12 @@ default_build() {
                 cd belle
                 cargo build --release --quiet &
                 pid=$!
-                spinner $pid "Building BELLE..."
+                if [ -z "$no_spin" ]; then
+                    spinner $pid "Building BELLE..."
+                else
+                    echo "Building BELLE..."
+                    wait $pid
+                fi
                 cp -f target/release/belle ../bin
                 cd ..
                 ;;
