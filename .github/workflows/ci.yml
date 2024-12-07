@@ -22,4 +22,4 @@ jobs:
           components: rustfmt, clippy
 
       - name: Build tests
-        run: ./build.sh
+        run: ./build.sh -n

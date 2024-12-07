@@ -27,6 +27,7 @@ print_message() {
 clear_line() {
     printf "\r\033[K"
 }
+
 clean() {
     print_message "Cleaning up..." blue
     cd basm
@@ -40,7 +41,12 @@ clean() {
     cd ..
     print_message "Cleaned up!" green
 }
+
 spinner() {
+    if [ "$no_spin" ]; then
+        return
+    fi
+    
     local pid=$1
     local delay=0.1
     local spin='/-\|'
@@ -73,6 +79,7 @@ print_help() {
     printf "  -c, --clean        Clean the build directories (doesn't build)\n"
     printf "  -w, --with-cleanup Clean directories after building\n"
     printf "  -q, --quiet        Suppress output\n"
+    printf "  -n, --no-spin      Disable the spinner during builds\n"
     printf "  -h, --help         Display this help message\n"
     printf "\nTargets:\n"
     printf "  bdump, basm, belle, btils (default: all)\n"
@@ -143,6 +150,9 @@ for arg in "$@"; do
             ;;
         --quiet|-q)
             quiet=true
+            ;;
+        --no-spin|-n)
+            no_spin=true
             ;;
         --help|-h|help)
             print_help "$0"
