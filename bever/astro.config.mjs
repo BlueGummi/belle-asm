@@ -1,27 +1,30 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
-// https://astro.build/config
 export default defineConfig({
-	integrations: [
-		starlight({
-			title: 'The BELLE website',
-			social: {
-				github: 'https://github.com/BlueGummi/belle',
-			},
-			sidebar: [
-				{
-					label: 'Documentation',
-					items: [
-						// Each item here is one entry in the navigation menu.
-						{ label: 'Assembler', slug: '../docs/basm.md' },
-					],
-				},
-				{
-					label: 'Reference',
-					autogenerate: { directory: 'reference' },
-				},
-			],
-		}),
-	],
+    integrations: [
+        starlight({
+            title: 'The BELLE website',
+            social: {
+                github: 'https://github.com/BlueGummi/belle',
+            },
+            sidebar: [
+                {
+                    label: 'Documentation',
+                    items: [
+                        { label: 'Overview', slug: '' },
+			{ label: 'Assember', slug: 'basm'},
+			{ label: 'Emulator', slug: 'belle'},
+			{ label: 'Diassembler', slug: 'bdump'},
+			{ label: 'Utilities', slug: 'btils'},
+			{ label: 'Instruction Set', slug: 'isa'},
+                    ],
+                },
+                {
+                    label: 'Reference',
+                    autogenerate: { directory: 'reference' },
+                },
+            ],
+        }),
+    ],
 });
