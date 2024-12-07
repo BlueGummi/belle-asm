@@ -21,12 +21,12 @@ jobs:
       - name: Install dependencies
         run: |
           cd bever
-          npm install
+          npm ci
 
       - name: Build the site
         run: |
           cd bever
-          npm run build
+          npm run dev
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
