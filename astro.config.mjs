@@ -27,6 +27,6 @@ export default defineConfig({
             ],
         }),
     ],
-//    site: 'https://bluegummi.github.io',
-//   base: 'belle',
+    site: 'https://bluegummi.github.io',
+   base: 'belle',
 });
