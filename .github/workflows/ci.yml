@@ -22,14 +22,14 @@ jobs:
           components: rustfmt, clippy
 
       - name: Build BELLE
-        run: cd ./belle && cargo build --release --verbose
+        run: cd ./belle && cargo build --release
 
       - name: Run clippy on BELLE
         run: cd ./belle && cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
         continue-on-error: true
 
       - name: Build the BELLE-assembler
-        run: cd ./basm && cargo build --release --verbose
+        run: cd ./basm && cargo build --release
 
       - name: Run clippy on basm
         run: cd ./basm && cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
