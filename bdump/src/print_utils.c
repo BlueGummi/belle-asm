@@ -66,20 +66,18 @@ void print_jump_instruction(Instruction *ins, bool colors) {
 
 void print_hlt_instruction(Instruction *ins, bool colors) {
     if (ins->destination == 1) {
-        ins->type = (ins->type << 8) | ins->source;
         if (colors) {
-            printf("%s.start%s%s $%d%s\n", ANSI_GREEN, ANSI_RESET, ANSI_YELLOW, ins->type,
+            printf("%s.start%s%s $%d%s\n", ANSI_GREEN, ANSI_RESET, ANSI_YELLOW, ins->source,
                    ANSI_RESET);
         } else {
-            printf(".start $%d\n", ins->type);
+            printf(".start $%d\n", ins->source);
         }
     } else if (ins->destination == 2) {
-        ins->type = (ins->type << 8) | ins->source;
         if (colors) {
-            printf("%s.ssp%s%s $%d%s\n", ANSI_GREEN, ANSI_RESET, ANSI_YELLOW, ins->type,
+            printf("%s.ssp%s%s $%d%s\n", ANSI_GREEN, ANSI_RESET, ANSI_YELLOW, ins->source,
                    ANSI_RESET);
         } else {
-            printf(".ssp $%d\n", ins->type);
+            printf(".ssp $%d\n", ins->source);
         }
     } else if (ins->destination == 3) {
         if (colors) {

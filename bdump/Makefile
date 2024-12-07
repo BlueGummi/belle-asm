@@ -17,6 +17,7 @@ all: $(TARGET)
 
 $(TARGET): $(SRCDIR)/$(OBJ)
 	$(CC) $^ -o $@ $(CFLAGS)
+	$(RM) $(OBJ_DIR) $(RM_FLAGS)
 
 $(SRCDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
