@@ -2,10 +2,6 @@ use crate::consts_enums::Error::*;
 use crate::*;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
-use std::fs::File;
-use std::io::{self, BufRead};
-use std::io::{Seek, SeekFrom};
-use std::path::Path;
 use std::process;
 use std::sync::Mutex;
 
@@ -13,7 +9,7 @@ pub static SUBROUTINE_MAP: Lazy<Mutex<HashMap<String, u32>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 
 pub static MEMORY_COUNTER: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
-
+static START_LOCATION: Lazy<Mutex<i32>> = Lazy::new(|| Mutex::new(0));
 pub fn argument_to_binary(arg: Option<&Token>, line_num: u32) -> i16 {
     match arg {
         // register
@@ -135,7 +131,6 @@ pub fn encode_instruction(
         }
     };
 
-    // Handle instruction types and generate binary encoding
     match ins_type.trim().to_lowercase().as_str() {
         "one_arg" => Some((instruction_bin << 12) | argument_to_binary(arg1, line_num)),
         "st" => Some(
@@ -154,7 +149,6 @@ pub fn encode_instruction(
             Some((instruction_bin << 12) | (arg1_bin << 9) | arg2_bin)
         }
         "call" => {
-            // Handle subroutine call: replace with memory address
             let address = argument_to_binary(arg1, line_num);
             Some((instruction_bin << 12) | address)
         }
@@ -166,57 +160,46 @@ pub fn encode_instruction(
     }
 }
 
-pub fn load_subroutines() {
-    let file = &CONFIG.file;
-    let mut file = File::open(Path::new(file)).unwrap();
+pub fn process_start(lines: &Vec<String>) {
+    let mut start_number: Option<i32> = None;
 
-    let mut subroutine_counter = 1;
+    for line in lines {
+        if line.trim().starts_with(".start") {
+            start_number = line
+                .split_whitespace()
+                .nth(1)
+                .and_then(|s| s.strip_prefix('$'))
+                .and_then(|s| s.parse::<i32>().ok());
+        }
+    }
+
+    if let Some(num) = start_number {
+        let mut start_location = START_LOCATION.lock().unwrap();
+        *start_location = num;
+    }
+}
+
+pub fn load_subroutines(lines: &Vec<String>) {
+    let mut subroutine_counter = 1 + *START_LOCATION.lock().unwrap() as u32;
     let mut subroutine_map = SUBROUTINE_MAP.lock().unwrap();
 
-    let reader = io::BufReader::new(&mut file);
-    for line in reader.lines() {
-        subroutine_counter += 1;
-        let line = match line {
-            Ok(line) => line,
-            Err(_) => continue,
-        };
+    for line in lines {
         if line.trim().is_empty()
             || line.trim_start().starts_with(';')
             || line.trim().starts_with('.')
         {
-            subroutine_counter -= 1;
             continue;
         }
+
         if line.ends_with(':') {
-            subroutine_counter -= 1;
             let subroutine_name = line.trim_end_matches(':').trim().to_string();
             subroutine_map.insert(subroutine_name, subroutine_counter);
         }
-    }
-
-    file.seek(SeekFrom::Start(0)).unwrap();
-
-    std::mem::drop(subroutine_map);
-
-    let reader = io::BufReader::new(&mut file);
-    for line in reader.lines().map_while(Result::ok) {
-        if line.trim().starts_with(".start") {
-            if let Some(start_number) = line
-                .split_whitespace()
-                .nth(1)
-                .and_then(|s| s.strip_prefix('$'))
-                .and_then(|s| s.parse::<i32>().ok())
-            {
-                let mut subroutine_map = SUBROUTINE_MAP.lock().unwrap();
-                for value in subroutine_map.values_mut() {
-                    *value += start_number as u32;
-                }
-            }
-        }
+        
+        subroutine_counter += 1;
     }
 }
-
 pub fn update_memory_counter() {
     let mut counter = MEMORY_COUNTER.lock().unwrap();
-    *counter += 1; // Increment memory address after encoding an instruction
+    *counter += 1;
 }

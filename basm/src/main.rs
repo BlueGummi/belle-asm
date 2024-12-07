@@ -13,12 +13,12 @@ use std::fs::File;
 use std::io::{self, BufRead, Write};
 use std::path::Path;
 use std::process;
+
 fn main() -> io::Result<()> {
     if CONFIG.debug {
-        println!("Main func started."); // bc yk the main function sometimes doesn't start
+        println!("Main func started.");
     }
-    let mut lines: Vec<String> = Vec::new();
-    let mut has_err: bool = false;
+
     let input: &String = &CONFIG.file;
     let file = Path::new(input);
 
@@ -36,60 +36,29 @@ fn main() -> io::Result<()> {
             process::exit(1);
         }
     }
+
     if CONFIG.debug {
         println!("File is Some");
     }
-    if fs::read_to_string(Path::new(input))?.is_empty() {
-        LineLessError(format!("file {} is empty", input).as_str()).perror();
-        process::exit(1);
-    }
-    let file = File::open(Path::new(input))?;
-    let reader = io::BufReader::new(file);
-    let include_regex = Regex::new(r#"^\s*#include\s+"([^"]+)""#).unwrap();
 
-    for line in reader.lines() {
-        match line {
-            Ok(content) => {
-                if content.trim().starts_with("#include") {
-                    if let Some(captures) = include_regex.captures(content.trim()) {
-                        let include_file = captures[1].to_string();
-                        if let Ok(included_lines) = read_include_file(&include_file) {
-                            lines.extend(included_lines);
-                        } else {
-                            LineLessError(
-                                format!("could not read included file: {}", include_file).as_str(),
-                            )
-                            .perror();
-                            process::exit(1);
-                        }
-                    }
-                } else {
-                    lines.push(content);
-                }
-            }
-            Err(e) => {
-                LineLessError(format!("error while reading from file: {}", e).as_str()).perror();
+    let lines = process_includes(input)?;
 
-                has_err = true;
-            }
-        }
-    }
+    let lines: Vec<String> = lines.iter().map(|line| line.trim().to_string()).collect();
 
-    // Clean up lines
-    for line in &mut lines {
-        *line = line.trim().to_string();
-    }
-
-    if CONFIG.verbose | CONFIG.debug {
+    if CONFIG.verbose || CONFIG.debug {
         println!("{}", "Processing lines:".blue());
         for (index, line) in lines.iter().enumerate() {
             println!("{}: {}", index + 1, line.green());
         }
     }
+
     let mut encoded_instructions = Vec::new();
-    let mut line_count: u32 = 1; // bigger numbers with 32
-    let mut write_to_file: bool = true; // defines if we should write to file (duh)
-    load_subroutines();
+    let mut line_count: u32 = 1;
+    let mut write_to_file: bool = true;
+    let mut has_err: bool = false;
+    process_start(&lines);
+    load_subroutines(&lines);
+
     for line in lines {
         let mut lexer = Lexer::new(&line, line_count);
         let tokens = lexer.lex();
@@ -97,6 +66,7 @@ fn main() -> io::Result<()> {
             line_count += 1;
             continue;
         }
+
         let instruction = tokens.first();
         let operand1 = tokens.get(1);
         let operand2 = {
@@ -106,18 +76,22 @@ fn main() -> io::Result<()> {
                 tokens.get(2)
             }
         };
+
         if CONFIG.debug {
             println!("Raw line: {}", line.green());
         }
+
         if CONFIG.debug {
-            for token in tokens.iter() {
+            for token in tokens {
                 println!(
                     "{} {}",
                     "Token:".green().bold(),
                     token.to_string().blue().bold()
                 );
             }
+            println!();
         }
+
         if let Some(ins) = instruction {
             let encoded_instruction = encode_instruction(ins, operand1, operand2, line_count);
             if encoded_instruction.is_none() {
@@ -131,22 +105,6 @@ fn main() -> io::Result<()> {
             if CONFIG.verbose || CONFIG.debug {
                 println!("Instruction: {:016b}", encoded_instruction.unwrap());
             }
-            let ins_str: String = format!("{:016b}", encoded_instruction.unwrap());
-            if CONFIG.debug {
-                if let Some(ins) = ins_str.get(0..4) {
-                    // fixed length instructions my beloved
-                    println!("INS: {}", ins.blue().bold());
-                }
-                if let Some(dst) = ins_str.get(4..7) {
-                    println!("DST: {}", dst.blue().bold());
-                }
-                if let Some(dtb) = ins_str.get(7..8) {
-                    println!("DTB: {}", dtb.blue().bold());
-                }
-                if let Some(src) = ins_str.get(8..16) {
-                    println!("SRC: {}\n", src.blue().bold());
-                }
-            }
         } else {
             OtherError(
                 format!("not enough lines to encode instruction {}", line).as_str(),
@@ -154,19 +112,21 @@ fn main() -> io::Result<()> {
                 None,
             )
             .perror();
-
             process::exit(1);
         }
 
-        line_count += 1; // line count exists so we can have line number errors
+        line_count += 1;
     }
+
     if has_err {
         eprintln!("{}", "Exiting...".red());
-        process::exit(1); // wowzers, amazing
+        process::exit(1);
     }
+
     if CONFIG.debug {
         print_subroutine_map();
     }
+
     match &CONFIG.output {
         Some(output_file) if write_to_file => {
             write_encoded_instructions_to_file(output_file, &encoded_instructions)?;
@@ -176,7 +136,45 @@ fn main() -> io::Result<()> {
 
     Ok(())
 }
-fn read_include_file(file_name: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+
+fn process_includes(input: &String) -> io::Result<Vec<String>> {
+    let include_regex = Regex::new(r#"^\s*#include\s+"([^"]+)""#).unwrap();
+    let mut included_lines = Vec::new();
+    let file = File::open(input)?;
+    let reader = io::BufReader::new(file);
+
+    for line in reader.lines() {
+        let content = match line {
+            Ok(content) => content,
+            Err(e) => {
+                LineLessError(format!("error while reading from file: {}", e).as_str()).perror();
+                process::exit(1);
+            }
+        };
+
+        if content.trim().starts_with("#include") {
+            if let Some(captures) = include_regex.captures(content.trim()) {
+                let include_file = captures[1].to_string();
+                if let Ok(included) = read_include_file(&include_file) {
+                    included_lines.extend(included);
+                } else {
+                    LineLessError(
+                        format!("could not read included file: {}", include_file).as_str(),
+                    )
+                    .perror();
+                    process::exit(1);
+                }
+            }
+            continue;
+        }
+
+        included_lines.push(content);
+    }
+
+    Ok(included_lines)
+}
+
+fn read_include_file(file_name: &str) -> io::Result<Vec<String>> {
     let mut included_lines = Vec::new();
     let reader = io::BufReader::new(File::open(file_name)?);
 
@@ -196,14 +194,14 @@ fn write_encoded_instructions_to_file(
     filename: &str,
     encoded_instructions: &[u8],
 ) -> io::Result<()> {
-    // pretty obvious
-    if CONFIG.debug | CONFIG.verbose {
+    if CONFIG.debug || CONFIG.verbose {
         println!("{}", "Wrote to file.".green());
     }
     let mut file = File::create(filename)?;
     file.write_all(encoded_instructions)?;
     Ok(())
 }
+
 #[cfg(test)]
 mod tests {
     // no tests
