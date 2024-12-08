@@ -1,6 +1,6 @@
 use crate::Argument::*;
 use crate::Instruction::*;
-use crate::{CLOCK, CONFIG, EmuError, RecoverableError, UnrecoverableError, cpu};
+use crate::{cpu, EmuError, RecoverableError, UnrecoverableError, CLOCK, CONFIG};
 use colored::*;
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
@@ -33,7 +33,8 @@ impl Default for CPU {
 }
 
 impl CPU {
-    #[must_use] pub fn new() -> CPU {
+    #[must_use]
+    pub fn new() -> CPU {
         CPU {
             int_reg: [0; 6],
             float_reg: [0.0; 2],
@@ -177,7 +178,7 @@ impl CPU {
             }
             let clock = CLOCK.lock().unwrap();
             if CONFIG.verbose {
-                cpu::CPU::display_state(*clock);
+                cpu::CPU::display_state(&clock);
             }
             if self.oflag {
                 RecoverableError::Overflow(self.pc, Some("Overflowed a register.".to_string()))
@@ -197,7 +198,18 @@ impl CPU {
             self.record_state();
             let clock = CLOCK.lock().unwrap(); // might panic
             if CONFIG.verbose {
-                cpu::CPU::display_state(*clock);
+                cpu::CPU::display_state(&clock);
+            }
+            if CONFIG.pretty {
+                for i in 0..=5 {
+                    println!(
+                        "Register {}: {}, {:016b}, {:04x}",
+                        i, self.int_reg[i], self.int_reg[i], self.int_reg[i]
+                    );
+                }
+                for i in 0..=1 {
+                    println!("Float Register {}: {}", i, self.float_reg[i]);
+                }
             }
             if !CONFIG.debug {
                 std::process::exit(0);

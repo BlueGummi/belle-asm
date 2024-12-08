@@ -1,3 +1,4 @@
+use crate::display_mem;
 use crate::CPU;
 use colored::Colorize;
 use std::fs::File;
@@ -57,7 +58,8 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     println!("w             - View the state of the CPU\n");
 
                     println!("Can only be used after the CPU has ran");
-                    println!("i | info      - Print CPU state at debugger's clock\n");
+                    println!("i | info      - Print CPU state at debugger's clock");
+                    println!("im            - Print a value in memory at the clock after the CPU has run\n");
                 } else {
                     match arg.trim().to_lowercase().as_str() {
                         "q" | "quit" | ":q" => {
@@ -130,6 +132,13 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                             println!("'pk' will print the value in memory and ask for a new value");
                             println!("if an invalid value is entered or nothing is entered, it will not do anything\n");
                         }
+                        "im" => {
+                            println!("'info memory' takes one argument");
+                            println!("'im' will print the value in memory at the clock cycle after the CPU has ran");
+                            println!(
+                                "if an invalid value or nothing is entered, nothing will happen\n"
+                            );
+                        }
                         _ => {
                             println!("Unknown command: '{arg}'");
                             println!("Type 'h' or 'help' for a list of available commands.\n");
@@ -156,7 +165,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     );
                     break 'spc;
                 }
-                if let Ok(n) = arg.parse::<u16>() {
+                if let Ok(n) = arg.trim().parse::<u16>() {
                     dbgcpu.pc = n;
                     println!("Program counter set to {n}\n");
                 } else {
@@ -186,7 +195,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     eprintln!("{} requires a numeric argument\n", "p | pmem".red());
                 }
             }
-            "i" | "info" => CPU::display_state(clock),
+            "i" | "info" => CPU::display_state(&clock),
             "wb" => {
                 if dbgcpu.memory.iter().all(|&x| x.is_none()) {
                     eprintln!(
@@ -198,7 +207,9 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 }
             }
             "e" | "exc" => 'exc: {
-                dbgcpu.ir = if let Some(value) = dbgcpu.memory[dbgcpu.pc as usize] { value } else {
+                dbgcpu.ir = if let Some(value) = dbgcpu.memory[dbgcpu.pc as usize] {
+                    value
+                } else {
                     eprintln!("Nothing at PC {}", dbgcpu.pc);
                     break 'exc;
                 };
@@ -219,6 +230,15 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     "  Disassembled Instruction : \n  {}\n",
                     dbgcpu.parse_instruction()
                 );
+                let tmp = dbgcpu.ir;
+                if let Some(n) = dbgcpu.memory[dbgcpu.pc as usize] {
+                    dbgcpu.ir = n;
+                    println!(
+                        "  Next instruction         : \n  {}\n",
+                        dbgcpu.parse_instruction()
+                    );
+                }
+                dbgcpu.ir = tmp;
             }
             "a" => {
                 for (index, element) in dbgcpu.memory.iter().enumerate() {
@@ -269,22 +289,56 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                         println!("Value in memory is:\n{memvalue:016b}\n{memvalue}");
                         let oldvalue = dbgcpu.ir;
                         dbgcpu.ir = memvalue;
-                        println!("dumped instruction: {}", dbgcpu.parse_instruction());
+                        println!("{}", dbgcpu.parse_instruction());
                         dbgcpu.ir = oldvalue;
                         let mut buffer = String::new();
+                        io::stdout().flush().unwrap();
                         io::stdin().read_line(&mut buffer)?;
                         if buffer.is_empty() {
+                            println!("Empty input\n");
                             break 'pk;
                         }
-                        if let Ok(v) = buffer.parse::<i16>() {
+                        if buffer.trim().starts_with("0b") {
+                            match i16::from_str_radix(&buffer.trim()[2..], 2) {
+                                Ok(val) => {
+                                    println!("Value in memory address {n} set to {val:016b}");
+                                    dbgcpu.memory[n] = Some(val);
+                                    break 'pk;
+                                }
+                                Err(e) => println!("Input could not be parsed to binary\n{e}"),
+                            }
+                        }
+
+                        if let Ok(v) = buffer.trim().parse::<i16>() {
                             println!("Value in memory address {n} set to {v}");
                             dbgcpu.memory[n] = Some(v);
+                        } else {
+                            println!("Could not parse a valid integer from input\n");
                         }
                     } else {
                         println!("{}", "Nothing in memory here.\n".yellow());
                     }
                 } else {
                     eprintln!("{} requires a numeric argument\n", "pk".red());
+                }
+            }
+            "im" => 'im: {
+                if let Ok(n) = arg.parse::<usize>() {
+                    let tmp = dbgcpu.ir;
+                    let mval = display_mem(&n, &clock);
+                    if mval.is_none() {
+                        eprintln!("Nothing in memory here\n");
+                        break 'im;
+                    }
+                    let uwrap_val = mval.unwrap() as i16;
+                    dbgcpu.ir = uwrap_val; // can't panic
+                    println!(
+                        "Value in address {n} is\n{uwrap_val}\n{uwrap_val:016b}\nDisassembles to: {}\n",
+                        dbgcpu.parse_instruction()
+                    );
+                    dbgcpu.ir = tmp;
+                } else {
+                    eprintln!("{} requires a numeric argument\n", "im".red());
                 }
             }
             _ => unknown_command(&command),

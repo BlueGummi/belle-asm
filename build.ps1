@@ -36,7 +36,9 @@ function Spinner {
         [int]$processId,
         [string]$message
     )
-    
+    if ($Nospin) {
+        return
+    }
     $delay = 0.1
     $spin = '/-\|'
     Print-Message "$message" "blue"
@@ -138,6 +140,8 @@ foreach ($Arg in $args) {
         "-w"      { $WithCleanup = $true }
         "--quiet" { $Quiet = $true }
         "-q"      { $Quiet = $true }
+        "--nospin"{ $Nospin = $true }
+        "-n"      { $Nospin = $true }
         "--help"  { Print-Help $MyInvocation.MyCommand.Path }
         "-h"      { Print-Help $MyInvocation.MyCommand.Path }
         "bdump"   { $Targets += "bdump" }

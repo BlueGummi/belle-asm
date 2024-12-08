@@ -18,7 +18,8 @@ pub enum Token {
     MemPointer(i16),
 }
 impl Token {
-    #[must_use] pub fn get_raw(&self) -> String {
+    #[must_use]
+    pub fn get_raw(&self) -> String {
         match self {
             Token::Ident(s) => s.to_string(),
             Token::Register(n) => n.to_string(),

@@ -1,6 +1,6 @@
 use crate::Argument::*;
 use crate::Instruction::*;
-use crate::{CONFIG, CPU, RecoverableError, UnrecoverableError};
+use crate::{RecoverableError, UnrecoverableError, CONFIG, CPU};
 
 impl CPU {
     pub fn report_invalid_register(&mut self) {
@@ -47,6 +47,17 @@ impl CPU {
                 self.running = false;
                 if CONFIG.verbose {
                     println!("Halting...");
+                }
+                if CONFIG.pretty {
+                    for i in 0..=5 {
+                        println!(
+                            "Register {}: {}, {:016b}, {:04x}",
+                            i, self.int_reg[i], self.int_reg[i], self.int_reg[i]
+                        );
+                    }
+                    for i in 0..=1 {
+                        println!("Float Register {}: {}", i, self.float_reg[i]);
+                    }
                 }
                 if !CONFIG.debug {
                     std::process::exit(0);

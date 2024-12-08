@@ -1,6 +1,6 @@
 use crate::Argument::{Literal, MemAddr, Register};
 use crate::Instruction::*;
-use crate::{Argument, CONFIG, CPU, EmuError, UnrecoverableError};
+use crate::{Argument, EmuError, RecoverableError, UnrecoverableError, CONFIG, CPU};
 impl CPU {
     pub fn handle_add(&mut self, arg1: &Argument, arg2: &Argument) {
         let value = self.get_value(arg2);
@@ -39,6 +39,7 @@ impl CPU {
             if let Some(v) = self.memory[temp as usize] {
                 self.set_register_value(arg, v.into());
                 if self.sp > self.bp {
+                    RecoverableError::BackwardStack(self.pc, None).err();
                     self.memory[(self.sp - 1) as usize] = None;
                     self.sp -= 1;
                 } else {
@@ -46,11 +47,7 @@ impl CPU {
                     self.sp += 1;
                 }
             } else {
-                UnrecoverableError::SegmentationFault(
-                    self.pc,
-                    Some("Segmentation fault whilst POPping off the stack".to_string()),
-                )
-                .err();
+                UnrecoverableError::StackUnderflow(self.pc, None).err();
                 if !CONFIG.debug {
                     std::process::exit(1);
                 }
@@ -97,20 +94,11 @@ impl CPU {
                 self.sp += 1;
             }
         } else {
-            self.handle_ret_error("Cannot return.");
+            UnrecoverableError::StackUnderflow(self.pc, None).err();
             if !CONFIG.debug {
                 std::process::exit(1);
             }
         }
-    }
-
-    fn handle_ret_error(&mut self, message: &str) {
-        UnrecoverableError::SegmentationFault(self.pc, Some(message.to_string())).err();
-        if !CONFIG.debug {
-            std::process::exit(1);
-        }
-        println!("Resetting...");
-        self.pc = self.starts_at;
     }
 
     pub fn handle_ld(&mut self, arg1: &Argument, arg2: &Argument) {
@@ -193,6 +181,7 @@ impl CPU {
         if self.sp >= self.bp {
             for i in self.bp..=self.sp {
                 if self.memory[i as usize].is_none() {
+                    RecoverableError::BackwardStack(self.pc, None).err();
                     self.memory[i as usize] = Some(val as i16);
                     self.sp = i + 1;
                     break;
@@ -298,7 +287,11 @@ impl CPU {
             // 10 - 20 set flags
             // 20 - 30 unset them
             // 30 - 40 invert them
-            _ => todo!(),
+            _ => RecoverableError::UnknownFlag(
+                self.pc,
+                Some(String::from("Occurred whilst handling INT")),
+            )
+            .err(),
         }
     }
 }

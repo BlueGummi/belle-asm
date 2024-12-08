@@ -1,5 +1,8 @@
 use crate::consts_enums::Error::{InvalidSyntax, NonexistentData};
-use crate::{ADD_OP, CMP_OP, DIV_OP, HLT_OP, INT_OP, JGE_OP, JZ_OP, LD_OP, MOV_OP, MUL_OP, NOP_OP, POP_OP, PUSH_OP, RET_OP, ST_OP, SWP_OP, Tip, Token};
+use crate::{
+    Tip, Token, ADD_OP, CMP_OP, DIV_OP, HLT_OP, INT_OP, JGE_OP, JZ_OP, LD_OP, MOV_OP, MUL_OP,
+    NOP_OP, POP_OP, PUSH_OP, RET_OP, ST_OP, SWP_OP,
+};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::process;
@@ -58,7 +61,8 @@ pub fn argument_to_binary(arg: Option<&Token>, line_num: u32) -> i16 {
     }
 }
 
-#[must_use] pub fn encode_instruction(
+#[must_use]
+pub fn encode_instruction(
     ins: &Token,
     arg1: Option<&Token>,
     arg2: Option<&Token>,
@@ -195,7 +199,7 @@ pub fn load_subroutines(lines: &Vec<String>) {
             let subroutine_name = line.trim_end_matches(':').trim().to_string();
             subroutine_map.insert(subroutine_name, subroutine_counter);
         }
-        
+
         subroutine_counter += 1;
     }
 }

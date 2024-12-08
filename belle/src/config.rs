@@ -27,8 +27,13 @@ pub struct Cli {
     /// Clock cycle delay (milliseconds)
     #[clap(short = 't', long)]
     pub time_delay: Option<u32>,
+
+    /// Print the state of the CPU when it halts
+    #[clap(short = 'p', long, default_value_t = false)]
+    pub pretty: bool,
 }
-#[must_use] pub fn declare_config() -> Cli {
+#[must_use]
+pub fn declare_config() -> Cli {
     let cli = Cli::parse();
 
     Cli {
@@ -37,5 +42,6 @@ pub struct Cli {
         debug: cli.debug,
         quiet: cli.quiet,
         time_delay: Some(cli.time_delay.unwrap_or(0)),
+        pretty: cli.pretty,
     }
 }

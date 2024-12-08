@@ -4,7 +4,7 @@ import starlight from '@astrojs/starlight';
 export default defineConfig({
     integrations: [
         starlight({
-            title: 'The BELLE website',
+            title: 'BELLE site',
             social: {
                 github: 'https://github.com/BlueGummi/belle',
             },

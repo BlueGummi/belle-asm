@@ -45,6 +45,7 @@ Different flags can be passed to make the emulator operate differently.
 | Run debugger   | `-d` or `--debug`   | Boolean       | `false`       | `-d`       |
 | Time delay     | `-t` or `--time-delay`    | Integer       | `0`       | `-t`       |
 | Display help   | `-h` or `--help`    | Boolean       | `false`       | `-h`       |
+| Pretty print   | `-p` or `--pretty`  | Boolean       | `false`       | `-p`       |
 
 # Usage
 
@@ -68,4 +69,105 @@ belle fib
 
 The runtime performance of the emulator is typically comparable to native Rust code runtime speeds, with a 10-20% overhead.
 
-The [assembler's documentation](../basm) can be viewed to view the syntax and instructions to create binaries compatible with BELLE. 
+The [assembler's documentation](../basm) can be viewed to view the syntax and instructions to create binaries compatible with BELLE.
+
+
+
+
+If the emulator is being run in debug mode, (i.e. with the `--debug` flag enabled), every clock cycle, the CPU's information (registers, program counter, etc.) is written to a hashmap (a data structure containing 'keys' and 'values' that can be read from and written to). This hashmap can be read from if the program successfully finishes execution without crashing.
+
+# Errors and debugging
+
+If a program creates an error at runtime, the CPU emulator will either halt or can continue operation, depending on the type of error. For example, a segmentation fault in the CPU is an unrecoverable error, which will result in the CPU simply crashing and returning an error code.
+
+Some errors, however, are recoverable. A register overflow and backwards stack are both recoverable errors that will not crash the emulator.
+
+## Error emission reasons
+
+Typically, there are a few general reasons behind why the emulator has experienced an error. This covers general patterns seen with error emission reasons.
+
+## Unrecoverable errors (crashes the emulator)
+
+### 1. Segmentation faults
+
+A segmentation fault (or access violation) is an error that occurs when a computer attempts to access a memory address that it cannot access, or attempts to read from a memory address that doesn't exist.
+
+Segmentation faults can occur on BELLE for a variety of reasons, and below are a few common reasons for segmentation faults.
+
+1. Attempting to read from an empty memory address or one that is out of bounds (`0` in a memory address is *different* from an *empty* one.)
+2. Attempting to jump to a memory address that contains nothing or is invalid
+3. Attempting to change the stack/base pointers to addresses that are invalid
+
+### 2. Stack overflows
+
+Stack overflows occur when the stack is being "`push`'d" onto without any available memory addresses to expand to. If the stack is expanding 'downwards' (i.e. the base pointer is a higher memory address than the stack pointer), the stack will overflow and encounter a situation in which expanding further will result in attempting to access a memory address under zero (a segmentation fault).
+
+Stack overflows can also occur if the stack is significantly 'higher' than the memory in which the program's instructions reside (i.e. the program sits between addresses 10-200 and the stack sits at 400-512). In this scenario, as the stack is attempting to expand into a location in memory that is beyond the amount of addresses present in memory, it will also overflow.
+
+Stack overflows often occur if the address that is pushed onto a stack from a jump instruction is not "`pop`'d" off into a register, and no return from a jump is ever called. This results in the stack continuously being "`push`'d" onto, eventually overflowing it.
+
+### 3. Stack underflows
+
+Stack underflows occur when the CPU attempts to "`pop`" a value off of the top of a stack when the stack is empty.
+
+When a program attempts to return from a jump when the stack is empty (either because the jump address was popped off and never pushed back on, or because the stack and base pointer were changed), a stack underflow will occur.
+
+Stack underflows can also happen when the CPU attempts to "`pop`" a value off by directly calling the `pop` instruction when the stack is empty. 
+
+Typically, a stack underflow can be more easily avoided and solved than an overflow, as the source code can be traced through to view what the stack would look like at a certain point. The debugger can also be utilized to view the state of all the memory addresses at a certain point in a program to similarly determine the state of the call stack.
+
+### 4. Illegal instructions
+
+This a very rare error that likely will not ever be reached unless binary is being manually handwritten. As the ISA is very conservative and efficient with its bits (16 per instruction), it is very unlikely that an illegal instruction error will be encountered unless the binary is being manually handwritten.
+
+Illegal instructions can happen in one edge case when the source for an instruction is of an invalid type (i.e. the determinant bits are in a combination where the value of the source cannot be determined for it is not a valid combination, thus rendering the instruction illegal). 
+
+### 5. Divide by zero
+
+This error specifically occurs when a division instruction is being run with the divisor being zero. It's a fairly rare error, as division operations aren't very common, but it can occur.
+
+### 6. Invalid register
+
+This is a placeholder error to account for a case where a register number is invalid. It cannot happen, as the emulator shifts the register values out and guarantees that they are 3 bits long each.
+
+## Recoverable errors (emulator continues running)
+
+Along with unrecoverable errors, there are recoverable errors.
+
+### 1. Value overflow
+
+Not to be confused with a [stack overflow](#2-stack-overflows), a *value overflow* occurs when the CPU has a register that overflows its maximum capacity when an operation is performed on it. When a register overflows its value, the *overflow flag* is set, and the machine continues to operate as normal.
+
+### 2. Unknown interrupt codes (unknown flag)
+
+As the name suggests, this error specifically occurs when the system attempts to create an interrupt with a code that doesn't exist. The system will continue to function as normal after this is generated, and the interrupt is simply skipped.
+
+### 3. Backward stack
+
+This is a unique recoverable error that is moreso a warning. This error does not exist on real hardware as the stack can only expand in one direction on most hardware. However, BELLE allows the stack to expand both "up" and "down". The stack, by default, expands down. However, if the stack begins expanding up, this error will be issued to inform the user that the stack is going the wrong direction, and may end up overwriting program memory if it continues expanding.
+
+This error will be issued on `push` and `pop` operations, and will be issued on `jump` related instructions as well. `ret` will never generate this error.
+
+## Debugging
+
+BELLE comes with an inbuilt debug mode that can be called via passing the `-d` flag along with the binary that is to be loaded. Upon entering debug mode, a command prompt will show up. `help` can be entered to view all available commands in debug mode, and an argument can be passed to `help` with the command that one desires more information about.
+
+The debugger *can* crash if the `run` command is executed, however stepping through a program with `e` will never cause a crash.
+
+### Typical usage
+
+Typically, if a program is causing a fatal error, the debugger can be utilized to figure out what specifically is going on by first running `l` to load the program into memory, and then `a` to view the values at all filled memory addresses. Then, the debug CPU can be ran with `r`, which will crash the CPU and exit the debugger.
+
+The error message that the emulator will generate will contain the memory address that the crash occurred at. The emulator can then be started up in debug mode and `e` can be ran after the program is loaded with `l`, so the program can be stepped through. `p` or `pmem` allows the user to view the value at a particular memory address, whilst `pk` allows the user to change the value at a memory address
+
+If a program is not encountering a fatal error, but it is producing behavior different from the desired result, `c` can be entered to set the machine to a specific clock cycle after `l` and `r` are executed to load and run the program. Then, `i` can be entered to view the state of the emulator on that specific clock cycle. It is also possible to view the state of memory by stepping through the program as explained above.
+
+# Other
+
+Along with the above detailed features, the emulator also contains a verbose mode, which can be called by passing the `-v` flag.
+
+In this mode, the emulator will print out the status of the CPU after each instruction execution, allowing for the machine to be debugged without entering the debugger.
+
+# Technical details
+
+The emulated memory is an array of the `Option` type in Rust, which allows it to be either `Some(value)` or `None` (nothing). This is how the emulated memory can have *empty* memory addresses, and how segmentation faults can occur from it.

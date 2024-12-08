@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: Build
     runs-on: windows-latest
 
     steps:
@@ -26,22 +27,10 @@ jobs:
           cd .\belle
           cargo build --release
 
-      - name: Run clippy on BELLE
-        run: |
-          cd .\belle
-          cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
-        continue-on-error: true
-
       - name: Build the BELLE-assembler
         run: |
           cd .\basm
           cargo build --release
-
-      - name: Run clippy on basm
-        run: |
-          cd .\basm
-          cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
-        continue-on-error: true
 
       - name: Install dependencies (make, gcc) on Windows
         run: |
@@ -53,3 +42,9 @@ jobs:
         run: |
           cd .\bdump
           make
+
+      - name: Test build script (Windows)
+        run: .\build.ps1 -n
+
+      - name: Test install script (Windows)
+        run: .\install.ps1

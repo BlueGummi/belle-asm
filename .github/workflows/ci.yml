@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-latest
 
     steps:
@@ -27,14 +28,25 @@ jobs:
       - name: Run clippy on BELLE
         run: cd ./belle && cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
         continue-on-error: true
-
+        
+      - name: Run Rustfmt on BELLE
+        run: cd ./belle && cargo fmt -- --check
+        # Done with BELLE here
       - name: Build the BELLE-assembler
         run: cd ./basm && cargo build --release
-
+        
+      - name: Run Rustfmt on the BELLE-assembler
+        run: cd ./basm && cargo fmt -- --check
+        
       - name: Run clippy on basm
         run: cd ./basm && cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
         continue-on-error: true
-
+        # Done with basm here
       - name: Build the BELLE-disassembler
         run: cd ./bdump && make
 
+      - name: Test build script
+        run: ./build.sh -n
+
+      - name: Test install script
+        run: ./install.sh
