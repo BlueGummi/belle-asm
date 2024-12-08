@@ -230,6 +230,15 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     "  Disassembled Instruction : \n  {}\n",
                     dbgcpu.parse_instruction()
                 );
+                let tmp = dbgcpu.ir;
+                if let Some(n) = dbgcpu.memory[dbgcpu.pc as usize] {
+                    dbgcpu.ir = n;
+                    println!(
+                        "  Next instruction         : \n  {}\n",
+                        dbgcpu.parse_instruction()
+                    );
+                }
+                dbgcpu.ir = tmp;
             }
             "a" => {
                 for (index, element) in dbgcpu.memory.iter().enumerate() {

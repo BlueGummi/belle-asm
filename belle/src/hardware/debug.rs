@@ -38,6 +38,15 @@ impl CPU {
             println!("  Stack pointer            : {}", cpu.sp);
             println!("  Base pointer             : {}", cpu.bp);
             println!("  Disassembled Instruction : \n{}", cpu.parse_instruction());
+
+            if let Some(n) = cpu.memory[cpu.pc as usize] {
+                let mut tmp = CPU::new();
+                tmp.ir = n;
+                println!(
+                    "  Next instruction         : \n  {}\n",
+                    tmp.parse_instruction()
+                );
+            }
         } else {
             println!("No CPU state found for clock: {clock}");
         }

@@ -158,3 +158,15 @@ The debugger *can* crash if the `run` command is executed, however stepping thro
 Typically, if a program is causing a fatal error, the debugger can be utilized to figure out what specifically is going on by first running `l` to load the program into memory, and then `a` to view the values at all filled memory addresses. Then, the debug CPU can be ran with `r`, which will crash the CPU and exit the debugger.
 
 The error message that the emulator will generate will contain the memory address that the crash occurred at. The emulator can then be started up in debug mode and `e` can be ran after the program is loaded with `l`, so the program can be stepped through. `p` or `pmem` allows the user to view the value at a particular memory address, whilst `pk` allows the user to change the value at a memory address
+
+If a program is not encoutering a fatal error, but it is producing behavior different from the desired result, `c` can be entered to set the machine to a specific clock cycle after `l` and `r` are executed to load and run the program. Then, `i` can be entered to view the state of the emulator on that specific clock cycle. It is also possible to view the state of memory by stepping through the program as explained above.
+
+# Other
+
+Along with the above detailed features, the emulator also contains a verbose mode, which can be called by passing the `-v` flag.
+
+In this mode, the emulator will print out the status of the CPU after each instruction execution, allowing for the machine to be debugged without entering the debugger.
+
+# Technical details
+
+The emulated memory is an array of the `Option` type in Rust, which allows it to be either `Some(value)` or `None` (nothing). This is how the emulated memory can have *empty* memory addresses, and how segmentation faults can occur from it.
