@@ -23,6 +23,6 @@ jobs:
 
       - name: Spellcheck markdown files
         run: |
-          find . -name '*.md' -o -name '*.mdx' | xargs aspell list | while read -r word; do
-            echo "::warning Spelling error found: $word"
+          cd . && find . -name '*.md' -o -name '*.mdx' | xargs aspell list | while read -r word; do
+            echo "Spelling error found: $word"
           done
