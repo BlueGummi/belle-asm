@@ -1,4 +1,4 @@
-name: Windows Build
+name: Windows build
 
 on:
   push:
@@ -14,12 +14,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Set up GCC and Make
-        uses: actions-rs/setup-gcc@v1
-        with:
-          gcc-version: '10'
-          make: true
-
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -29,25 +23,33 @@ jobs:
 
       - name: Build BELLE
         run: |
-          cd belle
+          cd .\belle
           cargo build --release
 
       - name: Run clippy on BELLE
         run: |
-          cd belle
-          cargo clippy -- -D warnings || (echo "::warning Clippy found warnings, but continuing." && exit 0)
+          cd .\belle
+          cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
+        continue-on-error: true
 
       - name: Build the BELLE-assembler
         run: |
-          cd basm
+          cd .\basm
           cargo build --release
 
       - name: Run clippy on basm
         run: |
-          cd basm
-          cargo clippy -- -D warnings || (echo "::warning Clippy found warnings, but continuing." && exit 0)
+          cd .\basm
+          cargo clippy -- -D warnings || echo "::warning Clippy found warnings, but continuing."
+        continue-on-error: true
+
+      - name: Install dependencies (make, gcc) on Windows
+        run: |
+          choco install make
+          choco install mingw
+          set PATH=%PATH%;C:\tools\mingw\bin
 
       - name: Build the BELLE-disassembler
         run: |
-          cd bdump
-          make 
+          cd .\bdump
+          make
