@@ -103,7 +103,7 @@ Stack overflows occur when the stack is being "`push`'d" onto without any availa
 
 Stack overflows can also occur if the stack is significantly 'higher' than the memory in which the program's instructions reside (i.e. the program sits between addresses 10-200 and the stack sits at 400-512). In this scenario, as the stack is attempting to expand into a location in memory that is beyond the amount of addresses present in memory, it will also overflow.
 
-Stack overflows often occur if the address that is pushed onto a stack from a jump instruction is not "`pop`'d" off into a register, and no return from a jump is ever called. This results in the stack continously being "`push`'d" onto, eventually overflowing it.
+Stack overflows often occur if the address that is pushed onto a stack from a jump instruction is not "`pop`'d" off into a register, and no return from a jump is ever called. This results in the stack continuously being "`push`'d" onto, eventually overflowing it.
 
 ### 3. Stack underflows
 
@@ -159,7 +159,7 @@ Typically, if a program is causing a fatal error, the debugger can be utilized t
 
 The error message that the emulator will generate will contain the memory address that the crash occurred at. The emulator can then be started up in debug mode and `e` can be ran after the program is loaded with `l`, so the program can be stepped through. `p` or `pmem` allows the user to view the value at a particular memory address, whilst `pk` allows the user to change the value at a memory address
 
-If a program is not encoutering a fatal error, but it is producing behavior different from the desired result, `c` can be entered to set the machine to a specific clock cycle after `l` and `r` are executed to load and run the program. Then, `i` can be entered to view the state of the emulator on that specific clock cycle. It is also possible to view the state of memory by stepping through the program as explained above.
+If a program is not encountering a fatal error, but it is producing behavior different from the desired result, `c` can be entered to set the machine to a specific clock cycle after `l` and `r` are executed to load and run the program. Then, `i` can be entered to view the state of the emulator on that specific clock cycle. It is also possible to view the state of memory by stepping through the program as explained above.
 
 # Other
 
