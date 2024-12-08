@@ -17,11 +17,11 @@ all: $(TARGET)
 
 $(TARGET): $(SRCDIR)/$(OBJ)
 	$(CC) $^ -o $@ $(CFLAGS)
-	$(RM) $(OBJ_DIR) $(RM_FLAGS)
+	$(RM) $(OBJ_DIR) $(RM_FLAGS) || true
 
 $(SRCDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(OBJ_DIR) $(RM_FLAGS)
-	$(RM) $(TARGET)
+	$(RM) $(OBJ_DIR) $(RM_FLAGS) || true
+	$(RM) $(TARGET) || true
