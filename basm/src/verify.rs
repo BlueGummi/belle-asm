@@ -1,7 +1,8 @@
 use crate::Error::{ExpectedArgument, OtherError};
 use crate::Token;
 use std::process;
-#[must_use] pub fn verify(ins: &Token, arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> bool {
+#[must_use]
+pub fn verify(ins: &Token, arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> bool {
     let instructions = [
         "ADD", "HLT", "JGE", "POP", "DIV", "RET", "LD", "ST", "SWP", "JZ", "PUSH", "CMP", "MUL",
         "INT", "MOV",

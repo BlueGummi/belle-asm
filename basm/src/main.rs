@@ -5,7 +5,10 @@
  * This code is licensed under the BSD 3-Clause License.
  */
 use basm::Error::{LineLessError, OtherError};
-use basm::{CONFIG, Lexer, Token, encode_instruction, load_subroutines, print_subroutine_map, process_start, verify};
+use basm::{
+    encode_instruction, load_subroutines, print_subroutine_map, process_start, verify, Lexer,
+    Token, CONFIG,
+};
 use colored::Colorize;
 use regex::Regex;
 use std::fs;
@@ -158,10 +161,8 @@ fn process_includes(input: &String) -> io::Result<Vec<String>> {
                 if let Ok(included) = read_include_file(&include_file) {
                     included_lines.extend(included);
                 } else {
-                    LineLessError(
-                        format!("could not read included file: {include_file}").as_str(),
-                    )
-                    .perror();
+                    LineLessError(format!("could not read included file: {include_file}").as_str())
+                        .perror();
                     process::exit(1);
                 }
             }

@@ -33,7 +33,8 @@ pub struct Args {
 }
 
 /// Parse command line arguments and return the configuration
-#[must_use] pub fn declare_config() -> Args {
+#[must_use]
+pub fn declare_config() -> Args {
     let cli = Args::parse();
     let output = cli.output.unwrap_or_else(|| "a.out".to_string());
     Args {

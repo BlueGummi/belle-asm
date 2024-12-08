@@ -1,5 +1,5 @@
 use crate::Error::{ExpectedArgument, InvalidSyntax, UnknownCharacter};
-use crate::{CONFIG, SUBROUTINE_MAP, Tip, Token};
+use crate::{Tip, Token, CONFIG, SUBROUTINE_MAP};
 use std::process;
 
 pub struct Lexer<'a> {
@@ -10,7 +10,8 @@ pub struct Lexer<'a> {
 }
 
 impl<'a> Lexer<'a> {
-    #[must_use] pub fn new(line: &'a str, line_number: u32) -> Self {
+    #[must_use]
+    pub fn new(line: &'a str, line_number: u32) -> Self {
         Self {
             location: 1,
             line_number,
@@ -287,7 +288,9 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        let num_value = if let Ok(value) = number[1..].parse::<i16>() { value } else {
+        let num_value = if let Ok(value) = number[1..].parse::<i16>() {
+            value
+        } else {
             InvalidSyntax(
                 "value after # must be a numeric literal",
                 self.line_number,
