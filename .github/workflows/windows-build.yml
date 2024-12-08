@@ -1,0 +1,56 @@
+name: Windows Build
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      
+      - name: Install Chocolatey
+        run: |
+          Set-ExecutionPolicy Bypass -Scope Process -Force; 
+          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; 
+          iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+      - name: Install Make and GCC
+        run: choco install make gcc --yes
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+
+      - name: Build BELLE
+        run: |
+          cd belle
+          cargo build --release
+
+      - name: Run clippy on BELLE
+        run: |
+          cd belle
+          cargo clippy -- -D warnings || (echo "::warning Clippy found warnings, but continuing." && exit 0)
+
+      - name: Build the BELLE-assembler
+        run: |
+          cd basm
+          cargo build --release
+
+      - name: Run clippy on basm
+        run: |
+          cd basm
+          cargo clippy -- -D warnings || (echo "::warning Clippy found warnings, but continuing." && exit 0)
+
+      - name: Build the BELLE-disassembler
+        run: |
+          cd bdump
+          make
