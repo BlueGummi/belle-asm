@@ -19,6 +19,11 @@ jobs:
           Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; 
           iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 
+      - name: Add Scoop to PATH
+        run: |
+          $Env:Path += ";$Env:USERPROFILE\scoop\shims"
+          echo "Scoop added to PATH"
+
       - name: Install Make and GCC
         run: |
           scoop install make
