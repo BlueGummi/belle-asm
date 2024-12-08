@@ -13,22 +13,12 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
-      
-      - name: Install Scoop
-        run: |
-          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser; 
-          iex (new-object net.webclient).downloadstring('https://get.scoop.sh')
 
-      - name: Add Scoop to PATH
-        run: |
-          $Env:Path += ";$Env:USERPROFILE\scoop\shims"
-          echo "Scoop added to PATH"
-
-      - name: Install Make and GCC
-        run: |
-          scoop install make
-          scoop bucket add main
-          scoop install gcc
+      - name: Set up GCC and Make
+        uses: actions-rs/setup-gcc@v1
+        with:
+          gcc-version: '10'
+          make: true
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
@@ -60,4 +50,4 @@ jobs:
       - name: Build the BELLE-disassembler
         run: |
           cd bdump
-          make
+          make 
