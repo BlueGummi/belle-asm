@@ -1,6 +1,6 @@
 # BELLE - The complete program utility set for the Big Endian, Low Level Emulator
-[![Rust Build check](https://github.com/BlueGummi/belle/actions/workflows/ci.yml/badge.svg)](https://github.com/BlueGummi/belle/actions/workflows/ci.yml) [![Spellcheck](https://github.com/BlueGummi/belle/actions/workflows/spellcheck.yml/badge.svg)](https://github.com/BlueGummi/belle/actions/workflows/spellcheck.yml) [![Deploy Astro site to Pages](https://github.com/BlueGummi/belle/actions/workflows/publish.yml/badge.svg)](https://github.com/BlueGummi/belle/actions/workflows/publish.yml) 
-All documentation is available on [the website for this project](https://bluegummi.github.io/belle) [![Deploy Astro site to Pages](https://github.com/BlueGummi/belle/actions/workflows/publish.yml/badge.svg)](https://github.com/BlueGummi/belle/actions/workflows/publish.yml)
+[![Rust Build check](https://github.com/BlueGummi/belle/actions/workflows/ci.yml/badge.svg)](https://github.com/BlueGummi/belle/actions/workflows/ci.yml) [![Spellcheck](https://github.com/BlueGummi/belle/actions/workflows/spellcheck.yml/badge.svg)](https://github.com/BlueGummi/belle/actions/workflows/spellcheck.yml) [![Deploy Astro site to Pages](https://github.com/BlueGummi/belle/actions/workflows/publish.yml/badge.svg)](https://github.com/BlueGummi/belle/actions/workflows/publish.yml)
+All documentation is available on [the website for this project](https://bluegummi.github.io/belle) 
 
 ## Quickstart
 
