@@ -41,3 +41,9 @@ jobs:
         run: |
           cd .\bdump
           make
+
+      - name: Test build script (Windows)
+        run: .\build.ps1
+
+      - name: Test install script (Windows)
+        run: .\install.ps1
