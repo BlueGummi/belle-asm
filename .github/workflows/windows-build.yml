@@ -47,7 +47,7 @@ jobs:
         run: |
           choco install make
           choco install mingw
-          set PATH=%PATH%;C:\tools\mingw\bin
+          $env:PATH += ";C:\tools\mingw\bin"
 
       - name: Build the BELLE-disassembler
         run: |
