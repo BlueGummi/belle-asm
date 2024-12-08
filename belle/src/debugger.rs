@@ -165,7 +165,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     );
                     break 'spc;
                 }
-                if let Ok(n) = arg.parse::<u16>() {
+                if let Ok(n) = arg.trim().parse::<u16>() {
                     dbgcpu.pc = n;
                     println!("Program counter set to {n}\n");
                 } else {
@@ -280,16 +280,31 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                         println!("Value in memory is:\n{memvalue:016b}\n{memvalue}");
                         let oldvalue = dbgcpu.ir;
                         dbgcpu.ir = memvalue;
-                        println!("dumped instruction: {}", dbgcpu.parse_instruction());
+                        println!("{}", dbgcpu.parse_instruction());
                         dbgcpu.ir = oldvalue;
                         let mut buffer = String::new();
+                        io::stdout().flush().unwrap();
                         io::stdin().read_line(&mut buffer)?;
                         if buffer.is_empty() {
+                            println!("Empty input\n");
                             break 'pk;
                         }
-                        if let Ok(v) = buffer.parse::<i16>() {
+                        if buffer.trim().starts_with("0b") {
+                            match i16::from_str_radix(&buffer.trim()[2..], 2) {
+                                Ok(val) => {
+                                    println!("Value in memory address {n} set to {val:016b}");
+                                    dbgcpu.memory[n] = Some(val);
+                                    break 'pk;
+                                }
+                                Err(e) => println!("Input could not be parsed to binary\n{e}"),
+                            }
+                        }
+
+                        if let Ok(v) = buffer.trim().parse::<i16>() {
                             println!("Value in memory address {n} set to {v}");
                             dbgcpu.memory[n] = Some(v);
+                        } else {
+                            println!("Could not parse a valid integer from input\n");
                         }
                     } else {
                         println!("{}", "Nothing in memory here.\n".yellow());

@@ -85,6 +85,8 @@ Some errors, however, are recoverable. A register overflow and backwards stack a
 
 Typically, there are a few general reasons behind why the emulator has experienced an error. This covers general patterns seen with error emission reasons.
 
+## Unrecoverable errors (crashes the emulator)
+
 ### 1. Segmentation faults
 
 A segmentation fault (or access violation) is an error that occurs when a computer attempts to access a memory address that it cannot access, or attempts to read from a memory address that doesn't exist.
@@ -121,6 +123,38 @@ Illegal instructions can happen in one edge case when the source for an instruct
 
 ### 5. Divide by zero
 
-This instruction specifically occurs when a division instruction is being run with the divisor being zero. It's a fairly rare error, as division operations aren't very common, but it can occur.
+This error specifically occurs when a division instruction is being run with the divisor being zero. It's a fairly rare error, as division operations aren't very common, but it can occur.
 
+### 6. Invalid register
 
+This is a placeholder error to account for a case where a register number is invalid. It cannot happen, as the emulator shifts the register values out and guarantees that they are 3 bits long each.
+
+## Recoverable errors (emulator continues running)
+
+Along with unrecoverable errors, there are recoverable errors.
+
+### 1. Value overflow
+
+Not to be confused with a [stack overflow](#stack-overflows), a *value overflow* occurs when the CPU has a register that overflows its maximum capacity when an operation is performed on it. When a register overflows its value, the *overflow flag* is set, and the machine continues to operate as normal.
+
+### 2. Unknown interrupt codes (unknown flag)
+
+As the name suggests, this error specifically occurs when the system attempts to create an interrupt with a code that doesn't exist. The system will continue to function as normal after this is generated, and the interrupt is simply skipped.
+
+### 3. Backward stack
+
+This is a unique recoverable error that is moreso a warning. This error does not exist on real hardware as the stack can only expand in one direction on most hardware. However, BELLE allows the stack to expand both "up" and "down". The stack, by default, expands down. However, if the stack begins expanding up, this error will be issued to inform the user that the stack is going the wrong direction, and may end up overwriting program memory if it continues expanding.
+
+This error will be issued on `push` and `pop` operations, and will be issued on `jump` related instructions as well. `ret` will never generate this error.
+
+## Debugging
+
+BELLE comes with an inbuilt debug mode that can be called via passing the `-d` flag along with the binary that is to be loaded. Upon entering debug mode, a command prompt will show up. `help` can be entered to view all available commands in debug mode, and an argument can be passed to `help` with the command that one desires more information about.
+
+The debugger *can* crash if the `run` command is executed, however stepping through a program with `e` will never cause a crash.
+
+### Typical usage
+
+Typically, if a program is causing a fatal error, the debugger can be utilized to figure out what specifically is going on by first running `l` to load the program into memory, and then `a` to view the values at all filled memory addresses. Then, the debug CPU can be ran with `r`, which will crash the CPU and exit the debugger.
+
+The error message that the emulator will generate will contain the memory address that the crash occurred at. The emulator can then be started up in debug mode and `e` can be ran after the program is loaded with `l`, so the program can be stepped through. `p` or `pmem` allows the user to view the value at a particular memory address, whilst `pk` allows the user to change the value at a memory address

@@ -287,7 +287,11 @@ impl CPU {
             // 10 - 20 set flags
             // 20 - 30 unset them
             // 30 - 40 invert them
-            _ => todo!(),
+            _ => RecoverableError::UnknownFlag(
+                self.pc,
+                Some(String::from("Occurred whilst handling INT")),
+            )
+            .err(),
         }
     }
 }
