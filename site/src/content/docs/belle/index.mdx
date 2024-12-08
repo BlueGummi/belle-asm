@@ -68,4 +68,48 @@ belle fib
 
 The runtime performance of the emulator is typically comparable to native Rust code runtime speeds, with a 10-20% overhead.
 
-The [assembler's documentation](../basm) can be viewed to view the syntax and instructions to create binaries compatible with BELLE. 
+The [assembler's documentation](../basm) can be viewed to view the syntax and instructions to create binaries compatible with BELLE.
+
+
+
+
+If the emulator is being run in debug mode, (i.e. with the `--debug` flag enabled), every clock cycle, the CPU's information (registers, program counter, etc.) is written to a hashmap (a data structure containing 'keys' and 'values' that can be read from and written to). This hashmap can be read from if the program successfully finishes execution without crashing.
+
+# Errors and debugging
+
+If a program creates an error at runtime, the CPU emulator will either halt or can continue operation, depending on the type of error. For example, a segmentation fault in the CPU is an unrecoverable error, which will result in the CPU simply crashing and returning an error code.
+
+Some errors, however, are recoverable. A register overflow and backwards stack are both recoverable errors that will not crash the emulator.
+
+## Error emission reasons
+
+Typically, there are a few general reasons behind why the emulator has experienced an error. This covers general patterns seen with error emission reasons.
+
+### 1. Segmentation faults
+
+A segmentation fault (or access violation) is an error that occurs when a computer attempts to access a memory address that it cannot access, or attempts to read from a memory address that doesn't exist.
+
+Segmentation faults can occur on BELLE for a variety of reasons, and below are a few common reasons for segmentation faults.
+
+1. Attempting to read from an empty memory address or one that is out of bounds (`0` in a memory address is *different* from an *empty* one.)
+2. Attempting to jump to a memory address that contains nothing or is invalid
+3. Attempting to change the stack/base pointers to addresses that are invalid
+
+### 2. Stack overflows
+
+Stack overflows occur when the stack is being "`push`'d" onto without any available memory addresses to expand to. If the stack is expanding 'downwards' (i.e. the base pointer is a higher memory address than the stack pointer), the stack will overflow and encounter a situation in which expanding further will result in attempting to access a memory address under zero (a segmentation fault).
+
+Stack overflows can also occur if the stack is significantly 'higher' than the memory in which the program's instructions reside (i.e. the program sits between addresses 10-200 and the stack sits at 400-512). In this scenario, as the stack is attempting to expand into a location in memory that is beyond the amount of addresses present in memory, it will also overflow.
+
+Stack overflows often occur if the address that is pushed onto a stack from a jump instruction is not "`pop`'d" off into a register, and no return from a jump is ever called. This results in the stack continously being "`push`'d" onto, eventually overflowing it.
+
+### 3. Stack underflows
+
+Stack underflows occur when the CPU attempts to "`pop`" a value off of the top of a stack when the stack is empty.
+
+When a program attempts to return from a jump when the stack is empty (either because the jump address was popped off and never pushed back on, or because the stack and base pointer were changed), a stack underflow will occur.
+
+Stack underflows can also happen when the CPU attempts to "`pop`" a value off by directly calling the `pop` instruction when the stack is empty. 
+
+Typically, a stack underflow can be more easily avoided and solved than an overflow, as the source code can be traced through to view what the stack would look like at a certain point. The debugger can also be utilized to view the state of all the memory addresses at a certain point in a program to similarly determine the state of the call stack.
+

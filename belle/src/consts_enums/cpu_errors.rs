@@ -6,12 +6,13 @@ pub enum UnrecoverableError {
     IllegalInstruction(u16, Option<String>),
     DivideByZero(u16, Option<String>),
     InvalidRegister(u16, Option<String>),
+    StackOverflow(u16, Option<String>),
+    StackUnderflow(u16, Option<String>),
 }
 
 pub enum RecoverableError {
     UnknownFlag(u16, Option<String>),
     Overflow(u16, Option<String>),
-    StackOverflow(u16, Option<String>),
     BackwardStack(u16, Option<String>),
 }
 
@@ -48,6 +49,8 @@ impl UnrecoverableError {
             UnrecoverableError::IllegalInstruction(loc, msg) => ("Illegal instruction", *loc, msg),
             UnrecoverableError::DivideByZero(loc, msg) => ("Divide by zero", *loc, msg),
             UnrecoverableError::InvalidRegister(loc, msg) => ("Invalid register", *loc, msg),
+            UnrecoverableError::StackOverflow(loc, msg) => ("Stack overflow", *loc, msg),
+            UnrecoverableError::StackUnderflow(loc, msg) => ("Stack underflow", *loc, msg),
         }
     }
 
@@ -88,7 +91,6 @@ impl RecoverableError {
         match self {
             RecoverableError::UnknownFlag(loc, msg) => ("Unknown flag", *loc, msg),
             RecoverableError::Overflow(loc, msg) => ("Overflow", *loc, msg),
-            RecoverableError::StackOverflow(loc, msg) => ("Stack overflow", *loc, msg),
             RecoverableError::BackwardStack(loc, msg) => ("Backwards stack", *loc, msg),
         }
     }
