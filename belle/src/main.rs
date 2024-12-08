@@ -4,7 +4,7 @@
  *
  * This code is licensed under the BSD 3-Clause License.
  */
-use belle::{CONFIG, CPU, EmuError, bin_to_vec, run_bdb};
+use belle::{bin_to_vec, run_bdb, EmuError, CONFIG, CPU};
 use std::fs::File;
 use std::io;
 use std::path::Path;

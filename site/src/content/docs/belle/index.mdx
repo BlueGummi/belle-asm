@@ -113,3 +113,14 @@ Stack underflows can also happen when the CPU attempts to "`pop`" a value off by
 
 Typically, a stack underflow can be more easily avoided and solved than an overflow, as the source code can be traced through to view what the stack would look like at a certain point. The debugger can also be utilized to view the state of all the memory addresses at a certain point in a program to similarly determine the state of the call stack.
 
+### 4. Illegal instructions
+
+This a very rare error that likely will not ever be reached unless binary is being manually handwritten. As the ISA is very conservative and efficient with its bits (16 per instruction), it is very unlikely that an illegal instruction error will be encountered unless the binary is being manually handwritten.
+
+Illegal instructions can happen in one edge case when the source for an instruction is of an invalid type (i.e. the determinant bits are in a combination where the value of the source cannot be determined for it is not a valid combination, thus rendering the instruction illegal). 
+
+### 5. Divide by zero
+
+This instruction specifically occurs when a division instruction is being run with the divisor being zero. It's a fairly rare error, as division operations aren't very common, but it can occur.
+
+

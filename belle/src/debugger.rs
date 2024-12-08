@@ -1,3 +1,4 @@
+use crate::display_mem;
 use crate::CPU;
 use colored::Colorize;
 use std::fs::File;
@@ -57,7 +58,8 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     println!("w             - View the state of the CPU\n");
 
                     println!("Can only be used after the CPU has ran");
-                    println!("i | info      - Print CPU state at debugger's clock\n");
+                    println!("i | info      - Print CPU state at debugger's clock");
+                    println!("im            - Print a value in memory at the clock after the CPU has run\n");
                 } else {
                     match arg.trim().to_lowercase().as_str() {
                         "q" | "quit" | ":q" => {
@@ -130,6 +132,13 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                             println!("'pk' will print the value in memory and ask for a new value");
                             println!("if an invalid value is entered or nothing is entered, it will not do anything\n");
                         }
+                        "im" => {
+                            println!("'info memory' takes one argument");
+                            println!("'im' will print the value in memory at the clock cycle after the CPU has ran");
+                            println!(
+                                "if an invalid value or nothing is entered, nothing will happen\n"
+                            );
+                        }
                         _ => {
                             println!("Unknown command: '{arg}'");
                             println!("Type 'h' or 'help' for a list of available commands.\n");
@@ -186,7 +195,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     eprintln!("{} requires a numeric argument\n", "p | pmem".red());
                 }
             }
-            "i" | "info" => CPU::display_state(clock),
+            "i" | "info" => CPU::display_state(&clock),
             "wb" => {
                 if dbgcpu.memory.iter().all(|&x| x.is_none()) {
                     eprintln!(
@@ -198,7 +207,9 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 }
             }
             "e" | "exc" => 'exc: {
-                dbgcpu.ir = if let Some(value) = dbgcpu.memory[dbgcpu.pc as usize] { value } else {
+                dbgcpu.ir = if let Some(value) = dbgcpu.memory[dbgcpu.pc as usize] {
+                    value
+                } else {
                     eprintln!("Nothing at PC {}", dbgcpu.pc);
                     break 'exc;
                 };
@@ -285,6 +296,25 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     }
                 } else {
                     eprintln!("{} requires a numeric argument\n", "pk".red());
+                }
+            }
+            "im" => 'im: {
+                if let Ok(n) = arg.parse::<usize>() {
+                    let tmp = dbgcpu.ir;
+                    let mval = display_mem(&n, &clock);
+                    if mval.is_none() {
+                        eprintln!("Nothing in memory here\n");
+                        break 'im;
+                    }
+                    let uwrap_val = mval.unwrap() as i16;
+                    dbgcpu.ir = uwrap_val; // can't panic
+                    println!(
+                        "Value in address {n} is\n{uwrap_val}\n{uwrap_val:016b}\nDisassembles to: {}\n",
+                        dbgcpu.parse_instruction()
+                    );
+                    dbgcpu.ir = tmp;
+                } else {
+                    eprintln!("{} requires a numeric argument\n", "im".red());
                 }
             }
             _ => unknown_command(&command),

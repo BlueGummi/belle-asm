@@ -20,12 +20,12 @@ impl CPU {
         state.insert(*clock, Arc::new(self.clone()));
     }
 
-    pub fn display_state(clock: u32) {
+    pub fn display_state(clock: &u32) {
         if !CONFIG.verbose && !CONFIG.debug {
             return;
         }
         let state = CPU_STATE.lock().unwrap();
-        if let Some(cpu) = state.get(&clock) {
+        if let Some(cpu) = state.get(clock) {
             println!("\nCPU State for clock cycle {clock}:");
             println!("  Integer Registers        : {:?}", cpu.int_reg);
             println!("  Float Registers          : {:?}", cpu.float_reg);
@@ -41,5 +41,18 @@ impl CPU {
         } else {
             println!("No CPU state found for clock: {clock}");
         }
+    }
+}
+pub fn display_mem(addr: &usize, clock: &u32) -> Option<i32> {
+    let state = CPU_STATE.lock().unwrap();
+    if let Some(cpu) = state.get(clock) {
+        if let Some(v) = cpu.memory[*addr] {
+            Some(v.into())
+        } else {
+            eprintln!("Nothing in memory here on this clock cycle\n");
+            None
+        }
+    } else {
+        None
     }
 }

@@ -1,6 +1,6 @@
 use crate::Argument::*;
 use crate::Instruction::*;
-use crate::{CONFIG, CPU, RecoverableError, UnrecoverableError};
+use crate::{RecoverableError, UnrecoverableError, CONFIG, CPU};
 
 impl CPU {
     pub fn report_invalid_register(&mut self) {

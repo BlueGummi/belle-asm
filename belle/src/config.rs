@@ -28,7 +28,8 @@ pub struct Cli {
     #[clap(short = 't', long)]
     pub time_delay: Option<u32>,
 }
-#[must_use] pub fn declare_config() -> Cli {
+#[must_use]
+pub fn declare_config() -> Cli {
     let cli = Cli::parse();
 
     Cli {
