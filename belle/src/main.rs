@@ -30,7 +30,7 @@ fn main() -> io::Result<()> {
         println!("CPU Initialized");
     }
     let mut cpu = CPU::new();
-    cpu.load_binary(bin);
+    cpu.load_binary(&bin);
     cpu.run();
     Ok(())
 }

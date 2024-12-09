@@ -9,12 +9,12 @@ pub const MEMORY_SIZE: usize = 65535;
 
 #[derive(Clone)]
 pub struct CPU {
-    pub int_reg: [i16; 6], // r0 thru r5
+    pub int_reg: [i16; 4], // r0 thru r5
     pub uint_reg: [u16; 2],
     pub float_reg: [f32; 2],                     // r6 and r7
     pub memory: Box<[Option<i16>; MEMORY_SIZE]>, // Use Box to allocate the array on the heap
     pub pc: u16,                                 // program counter
-    pub ir: i16,                                 // location from which a jump was performed
+    pub ir: i16,
     pub starts_at: u16,
     pub running: bool,
     pub has_ran: bool,
@@ -37,7 +37,7 @@ impl CPU {
     #[must_use]
     pub fn new() -> CPU {
         CPU {
-            int_reg: [0; 6],
+            int_reg: [0; 4],
             uint_reg: [0; 2],
             float_reg: [0.0; 2],
             memory: Box::new([None; MEMORY_SIZE]),
@@ -56,7 +56,7 @@ impl CPU {
         }
     }
 
-    pub fn load_binary(&mut self, binary: Vec<i16>) {
+    pub fn load_binary(&mut self, binary: &Vec<i16>) {
         let mut counter = 0;
         let mut start_found = false;
 
@@ -88,7 +88,7 @@ impl CPU {
                 }
                 continue;
             }
-            self.memory[counter + self.starts_at as usize] = Some(element);
+            self.memory[counter + self.starts_at as usize] = Some(*element);
             if CONFIG.verbose {
                 println!("Element {element:016b} loaded into memory");
             }

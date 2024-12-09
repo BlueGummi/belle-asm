@@ -146,7 +146,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     }
                 }
             }
-            "l" | "load" => dbgcpu.load_binary(bin),
+            "l" | "load" => dbgcpu.load_binary(&bin),
             "r" | "run" => {
                 if dbgcpu.memory.iter().all(|&x| x.is_none()) {
                     eprintln!(
@@ -216,7 +216,8 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 let parsed_ins = dbgcpu.parse_instruction();
                 dbgcpu.execute_instruction(&parsed_ins);
                 dbgcpu.record_state();
-                println!("  Integer Registers        : {:?}", dbgcpu.int_reg);
+                println!("  Signed Integer Registers : {:?}", dbgcpu.int_reg);
+                println!("  Uint registers           : {:?}", dbgcpu.uint_reg);
                 println!("  Float Registers          : {:?}", dbgcpu.float_reg);
                 println!("  Program Counter          : {}", dbgcpu.pc);
                 println!("  Instruction Register     : {:016b}", dbgcpu.ir);
@@ -227,14 +228,14 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Stack pointer            : {}", dbgcpu.sp);
                 println!("  Base pointer             : {}", dbgcpu.bp);
                 println!(
-                    "  Disassembled Instruction : \n  {}\n",
+                    "  Disassembled Instruction : {}",
                     dbgcpu.parse_instruction()
                 );
                 let tmp = dbgcpu.ir;
                 if let Some(n) = dbgcpu.memory[dbgcpu.pc as usize] {
                     dbgcpu.ir = n;
                     println!(
-                        "  Next instruction         : \n  {}\n",
+                        "  Next instruction         : {}\n",
                         dbgcpu.parse_instruction()
                     );
                 }
@@ -265,7 +266,8 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 dbgcpu.pc = dbgcpu.starts_at;
             }
             "w" => {
-                println!("  Integer Registers        : {:?}", dbgcpu.int_reg);
+                println!("  Signed Integer Registers : {:?}", dbgcpu.int_reg);
+                println!("  Uint registers           : {:?}", dbgcpu.uint_reg);
                 println!("  Float Registers          : {:?}", dbgcpu.float_reg);
                 println!("  Program Counter          : {}", dbgcpu.pc);
                 println!("  Instruction Register     : {:016b}", dbgcpu.ir);
@@ -276,9 +278,18 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Stack pointer            : {}", dbgcpu.sp);
                 println!("  Base pointer             : {}", dbgcpu.bp);
                 println!(
-                    "  Disassembled Instruction : \n  {}\n",
+                    "  Disassembled Instruction : {}",
                     dbgcpu.parse_instruction()
                 );
+                let tmp = dbgcpu.ir;
+                if let Some(n) = dbgcpu.memory[dbgcpu.pc as usize] {
+                    dbgcpu.ir = n;
+                    println!(
+                        "  Next instruction         : {}\n",
+                        dbgcpu.parse_instruction()
+                    );
+                }
+                dbgcpu.ir = tmp;
             }
             "cls" | "clear" => {
                 cls();

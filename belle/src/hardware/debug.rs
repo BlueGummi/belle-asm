@@ -27,7 +27,8 @@ impl CPU {
         let state = CPU_STATE.lock().unwrap();
         if let Some(cpu) = state.get(clock) {
             println!("\nCPU State for clock cycle {clock}:");
-            println!("  Integer Registers        : {:?}", cpu.int_reg);
+            println!("  Signed Integer Registers : {:?}", cpu.int_reg);
+            println!("  Uint registers           : {:?}", cpu.uint_reg);
             println!("  Float Registers          : {:?}", cpu.float_reg);
             println!("  Program Counter          : {}", cpu.pc);
             println!("  Instruction Register     : {:016b}", cpu.ir);
@@ -37,18 +38,11 @@ impl CPU {
             println!("  Remainder flag           : {}", cpu.rflag);
             println!("  Stack pointer            : {}", cpu.sp);
             println!("  Base pointer             : {}", cpu.bp);
-            println!(
-                "  Disassembled Instruction : \n  {}",
-                cpu.parse_instruction()
-            );
-
+            println!("  Disassembled Instruction : {}", cpu.parse_instruction());
             if let Some(n) = cpu.memory[cpu.pc as usize] {
                 let mut tmp = CPU::new();
                 tmp.ir = n;
-                println!(
-                    "  Next instruction         : \n  {}\n",
-                    tmp.parse_instruction()
-                );
+                println!("  Next instruction         : {}\n", tmp.parse_instruction());
             }
         } else {
             println!("No CPU state found for clock: {clock}");

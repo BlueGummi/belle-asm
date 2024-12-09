@@ -36,7 +36,7 @@ impl UnrecoverableError {
         }
 
         if CONFIG.debug {
-            self.debug_info(location);
+            self.debug_info(&location);
         }
 
         eprintln!("{}", "CRASHING...".red());
@@ -54,10 +54,10 @@ impl UnrecoverableError {
         }
     }
 
-    fn debug_info(&self, location: u16) {
+    fn debug_info(&self, location: &u16) {
         let state = CPU_STATE.lock().unwrap();
-        if let Some(cpu) = state.values().find(|cpu| cpu.pc == location) {
-            if let Some(data) = cpu.memory[location as usize] {
+        if let Some(cpu) = state.values().find(|cpu| cpu.pc == *location) {
+            if let Some(data) = cpu.memory[*location as usize] {
                 eprintln!("Instruction is {}", format!("{data:016b}").magenta());
             } else {
                 eprintln!(

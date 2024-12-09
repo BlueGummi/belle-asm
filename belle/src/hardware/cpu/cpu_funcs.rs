@@ -8,6 +8,15 @@ use crate::{
 };
 use colored::*;
 use std::arch::asm;
+
+macro_rules! trust_me {
+    ($input:expr) => {
+        unsafe {
+            asm!($input);
+        }
+    };
+}
+
 impl CPU {
     pub fn execute_instruction(&mut self, ins: &Instruction) {
         self.has_ran = true; // for debugger
@@ -29,9 +38,7 @@ impl CPU {
             MOV(arg1, arg2) => self.handle_mov(arg1, arg2),
             NOP => {
                 // SAFETY: NOP
-                unsafe {
-                    asm!("nop");
-                }
+                trust_me!("nop");
             } // NOP
               // _ => unreachable!(),
         }
@@ -41,6 +48,8 @@ impl CPU {
     pub fn get_register_value(&mut self, arg: &Argument) -> f32 {
         if let Register(n) = arg {
             match *n {
+                4 => f32::from(self.uint_reg[0]),
+                5 => f32::from(self.uint_reg[1]),
                 6 => self.float_reg[0],
                 7 => self.float_reg[1],
                 n if n > 7 => {
@@ -57,6 +66,8 @@ impl CPU {
     pub fn set_register_value(&mut self, arg: &Argument, value: f32) {
         if let Register(n) = arg {
             match *n {
+                4 => self.uint_reg[0] = value as u16,
+                5 => self.uint_reg[1] = value as u16,
                 6 => self.float_reg[0] = value,
                 7 => self.float_reg[1] = value,
                 n if n > 7 => self.report_invalid_register(),
