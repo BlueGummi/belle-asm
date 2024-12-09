@@ -24,10 +24,13 @@ def trim_and_format_line(line):
         return ''  
 
     should_trim = False
-    if stripped_line[0] == '.':
+
+    last_index = stripped_line.rfind(':')
+    
+    if stripped_line[0] == '.' or (last_index != -1 and stripped_line[last_index] == ':'):
         should_trim = True
-    elif len(stripped_line) > 1 and stripped_line[-1] == ':' and (len(stripped_line) < 2 or stripped_line[-2] != ';'):
-        should_trim = True
+    elif stripped_line[-2] != ';':
+        should_trim = False
 
     if should_trim:
         return stripped_line  
