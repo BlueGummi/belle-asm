@@ -68,12 +68,12 @@ impl CPU {
     pub fn get_value(&mut self, arg: &Argument) -> f32 {
         match arg {
             Register(n) => {
-                if *n == 6 {
-                    self.float_reg[0]
-                } else if *n == 7 {
-                    self.float_reg[1]
-                } else {
-                    self.int_reg[*n as usize].into()
+                match n {
+                    4 => self.uint_reg[0].into(),
+                    5 => self.uint_reg[1].into(),
+                    6 => self.float_reg[0],
+                    7 => self.float_reg[1],
+                    _ => self.int_reg[*n as usize].into(),
                 }
             }
             Literal(n) => (*n).into(),
@@ -92,12 +92,12 @@ impl CPU {
                 self.memory[tmp].unwrap().into()
             }
             RegPtr(n) => {
-                let tmp = if *n == 6 {
-                    self.float_reg[0]
-                } else if *n == 7 {
-                    self.float_reg[1]
-                } else {
-                    self.int_reg[*n as usize].into()
+                let tmp = match n {
+                    4 => self.uint_reg[0].into(),
+                    5 => self.uint_reg[1].into(),
+                    6 => self.float_reg[0],
+                    7 => self.float_reg[1],
+                    _ => self.int_reg[*n as usize].into(),
                 };
                 let memloc: usize = tmp as usize;
                 if self.memory[memloc].is_none() {

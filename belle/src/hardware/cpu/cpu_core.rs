@@ -5,11 +5,12 @@ use colored::*;
 use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 
-pub const MEMORY_SIZE: usize = 512;
+pub const MEMORY_SIZE: usize = 65535;
 
 #[derive(Clone)]
 pub struct CPU {
     pub int_reg: [i16; 6],                       // r0 thru r5
+    pub uint_reg: [u16; 2],
     pub float_reg: [f32; 2],                     // r6 and r7
     pub memory: Box<[Option<i16>; MEMORY_SIZE]>, // Use Box to allocate the array on the heap
     pub pc: u16,                                 // program counter
@@ -37,6 +38,7 @@ impl CPU {
     pub fn new() -> CPU {
         CPU {
             int_reg: [0; 6],
+            uint_reg: [0; 2],
             float_reg: [0.0; 2],
             memory: Box::new([None; MEMORY_SIZE]),
             pc: 0,

@@ -6,6 +6,8 @@ impl CPU {
         let value = self.get_value(arg2);
         if let Register(n) = arg1 {
             match *n {
+                4 => self.uint_reg[0] += value as u16,
+                5 => self.uint_reg[1] += value as u16,
                 6 => self.float_reg[0] += value,
                 7 => self.float_reg[1] += value,
                 n if n > 5 => self.report_invalid_register(),
@@ -64,6 +66,8 @@ impl CPU {
         }
         if let Register(n) = arg1 {
             match *n {
+                4 => self.uint_reg[0] /= divisor as u16,
+                5 => self.uint_reg[1] /= divisor as u16,
                 6 => self.float_reg[0] /= divisor,
                 7 => self.float_reg[1] /= divisor,
                 n if n > 5 => self.report_invalid_register(),
@@ -105,6 +109,8 @@ impl CPU {
         let source = self.get_value(arg2);
         if let Register(n) = arg1 {
             match *n {
+                4 => self.uint_reg[0] = source as u16,
+                5 => self.uint_reg[1] = source as u16,
                 6 => self.float_reg[0] = source,
                 7 => self.float_reg[1] = source,
                 n if n > 5 => self.report_invalid_register(),
@@ -156,6 +162,8 @@ impl CPU {
         let value = self.get_value(arg2);
         if let Register(n) = arg1 {
             match *n {
+                4 => self.uint_reg[0] *= value as u16,
+                5 => self.uint_reg[1] *= value as u16,
                 6 => self.float_reg[0] *= value,
                 7 => self.float_reg[1] *= value,
                 n if n > 5 => self.report_invalid_register(),
@@ -203,6 +211,8 @@ impl CPU {
         let value = self.get_value(arg2);
         if let Register(n) = arg1 {
             match *n {
+                4 => self.uint_reg[0] = value as u16,
+                5 => self.uint_reg[1] = value as u16,
                 6 => self.float_reg[0] = value,
                 7 => self.float_reg[1] = value,
                 n if n > 5 => self.report_invalid_register(),
@@ -216,9 +226,11 @@ impl CPU {
     pub fn handle_int(&mut self, arg: &Argument) {
         let code = self.get_value(arg) as u16;
         match code {
-            0_u16..=5_u16 => {
+            0_u16..=3_u16 => {
                 println!("{}", self.int_reg[code as usize]);
             }
+            4 => println!("{}", self.uint_reg[0]),
+            5 => println!("{}", self.uint_reg[1]),
             6 => println!("{}", self.float_reg[0]),
             7 => println!("{}", self.float_reg[1]),
             8 => {
