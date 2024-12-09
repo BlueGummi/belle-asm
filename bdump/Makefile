@@ -13,7 +13,12 @@ else
     OBJ_DIR = $(SRCDIR)/*.o
 endif
 
+RELEASE_FLAGS = -static
+
 all: $(TARGET)
+
+release: CFLAGS += $(RELEASE_FLAGS)
+release: $(TARGET)
 
 $(TARGET): $(SRCDIR)/$(OBJ)
 	$(CC) $^ -o $@ $(CFLAGS)
