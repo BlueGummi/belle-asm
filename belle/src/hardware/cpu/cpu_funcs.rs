@@ -67,15 +67,13 @@ impl CPU {
 
     pub fn get_value(&mut self, arg: &Argument) -> f32 {
         match arg {
-            Register(n) => {
-                match n {
-                    4 => self.uint_reg[0].into(),
-                    5 => self.uint_reg[1].into(),
-                    6 => self.float_reg[0],
-                    7 => self.float_reg[1],
-                    _ => self.int_reg[*n as usize].into(),
-                }
-            }
+            Register(n) => match n {
+                4 => self.uint_reg[0].into(),
+                5 => self.uint_reg[1].into(),
+                6 => self.float_reg[0],
+                7 => self.float_reg[1],
+                _ => self.int_reg[*n as usize].into(),
+            },
             Literal(n) => (*n).into(),
             MemPtr(n) => {
                 if self.memory[*n as usize].is_none() {

@@ -9,7 +9,7 @@ pub const MEMORY_SIZE: usize = 65535;
 
 #[derive(Clone)]
 pub struct CPU {
-    pub int_reg: [i16; 6],                       // r0 thru r5
+    pub int_reg: [i16; 6], // r0 thru r5
     pub uint_reg: [u16; 2],
     pub float_reg: [f32; 2],                     // r6 and r7
     pub memory: Box<[Option<i16>; MEMORY_SIZE]>, // Use Box to allocate the array on the heap
