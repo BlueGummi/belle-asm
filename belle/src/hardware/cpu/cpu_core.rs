@@ -203,7 +203,7 @@ impl CPU {
                 cpu::CPU::display_state(&clock);
             }
             if CONFIG.pretty {
-                for i in 0..=5 {
+                for i in 0..=3 {
                     println!(
                         "Register {}: {}, {:016b}, {:04x}",
                         i, self.int_reg[i], self.int_reg[i], self.int_reg[i]
