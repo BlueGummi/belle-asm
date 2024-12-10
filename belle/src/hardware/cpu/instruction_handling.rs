@@ -33,22 +33,28 @@ impl CPU {
 
     pub fn handle_pop(&mut self, arg: &Argument) {
         if let Register(_) = arg {
-            let temp: i32 = if self.sp >= self.bp {
+            /*let temp: i32 = if self.sp >= self.bp {
                 (self.sp - 1).into()
             } else {
                 (self.sp + 1).into()
             };
+            */
+            let temp: i32 = self.sp.into();
             if let Some(v) = self.memory[temp as usize] {
                 self.set_register_value(arg, v.into());
                 if self.sp > self.bp {
                     if self.sp != self.bp {
                         RecoverableError::BackwardStack(self.pc, None).err();
                     }
-                    self.memory[(self.sp - 1) as usize] = None;
-                    self.sp -= 1;
+                    self.memory[self.sp as usize] = None;
+                    if self.sp != self.bp {
+                        self.sp -= 1;
+                    }
                 } else {
-                    self.memory[(self.sp + 1) as usize] = None;
-                    self.sp += 1;
+                    self.memory[self.sp as usize] = None;
+                    if self.sp != self.bp {
+                        self.sp += 1;
+                    }
                 }
             } else {
                 UnrecoverableError::StackUnderflow(self.pc, None).err();
@@ -85,18 +91,20 @@ impl CPU {
     }
 
     pub fn handle_ret(&mut self) {
-        let temp: i32 = if self.sp >= self.bp {
+        /*let temp: i32 = if self.sp >= self.bp {
             (self.sp - 1).into()
         } else {
             (self.sp + 1).into()
         };
+        */
+        let temp: i32 = self.sp.into();
         if let Some(v) = self.memory[temp as usize] {
             self.pc = v as u16;
             if self.sp > self.bp {
-                self.memory[(self.sp - 1) as usize] = None;
+                self.memory[self.sp as usize] = None;
                 self.sp -= 1;
             } else {
-                self.memory[(self.sp + 1) as usize] = None;
+                self.memory[self.sp as usize] = None;
                 self.sp += 1;
             }
         } else {
@@ -195,19 +203,19 @@ impl CPU {
                         RecoverableError::BackwardStack(self.pc, None).err();
                     }
                     self.memory[i as usize] = Some(val as i16);
-                    self.sp = i + 1;
+                    self.sp = i;
                     break;
                 }
             }
         } else {
-            let mut i = self.bp;
-            while i >= self.sp {
-                if self.memory[i as usize].is_none() {
+            let mut i = self.bp - 1;
+            while i <= self.bp {
+                if self.memory[i as usize].is_none() || self.sp == self.bp {
                     self.memory[i as usize] = Some(val as i16);
-                    self.sp = i - 1; // set the stack pointer
+                    self.sp = i; // set the stack pointer
                     break;
                 }
-                i -= 1; // down by one
+                i -= 1;
             }
         }
     }

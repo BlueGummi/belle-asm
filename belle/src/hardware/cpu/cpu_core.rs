@@ -210,6 +210,9 @@ impl CPU {
                     );
                 }
                 for i in 0..=1 {
+                    println!("Uint Register {}: {}", i, self.uint_reg[i]);
+                }
+                for i in 0..=1 {
                     println!("Float Register {}: {}", i, self.float_reg[i]);
                 }
             }
