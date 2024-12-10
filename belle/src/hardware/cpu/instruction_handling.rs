@@ -1,6 +1,6 @@
-use crate::Argument::{Literal, MemAddr, Register};
+use crate::Argument::*;
 use crate::Instruction::*;
-use crate::{Argument, EmuError, RecoverableError, UnrecoverableError, CONFIG, CPU};
+use crate::*;
 impl CPU {
     pub fn handle_add(&mut self, arg1: &Argument, arg2: &Argument) {
         let value = self.get_value(arg2);
@@ -25,9 +25,11 @@ impl CPU {
         if !self.oflag {
             return;
         }
+        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
         if let MemAddr(n) = arg {
-            self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
             self.pc = (*n as u16) - 2;
+        } else if let RegPtr(n) = arg {
+            self.pc = self.get_value(&Argument::Register(*n)) as u16;
         }
     }
 
@@ -144,9 +146,9 @@ impl CPU {
     }
 
     pub fn handle_swp(&mut self, arg1: &Argument, arg2: &Argument) {
-        let source = self.get_register_value(arg2);
+        let source = self.get_value(arg2);
         if let Register(_) = arg1 {
-            let dest = self.get_register_value(arg1);
+            let dest = self.get_value(arg1);
             self.set_register_value(arg1, source);
             self.set_register_value(arg2, dest);
         }
@@ -156,16 +158,18 @@ impl CPU {
         if !self.zflag {
             return;
         }
+        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
         if let MemAddr(n) = arg {
-            self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
             self.pc = (*n as u16) - 2;
+        } else if let RegPtr(n) = arg {
+            self.pc = self.get_value(&Argument::Register(*n)) as u16;
         }
     }
 
     pub fn handle_cmp(&mut self, arg1: &Argument, arg2: &Argument) {
         let src = self.get_value(arg2);
         if let Register(_) = arg1 {
-            let value = self.get_register_value(arg1);
+            let value = self.get_value(arg1);
             let result = value - src;
             self.zflag = (result).abs() < f32::EPSILON;
             self.sflag = result < 0.0;
@@ -198,7 +202,7 @@ impl CPU {
         }
 
         if let Register(_) = arg {
-            val = self.get_register_value(arg);
+            val = self.get_value(arg);
         }
         if self.sp > self.bp {
             for i in self.bp..self.sp {

@@ -1,11 +1,6 @@
-use crate::Argument::{Literal, MemAddr, MemPtr, RegPtr, Register};
-use crate::Instruction::{
-    ADD, CMP, DIV, HLT, INT, JO, JZ, LD, MOV, MUL, NOP, POP, PUSH, RET, ST, SWP,
-};
-use crate::{
-    Argument, Instruction, ADD_OP, CMP_OP, CPU, DIV_OP, HLT_OP, INT_OP, JO_OP, JZ_OP, LD_OP,
-    MOV_OP, MUL_OP, NOP_OP, POP_OP, PUSH_OP, RET_OP, ST_OP, SWP_OP,
-};
+use crate::Argument::*;
+use crate::Instruction::*;
+use crate::*;
 use colored::*;
 use std::arch::asm;
 
@@ -44,25 +39,6 @@ impl CPU {
         }
         self.pc += 1;
     }
-
-    pub fn get_register_value(&mut self, arg: &Argument) -> f32 {
-        if let Register(n) = arg {
-            match *n {
-                4 => f32::from(self.uint_reg[0]),
-                5 => f32::from(self.uint_reg[1]),
-                6 => self.float_reg[0],
-                7 => self.float_reg[1],
-                n if n > 7 => {
-                    self.report_invalid_register();
-                    0.0 // rust will yell at me if i don't return something (too lazy to Option<T>)
-                }
-                _ => f32::from(self.int_reg[*n as usize]),
-            }
-        } else {
-            0.0
-        }
-    }
-
     pub fn set_register_value(&mut self, arg: &Argument, value: f32) {
         if let Register(n) = arg {
             match *n {
@@ -132,7 +108,7 @@ impl CPU {
     #[must_use]
     pub fn parse_instruction(&self) -> Instruction {
         let opcode = (self.ir >> 12) & 0b1111u16 as i16;
-        let ins_type = if ((self.ir >> 8) & 1) == 1 {
+        let mut ins_type = if ((self.ir >> 8) & 1) == 1 {
             1
         } else if ((self.ir >> 7) & 1) == 1 {
             2
@@ -144,7 +120,12 @@ impl CPU {
         let source = match ins_type {
             1 => {
                 if opcode == JZ_OP || opcode == JO_OP {
-                    self.ir & 0b111111111111
+                    if (self.ir & 0b100000000000) >> 11 == 1 {
+                        ins_type = 4;
+                        self.ir & 0b1111
+                    } else {
+                        self.ir & 0b111111111111
+                    }
                 } else {
                     let tmp = self.ir & 0b1111111;
                     if (self.ir & 0b10000000) >> 7 == 1 {
@@ -156,7 +137,12 @@ impl CPU {
             }
             _ => {
                 if opcode == JZ_OP || opcode == JO_OP {
-                    self.ir & 0b111111111111
+                    if (self.ir & 0b100000000000) >> 11 == 1 {
+                        ins_type = 4;
+                        self.ir & 0b1111
+                    } else {
+                        self.ir & 0b111111111111
+                    }
                 } else {
                     self.ir & 0b1111111
                 }
@@ -174,7 +160,13 @@ impl CPU {
         match opcode {
             HLT_OP => HLT,
             ADD_OP => ADD(Register(destination), part),
-            JO_OP => JO(MemAddr(source)),
+            JO_OP => {
+                if ins_type == 4 {
+                    JO(RegPtr(source))
+                } else {
+                    JO(MemAddr(source))
+                }
+            }
             POP_OP => POP(Register(source)),
             DIV_OP => DIV(Register(destination), part),
             RET_OP => RET,
@@ -187,7 +179,13 @@ impl CPU {
                 ST(MemAddr(part), Register(self.ir & 0b111))
             }
             SWP_OP => SWP(Register(destination), Register(self.ir & 0b111)),
-            JZ_OP => JZ(MemAddr(source)),
+            JZ_OP => {
+                if ins_type == 4 {
+                    JZ(RegPtr(source))
+                } else {
+                    JZ(MemAddr(source))
+                }
+            }
             CMP_OP => CMP(Register(destination), part),
             MUL_OP => MUL(Register(destination), part),
             PUSH_OP => PUSH(Register(source)),
