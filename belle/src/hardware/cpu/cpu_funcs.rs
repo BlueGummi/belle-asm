@@ -54,12 +54,12 @@ impl CPU {
                 7 => self.float_reg[1],
                 n if n > 7 => {
                     self.report_invalid_register();
-                    0.0 // default return value
+                    0.0 // rust will yell at me if i don't return something (too lazy to Option<T>)
                 }
                 _ => f32::from(self.int_reg[*n as usize]),
             }
         } else {
-            0.0 // default return value if not a register
+            0.0
         }
     }
 
