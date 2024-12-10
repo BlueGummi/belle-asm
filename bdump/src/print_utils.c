@@ -62,8 +62,7 @@ void print_jump_instruction(Instruction *ins, bool colors) {
         }
         return;
     }
-    ins->destination = (ins->destination << 8) | ins->source;
-    ins->source = ins->destination;
+    ins->source = (ins->destination << 8) | ins->source;
     if (colors) {
         printf("%s$%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
     } else {
