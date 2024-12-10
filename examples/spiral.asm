@@ -1,5 +1,7 @@
     ; This program increments the number being printed to stdout, then detects an overflow, before decrementing it again
     ; It is indefinite
+.ssp $100
+.sbp $3
 .start $303
     mov %r5, #31
     mov %r4, #7

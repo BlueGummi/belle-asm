@@ -8,10 +8,19 @@ pub static CPU_STATE: Lazy<Mutex<HashMap<u32, Arc<CPU>>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 pub static CLOCK: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
 const MEMORY_LIMIT: usize = 1024 * 1024 * 5;
+const MAX_MEMORY_LIMIT: usize = 1024 * 1024 * 200;
+
 impl CPU {
     pub fn record_state(&self) {
         let mut state = CPU_STATE.lock().unwrap();
         let clock = CLOCK.lock().unwrap();
+
+        while state.len() * std::mem::size_of::<(u32, Arc<CPU>)>() > MAX_MEMORY_LIMIT {
+            if let Some((&oldest_key, _)) = state.iter().next() {
+                state.remove(&oldest_key);
+            }
+        }
+
         if state.len() * std::mem::size_of::<(u32, Arc<CPU>)>() > MEMORY_LIMIT {
             println!("Memory limit exceeded, skipping state recording.");
             std::process::exit(1);
@@ -49,6 +58,7 @@ impl CPU {
         }
     }
 }
+
 pub fn display_mem(addr: &usize, clock: &u32) -> Option<i32> {
     let state = CPU_STATE.lock().unwrap();
     if let Some(cpu) = state.get(clock) {

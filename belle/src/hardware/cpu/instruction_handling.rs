@@ -41,7 +41,9 @@ impl CPU {
             if let Some(v) = self.memory[temp as usize] {
                 self.set_register_value(arg, v.into());
                 if self.sp > self.bp {
-                    RecoverableError::BackwardStack(self.pc, None).err();
+                    if self.sp != self.bp {
+                        RecoverableError::BackwardStack(self.pc, None).err();
+                    }
                     self.memory[(self.sp - 1) as usize] = None;
                     self.sp -= 1;
                 } else {
@@ -186,10 +188,12 @@ impl CPU {
         if let Register(_) = arg {
             val = self.get_register_value(arg);
         }
-        if self.sp >= self.bp {
-            for i in self.bp..=self.sp {
+        if self.sp > self.bp {
+            for i in self.bp..self.sp {
                 if self.memory[i as usize].is_none() {
-                    RecoverableError::BackwardStack(self.pc, None).err();
+                    if self.sp != self.bp {
+                        RecoverableError::BackwardStack(self.pc, None).err();
+                    }
                     self.memory[i as usize] = Some(val as i16);
                     self.sp = i + 1;
                     break;
