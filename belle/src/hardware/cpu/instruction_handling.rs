@@ -208,9 +208,9 @@ impl CPU {
                 }
             }
         } else {
-            let mut i = self.bp - 1;
+            let mut i = self.bp;
             while i <= self.bp {
-                if self.memory[i as usize].is_none() || self.sp == self.bp {
+                if self.memory[i as usize].is_none() {
                     self.memory[i as usize] = Some(val as i16);
                     self.sp = i; // set the stack pointer
                     break;
