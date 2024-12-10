@@ -316,6 +316,9 @@ impl CPU {
             52 => self.hlt_on_overflow = false,
             53 => self.hlt_on_overflow = !self.hlt_on_overflow,
 
+            60 => self.sp = self.uint_reg[0],
+            71 => self.bp = self.uint_reg[0],
+
             // 10 - 20 set flags
             // 20 - 30 unset them
             // 30 - 40 invert them
