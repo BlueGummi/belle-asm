@@ -102,10 +102,14 @@ impl CPU {
             self.pc = v as u16;
             if self.sp > self.bp {
                 self.memory[self.sp as usize] = None;
-                self.sp -= 1;
+                if self.sp != self.bp {
+                    self.sp -= 1;
+                }
             } else {
                 self.memory[self.sp as usize] = None;
-                self.sp += 1;
+                if self.sp != self.bp {
+                    self.sp += 1;
+                }
             }
         } else {
             UnrecoverableError::StackUnderflow(self.pc, None).err();
