@@ -198,6 +198,7 @@ pub fn load_subroutines(lines: &Vec<String>) {
         if line.ends_with(':') {
             let subroutine_name = line.trim_end_matches(':').trim().to_string();
             subroutine_map.insert(subroutine_name, subroutine_counter);
+            subroutine_counter -= 1;
         }
 
         subroutine_counter += 1;
