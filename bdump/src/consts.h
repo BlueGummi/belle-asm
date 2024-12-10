@@ -8,7 +8,7 @@
 
 #define HLT_OP 0b0000
 #define ADD_OP 0b0001
-#define JGE_OP 0b0010
+#define JO_OP 0b0010
 #define POP_OP 0b0011
 #define DIV_OP 0b0100
 #define RET_OP 0b0101

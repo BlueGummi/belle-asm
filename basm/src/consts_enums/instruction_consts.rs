@@ -1,6 +1,6 @@
 pub const HLT_OP: i16 = 0b0000; // we need this
 pub const ADD_OP: i16 = 0b0001; // we also need this
-pub const JGE_OP: i16 = 0b0010; // maybe optional ?
+pub const JO_OP: i16 = 0b0010; // maybe optional ?
 pub const POP_OP: i16 = 0b0011; // maybe optional ?
 pub const DIV_OP: i16 = 0b0100; // we need this
 pub const RET_OP: i16 = 0b0101; // we need this

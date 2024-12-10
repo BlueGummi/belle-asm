@@ -54,7 +54,14 @@ void print_two_reg_args(Instruction *ins, bool colors) {
 }
 
 void print_jump_instruction(Instruction *ins, bool colors) {
-    //ins->destination = (ins->destination << 1) | ins->type;
+    if (ins->destination >> 2 == 1) {
+        if (colors) {
+            printf("%s&r%d%s\n", ANSI_YELLOW, ins->source, ANSI_RESET);
+        } else {
+            printf("&r%d\n", ins->source);
+        }
+        return;
+    }
     ins->destination = (ins->destination << 8) | ins->source;
     ins->source = ins->destination;
     if (colors) {
@@ -123,7 +130,7 @@ void print_output(Instruction *ins) {
         } else {
             printf("%snop\n");
         }
-    } else if (strcmp(op, "jz") == 0 || strcmp(op, "jge") == 0) {
+    } else if (strcmp(op, "jz") == 0 || strcmp(op, "jo") == 0) {
         print_jump_instruction(ins, colors);
     } else if (strcmp(op, "ret") == 0) {
         printf("\n");

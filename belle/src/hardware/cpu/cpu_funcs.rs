@@ -1,9 +1,9 @@
 use crate::Argument::{Literal, MemAddr, MemPtr, RegPtr, Register};
 use crate::Instruction::{
-    ADD, CMP, DIV, HLT, INT, JGE, JZ, LD, MOV, MUL, NOP, POP, PUSH, RET, ST, SWP,
+    ADD, CMP, DIV, HLT, INT, JO, JZ, LD, MOV, MUL, NOP, POP, PUSH, RET, ST, SWP,
 };
 use crate::{
-    Argument, Instruction, ADD_OP, CMP_OP, CPU, DIV_OP, HLT_OP, INT_OP, JGE_OP, JZ_OP, LD_OP,
+    Argument, Instruction, ADD_OP, CMP_OP, CPU, DIV_OP, HLT_OP, INT_OP, JO_OP, JZ_OP, LD_OP,
     MOV_OP, MUL_OP, NOP_OP, POP_OP, PUSH_OP, RET_OP, ST_OP, SWP_OP,
 };
 use colored::*;
@@ -23,7 +23,7 @@ impl CPU {
         match ins {
             HLT => self.running = false,
             ADD(arg1, arg2) => self.handle_add(arg1, arg2),
-            JGE(arg) => self.handle_jge(arg),
+            JO(arg) => self.handle_jo(arg),
             POP(arg) => self.handle_pop(arg),
             DIV(arg1, arg2) => self.handle_div(arg1, arg2),
             RET => self.handle_ret(),
@@ -143,7 +143,7 @@ impl CPU {
         };
         let source = match ins_type {
             1 => {
-                if opcode == JZ_OP || opcode == JGE_OP {
+                if opcode == JZ_OP || opcode == JO_OP {
                     self.ir & 0b111111111111
                 } else {
                     let tmp = self.ir & 0b1111111;
@@ -155,7 +155,7 @@ impl CPU {
                 }
             }
             _ => {
-                if opcode == JZ_OP || opcode == JGE_OP {
+                if opcode == JZ_OP || opcode == JO_OP {
                     self.ir & 0b111111111111
                 } else {
                     self.ir & 0b1111111
@@ -174,7 +174,7 @@ impl CPU {
         match opcode {
             HLT_OP => HLT,
             ADD_OP => ADD(Register(destination), part),
-            JGE_OP => JGE(MemAddr(source)),
+            JO_OP => JO(MemAddr(source)),
             POP_OP => POP(Register(source)),
             DIV_OP => DIV(Register(destination), part),
             RET_OP => RET,

@@ -14,7 +14,7 @@ pub enum Argument {
 pub enum Instruction {
     HLT,
     ADD(Argument, Argument),
-    JGE(Argument),
+    JO(Argument),
     POP(Argument),
     DIV(Argument, Argument),
     RET,
@@ -50,7 +50,7 @@ impl fmt::Display for Instruction {
         match self {
             Instruction::HLT => write!(f, "HLT"),
             Instruction::ADD(arg1, arg2) => write!(f, "ADD {arg1}, {arg2}"),
-            Instruction::JGE(arg) => write!(f, "JGE {arg}"),
+            Instruction::JO(arg) => write!(f, "JO {arg}"),
             Instruction::POP(arg) => write!(f, "POP {arg}"),
             Instruction::DIV(arg1, arg2) => write!(f, "DIV {arg1}, {arg2}"),
             Instruction::RET => write!(f, "RET"),

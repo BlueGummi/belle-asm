@@ -1,6 +1,6 @@
 use crate::consts_enums::Error::{InvalidSyntax, NonexistentData};
 use crate::{
-    Tip, Token, ADD_OP, CMP_OP, DIV_OP, HLT_OP, INT_OP, JGE_OP, JZ_OP, LD_OP, MOV_OP, MUL_OP,
+    Tip, Token, ADD_OP, CMP_OP, DIV_OP, HLT_OP, INT_OP, JO_OP, JZ_OP, LD_OP, MOV_OP, MUL_OP,
     NOP_OP, POP_OP, PUSH_OP, RET_OP, ST_OP, SWP_OP,
 };
 use once_cell::sync::Lazy;
@@ -73,13 +73,16 @@ pub fn encode_instruction(
         Token::Ident(ref instruction) => match instruction.to_uppercase().as_str() {
             "HLT" => HLT_OP, // 0
             "ADD" => ADD_OP, // 1
-            "JGE" => {
+            "JO" => {
                 ins_type = "one_arg";
                 if let Some(&Token::SRCall(_)) = arg1.or(arg2) {
                     // handle subroutine call
                     ins_type = "call";
+                } else if let Some(&Token::RegPointer(_)) = arg1.or(arg2) {
+                    ins_type = "jwr";
                 }
-                JGE_OP // 2
+
+                JO_OP // 2
             }
             "POP" => {
                 ins_type = "one_arg";
@@ -98,6 +101,8 @@ pub fn encode_instruction(
                 if let Some(&Token::SRCall(_)) = arg1.or(arg2) {
                     // handle subroutine call
                     ins_type = "call";
+                } else if let Some(&Token::RegPointer(_)) = arg1.or(arg2) {
+                    ins_type = "jwr";
                 }
                 JZ_OP // 9
             }
@@ -155,6 +160,16 @@ pub fn encode_instruction(
         "call" => {
             let address = argument_to_binary(arg1, line_num);
             Some((instruction_bin << 12) | address)
+        }
+        "jwr" => {
+            let raw_str = arg1?.get_raw();
+            let parsed_int = raw_str.trim().parse::<i16>().unwrap(); // this cannot and will not
+                                                                     // fail
+            Some(
+                (instruction_bin << 12)
+                    | 1 << 11
+                    | argument_to_binary(Some(&Token::Register(parsed_int)), line_num),
+            )
         }
         _ => {
             InvalidSyntax("Instruction type not recognized", line_num, None).perror();

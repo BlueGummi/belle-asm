@@ -21,8 +21,8 @@ impl CPU {
         }
     }
 
-    pub fn handle_jge(&mut self, arg: &Argument) {
-        if self.sflag || !self.zflag {
+    pub fn handle_jo(&mut self, arg: &Argument) {
+        if !self.oflag {
             return;
         }
         if let MemAddr(n) = arg {
