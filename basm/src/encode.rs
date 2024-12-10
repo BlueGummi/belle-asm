@@ -92,7 +92,11 @@ pub fn encode_instruction(
             "RET" => RET_OP, // 5
             "LD" => LD_OP,   // 6
             "ST" => {
-                ins_type = "st";
+                if let Some(&Token::RegPointer(_)) = arg1.or(arg2) {
+                    ins_type = "sti";
+                } else {
+                    ins_type = "st";
+                }
                 ST_OP // 7
             }
             "SWP" => SWP_OP, // 8
@@ -147,6 +151,16 @@ pub fn encode_instruction(
                 | (argument_to_binary(arg1, line_num) << 3)
                 | argument_to_binary(arg2, line_num),
         ),
+        "sti" => {
+            let raw = arg1?.get_raw();
+            let parsed_int = raw.trim().parse::<i16>().unwrap();
+            Some(
+                (instruction_bin << 12)
+                    | (1 << 11)
+                    | (argument_to_binary(Some(&Token::Register(parsed_int)), line_num) << 7)
+                    | argument_to_binary(arg2, line_num),
+            )
+        }
         "label" => Some(
             (instruction_bin << 12)
                 | (argument_to_binary(Some(ins), line_num) << 9)

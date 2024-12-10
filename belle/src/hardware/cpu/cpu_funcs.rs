@@ -117,27 +117,28 @@ impl CPU {
         } else {
             0
         };
+        let it_is_bouncy = opcode == JZ_OP || opcode == JO_OP;
+        let indirect_bounce = (self.ir & 0b100000000000) >> 11 == 1;
+        let tmp = self.ir & 0b1111111;
+
         let source = match ins_type {
             1 => {
-                if opcode == JZ_OP || opcode == JO_OP {
-                    if (self.ir & 0b100000000000) >> 11 == 1 {
+                if it_is_bouncy {
+                    if indirect_bounce {
                         ins_type = 4;
                         self.ir & 0b1111
                     } else {
                         self.ir & 0b111111111111
                     }
+                } else if (self.ir & 0b10000000) >> 7 == 1 {
+                    -tmp
                 } else {
-                    let tmp = self.ir & 0b1111111;
-                    if (self.ir & 0b10000000) >> 7 == 1 {
-                        -tmp
-                    } else {
-                        tmp
-                    }
+                    tmp
                 }
             }
             _ => {
-                if opcode == JZ_OP || opcode == JO_OP {
-                    if (self.ir & 0b100000000000) >> 11 == 1 {
+                if it_is_bouncy {
+                    if indirect_bounce {
                         ins_type = 4;
                         self.ir & 0b1111
                     } else {
@@ -175,8 +176,13 @@ impl CPU {
                 LD(Register(destination), MemAddr(part))
             }
             ST_OP => {
-                let part = (self.ir & 0b111111111000) >> 3;
-                ST(MemAddr(part), Register(self.ir & 0b111))
+                if (self.ir & 0b100000000000) >> 11 == 1 {
+                    let part = (self.ir & 0b11100000000) >> 8;
+                    ST(RegPtr(part), Register(self.ir & 0b111))
+                } else {
+                    let part = (self.ir & 0b111111111000) >> 3;
+                    ST(MemAddr(part), Register(self.ir & 0b111))
+                }
             }
             SWP_OP => SWP(Register(destination), Register(self.ir & 0b111)),
             JZ_OP => {

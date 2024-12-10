@@ -154,6 +154,16 @@ void print_output(Instruction *ins) {
             printf("$%d\n", ins->source);
         }
     } else if (strcmp(op, "st") == 0) {
+        if (ins->destination >> 2 == 1) {
+            if (colors) {
+                printf("%s&r%d%s, %s%%r%d%s\n", ANSI_YELLOW,
+                       (ins->destination & 0b11) << 1 | ins->type, ANSI_RESET, ANSI_YELLOW,
+                       ins->source, ANSI_RESET);
+            } else {
+                printf("&r%d, %%r%d\n", (ins->destination & 0b11) << 1 | ins->type, ins->source);
+            }
+            return;
+        }
         int reconstructed = (ins->destination << 9) | (ins->type << 8) | ins->source;
         ins->source &= 0x07;
         ins->destination = (reconstructed & 0xFFF8) >> 3;

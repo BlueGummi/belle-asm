@@ -142,6 +142,9 @@ impl CPU {
         let source = self.get_value(arg2);
         if let MemAddr(n) = arg1 {
             self.memory[*n as usize] = Some(source as i16);
+        } else if let RegPtr(n) = arg1 {
+            let address = self.get_value(&Register(*n));
+            self.memory[address as usize] = Some(source as i16);
         }
     }
 
