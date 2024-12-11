@@ -1,5 +1,8 @@
 use crate::Argument::*;
 use crate::*;
+use std::io::{self, Read, Write};
+use termios::{tcsetattr, Termios, ECHO, ICANON, TCSANOW};
+
 impl CPU {
     pub fn handle_add(&mut self, arg1: &Argument, arg2: &Argument) {
         let value = self.get_value(arg2);
@@ -359,7 +362,6 @@ impl CPU {
                     if let Some(value) = memory[index as usize] {
                         print!("{}", char::from_u32(value.try_into().unwrap()).unwrap());
                     } else {
-                        println!();
                         self.handle_segmentation_fault(
                             "Segmentation fault. Memory index out of bounds on interrupt call 8.",
                         );
@@ -369,31 +371,17 @@ impl CPU {
                 println!();
             }
             9 => {
-                let mut attempts = 0;
-                let max_attempts = 10;
-
-                while attempts < max_attempts {
-                    let mut input = String::new();
-                    std::io::stdin().read_line(&mut input).unwrap();
-
-                    match input.trim().parse::<i16>() {
-                        Ok(number) => {
-                            self.int_reg[0] = number;
-                            break;
-                        }
-                        Err(e) => {
-                            EmuError::ReadFail(e.to_string()).err();
-                            attempts += 1;
-                            if attempts == max_attempts {
-                                println!("Failed to parse int from stdin 10 times, exiting...");
-                                if !CONFIG.debug {
-                                    std::process::exit(1);
-                                }
-                                self.running = false;
-                            }
-                        }
-                    }
-                }
+                let stdin = 0;
+                let termios = Termios::from_fd(stdin).unwrap();
+                let mut new_termios = termios;
+                new_termios.c_lflag &= !(ICANON | ECHO);
+                tcsetattr(stdin, TCSANOW, &new_termios).unwrap();
+                let stdout = io::stdout();
+                let mut buffer = [0; 1]; // thank you random stranger on stack overflow
+                stdout.lock().flush().unwrap(); // for graciously providing me with this
+                io::stdin().read_exact(&mut buffer).unwrap(); // wonderful code block to read
+                self.int_reg[0] = buffer[0] as i16; // a single letter/character from stdin
+                tcsetattr(stdin, TCSANOW, &termios).unwrap();
             }
             10 => std::thread::sleep(std::time::Duration::from_secs(1)),
             11 => self.zflag = true,
@@ -417,7 +405,7 @@ impl CPU {
             53 => self.hlt_on_overflow = !self.hlt_on_overflow,
 
             60 => self.sp = self.uint_reg[0],
-            71 => self.bp = self.uint_reg[0],
+            61 => self.bp = self.uint_reg[0],
 
             // 10 - 20 set flags
             // 20 - 30 unset them
