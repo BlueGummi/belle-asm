@@ -36,7 +36,7 @@ The binaries can be run by calling `basm`, `belle`, or `bdump`.
 ### Utilities - [docs/btils.md](https://github.com/BlueGummi/belle/blob/master/docs/btils.md)
 
 ### BELLE and the BELLE utilities in action:
-![BELLE Usage GIF](https://github.com/BlueGummi/belle/blob/master/media/belle-usage.gif)
+![BELLE Usage GIF](https://github.com/BlueGummi/belle/blob/master/docs/media/belle-usage.gif)
 
 
 ## Naming
