@@ -4,10 +4,60 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::Mutex;
 
-pub static CPU_STATE: Lazy<Mutex<HashMap<u32, Arc<CPU>>>> =
+pub static CPU_STATE: Lazy<Mutex<HashMap<u32, Arc<ModCPU>>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 pub static CLOCK: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
 const MAX_MEMORY_LIMIT: usize = 1024 * 1024 * 5;
+
+pub struct ModCPU {
+    pub int_reg: [i16; 4], // r0 thru r5
+    pub uint_reg: [u16; 2],
+    pub float_reg: [f32; 2],       // r6 and r7
+    pub memory: HashMap<u16, i16>, // Use Box to allocate the array on the heap
+    pub pc: u16,                   // program counter
+    pub ir: i16,
+    pub starts_at: u16,
+    pub running: bool,
+    pub has_ran: bool,
+    pub zflag: bool,
+    pub oflag: bool,
+    pub rflag: bool,
+    pub sflag: bool,
+    pub hlt_on_overflow: bool,
+    pub sp: u16,
+    pub bp: u16,
+}
+
+impl ModCPU {
+    pub fn modcpu_from_cpu(origin: &CPU) -> ModCPU {
+        let mut memory = std::collections::HashMap::new();
+
+        for (i, element) in origin.memory.iter().enumerate() {
+            if let Some(value) = element {
+                memory.insert(i as u16, *value); // assuming value is of type YourType
+            }
+        }
+
+        ModCPU {
+            int_reg: origin.int_reg,
+            uint_reg: origin.uint_reg,
+            float_reg: origin.float_reg,
+            memory, // use the constructed memory HashMap here
+            pc: origin.pc,
+            ir: origin.ir,
+            starts_at: origin.starts_at,
+            running: origin.running,
+            has_ran: origin.has_ran,
+            zflag: origin.zflag,
+            oflag: origin.oflag,
+            rflag: origin.rflag,
+            sflag: origin.sflag,
+            hlt_on_overflow: origin.hlt_on_overflow,
+            sp: origin.sp,
+            bp: origin.bp,
+        }
+    }
+}
 
 impl CPU {
     pub fn record_state(&self) {
@@ -19,8 +69,8 @@ impl CPU {
                 state.remove(&oldest_key);
             }
         }
-
-        state.insert(*clock, Arc::new(self.clone()));
+        let modified = ModCPU::modcpu_from_cpu(self);
+        state.insert(*clock, Arc::new(modified));
     }
 
     pub fn display_state(clock: &u32) {
@@ -41,10 +91,12 @@ impl CPU {
             println!("  Remainder flag           : {}", cpu.rflag);
             println!("  Stack pointer            : {}", cpu.sp);
             println!("  Base pointer             : {}", cpu.bp);
-            println!("  Disassembled Instruction : {}", cpu.parse_instruction());
-            if let Some(n) = cpu.memory[cpu.pc as usize] {
+            let mut tmp = CPU::new();
+            tmp.ir = cpu.ir;
+            println!("  Disassembled Instruction : {}", tmp.parse_instruction());
+            if let Some(n) = cpu.memory.get(&cpu.pc) {
                 let mut tmp = CPU::new();
-                tmp.ir = n;
+                tmp.ir = *n;
                 println!("  Next instruction         : {}\n", tmp.parse_instruction());
             }
         } else {
@@ -56,8 +108,8 @@ impl CPU {
 pub fn display_mem(addr: &usize, clock: &u32) -> Option<i32> {
     let state = CPU_STATE.lock().unwrap();
     if let Some(cpu) = state.get(clock) {
-        if let Some(v) = cpu.memory[*addr] {
-            Some(v.into())
+        if let Some(v) = cpu.memory.get(&(*addr as u16)) {
+            Some(*v as i32)
         } else {
             eprintln!("Nothing in memory here on this clock cycle\n");
             None

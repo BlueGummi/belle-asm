@@ -1,8 +1,4 @@
-use crate::Argument::*;
-use crate::Instruction::*;
 use crate::{cpu, EmuError, RecoverableError, UnrecoverableError, CLOCK, CONFIG};
-use colored::*;
-use std::sync::{Arc, Mutex};
 use std::vec::Vec;
 
 pub const MEMORY_SIZE: usize = 65535;

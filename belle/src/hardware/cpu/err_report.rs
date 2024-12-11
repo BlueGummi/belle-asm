@@ -1,5 +1,3 @@
-use crate::Argument::*;
-use crate::Instruction::*;
 use crate::{RecoverableError, UnrecoverableError, CONFIG, CPU};
 
 impl CPU {

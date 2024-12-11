@@ -1,7 +1,6 @@
 use crate::Argument::*;
 use crate::Instruction::*;
 use crate::*;
-use colored::*;
 use std::arch::asm;
 
 macro_rules! trust_me {

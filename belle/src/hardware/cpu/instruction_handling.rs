@@ -1,5 +1,4 @@
 use crate::Argument::*;
-use crate::Instruction::*;
 use crate::*;
 impl CPU {
     pub fn handle_add(&mut self, arg1: &Argument, arg2: &Argument) {
