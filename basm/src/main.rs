@@ -83,9 +83,12 @@ fn main() -> io::Result<()> {
         if CONFIG.debug {
             println!("Raw line: {}", line.green());
         }
-
+        let mut hlt_seen = false;
         if CONFIG.debug {
             for token in tokens {
+                if *"hlt" == token.get_raw().to_lowercase() {
+                    hlt_seen = true;
+                }
                 println!(
                     "{} {}",
                     "Token:".green().bold(),
@@ -94,7 +97,12 @@ fn main() -> io::Result<()> {
             }
             println!();
         }
-
+        if !hlt_seen {
+            println!(
+                "{}: No HLT instruction found in program.",
+                "Warning".yellow()
+            );
+        }
         if let Some(ins) = instruction {
             let encoded_instruction = encode_instruction(ins, operand1, operand2, line_count);
             if encoded_instruction.is_none() {
