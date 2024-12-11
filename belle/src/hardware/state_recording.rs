@@ -1,4 +1,4 @@
-use crate::{CONFIG, CPU};
+use crate::*;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -7,7 +7,7 @@ use std::sync::Mutex;
 pub static CPU_STATE: Lazy<Mutex<HashMap<u32, Arc<ModCPU>>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 pub static CLOCK: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
-
+const MAX_MEMORY_LIMIT: usize = 128 * 1024 * 1024; // 128 MB
 pub struct ModCPU {
     pub int_reg: [i16; 4], // r0 thru r5
     pub uint_reg: [u16; 2],
@@ -29,12 +29,19 @@ pub struct ModCPU {
 
 impl ModCPU {
     pub fn modcpu_from_cpu(origin: &CPU) -> ModCPU {
-        let mut memory = std::collections::HashMap::new();
+        /*let mut memory = std::collections::HashMap::new();
         for (i, element) in origin.memory.iter().enumerate() {
             if let Some(value) = element {
                 memory.insert(i as u16, *value);
             }
         }
+        */
+        let memory: HashMap<u16, i16> = origin
+            .memory
+            .iter()
+            .enumerate()
+            .filter_map(|(i, element)| element.map(|value| (i as u16, value)))
+            .collect();
 
         ModCPU {
             int_reg: origin.int_reg,
@@ -61,14 +68,18 @@ impl CPU {
     pub fn record_state(&self) {
         let mut state = CPU_STATE.lock().unwrap();
         let clock = CLOCK.lock().unwrap();
-        // Idiot might still overflow
-        /*
-        while state.len() * std::mem::size_of::<(u32, Arc<CPU>)>() > MAX_MEMORY_LIMIT {
-            if let Some((&oldest_key, _)) = state.iter().next() {
-                state.remove(&oldest_key);
+        while state.len() * std::mem::size_of::<(u32, Arc<ModCPU>)>() > MAX_MEMORY_LIMIT {
+            if let Some(key) = state.keys().next().cloned() {
+                state.remove(&key);
+                return;
             }
         }
-        */
+        /*while &state.len() * std::mem::size_of::<(u32, Arc<ModCPU>)>() > MAX_MEMORY_LIMIT {
+            if let &Some(oldest_key) = &state.keys().next() {
+                state.remove(oldest_key);
+                return;
+            }
+        }*/
         let modified = ModCPU::modcpu_from_cpu(self);
         state.insert(*clock, Arc::new(modified));
     }

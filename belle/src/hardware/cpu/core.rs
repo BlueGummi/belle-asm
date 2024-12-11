@@ -22,6 +22,8 @@ pub struct CPU {
     pub sp: u16,
     pub bp: u16,
     pub backward_stack: bool,
+    pub max_clk: Option<usize>,
+    pub hit_max_clk: bool,
 }
 
 impl Default for CPU {
@@ -51,6 +53,8 @@ impl CPU {
             sp: 0,
             bp: 100,
             backward_stack: false,
+            max_clk: None,
+            hit_max_clk: false,
         }
     }
 
@@ -190,6 +194,14 @@ impl CPU {
                     .err();
                 if self.hlt_on_overflow {
                     self.running = false;
+                }
+            }
+            if let Some(v) = self.max_clk {
+                if *clock == v as u32 {
+                    self.running = false;
+                    if CONFIG.verbose {
+                        println!("Clock limit reached");
+                    }
                 }
             }
         }

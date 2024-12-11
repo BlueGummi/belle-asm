@@ -368,7 +368,6 @@ impl CPU {
                         return;
                     }
                 }
-                println!();
             }
             9 => {
                 let stdin = 0;
@@ -387,7 +386,9 @@ impl CPU {
             11 => self.zflag = true,
             12 => self.zflag = false,
             13 => self.zflag = !self.zflag,
-
+            20 => {
+                self.max_clk = Some(self.int_reg[0] as usize);
+            }
             21 => self.oflag = true,
             22 => self.oflag = false,
             23 => self.oflag = !self.oflag,
