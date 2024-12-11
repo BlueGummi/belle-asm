@@ -142,10 +142,12 @@ impl CPU {
         }
         let mut restart_count = 0;
         while self.running {
-            let _ = ctrlc::set_handler(move || {
-                println!("Halting...");
-                std::process::exit(0);
-            });
+            if !CONFIG.debug {
+                let _ = ctrlc::set_handler(move || {
+                    println!("Halting...");
+                    std::process::exit(0);
+                });
+            }
             let mut clock = CLOCK.lock().unwrap(); // might panic
             *clock += 1;
             std::thread::sleep(std::time::Duration::from_millis(
@@ -163,6 +165,9 @@ impl CPU {
                 .err();
                 if restart_count > 10 {
                     println!("More than ten restarts have been attempted.\nExiting...");
+                    return;
+                }
+                if CONFIG.debug {
                     return;
                 }
                 if !CONFIG.quiet {

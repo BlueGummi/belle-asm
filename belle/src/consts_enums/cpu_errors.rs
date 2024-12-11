@@ -18,7 +18,7 @@ pub enum RecoverableError {
 
 impl UnrecoverableError {
     pub fn err(&self) {
-        if CONFIG.quiet {
+        if CONFIG.quiet && !CONFIG.debug {
             std::process::exit(1);
         }
 
@@ -40,7 +40,9 @@ impl UnrecoverableError {
         }
 
         eprintln!("{}", "CRASHING...".red());
-        std::process::exit(1);
+        if !CONFIG.debug {
+            std::process::exit(1);
+        }
     }
 
     fn details(&self) -> (&str, u16, &Option<String>) {

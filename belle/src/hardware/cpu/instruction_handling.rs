@@ -60,6 +60,7 @@ impl CPU {
                 }
             } else {
                 UnrecoverableError::StackUnderflow(self.pc, None).err();
+                self.running = false;
                 if !CONFIG.debug {
                     std::process::exit(1);
                 }
@@ -115,6 +116,8 @@ impl CPU {
             }
         } else {
             UnrecoverableError::StackUnderflow(self.pc, None).err();
+
+            self.running = false;
             if !CONFIG.debug {
                 std::process::exit(1);
             }
@@ -292,7 +295,10 @@ impl CPU {
                             attempts += 1;
                             if attempts == max_attempts {
                                 println!("Failed to parse int from stdin 10 times, exiting...");
-                                std::process::exit(1);
+                                if !CONFIG.debug {
+                                    std::process::exit(1);
+                                }
+                                self.running = false;
                             }
                         }
                     }
