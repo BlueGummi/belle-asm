@@ -39,8 +39,14 @@ impl CPU {
         std::thread::sleep(std::time::Duration::from_secs(1));
         self.pc = self.starts_at;
     }
-    pub fn check_overflow(&mut self, new_value: i32) {
-        if new_value > i32::from(i16::MAX) || new_value < i32::from(i16::MIN) {
+    pub fn check_overflow(&mut self, new_value: i64, register: u16) {
+        let overflowed = match register {
+            0..=3 => new_value > i64::from(i16::MAX) || new_value < i64::from(i16::MIN),
+            4..=5 => new_value > i64::from(u16::MAX) || new_value < i64::from(u16::MIN),
+            6..=7 => new_value > f32::MAX as i64 || new_value < f32::MIN as i64,
+            _ => true,
+        };
+        if overflowed {
             RecoverableError::Overflow(self.pc, Some("Overflowed a register.".to_string())).err();
             self.oflag = true;
             if self.hlt_on_overflow {
@@ -49,11 +55,14 @@ impl CPU {
                     println!("Halting...");
                 }
                 if CONFIG.pretty {
-                    for i in 0..=5 {
+                    for i in 0..=3 {
                         println!(
                             "Register {}: {}, {:016b}, {:04x}",
                             i, self.int_reg[i], self.int_reg[i], self.int_reg[i]
                         );
+                    }
+                    for i in 0..=1 {
+                        println!("Uint Register {}: {}", i, self.uint_reg[i]);
                     }
                     for i in 0..=1 {
                         println!("Float Register {}: {}", i, self.float_reg[i]);

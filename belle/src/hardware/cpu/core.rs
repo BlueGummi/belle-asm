@@ -21,6 +21,7 @@ pub struct CPU {
     pub hlt_on_overflow: bool,
     pub sp: u16,
     pub bp: u16,
+    pub backward_stack: bool,
 }
 
 impl Default for CPU {
@@ -49,6 +50,7 @@ impl CPU {
             hlt_on_overflow: false,
             sp: 0,
             bp: 100,
+            backward_stack: false,
         }
     }
 

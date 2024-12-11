@@ -4,19 +4,33 @@ impl CPU {
     pub fn handle_add(&mut self, arg1: &Argument, arg2: &Argument) {
         let value = self.get_value(arg2);
         if let Register(n) = arg1 {
-            match *n {
-                4 => self.uint_reg[0] += value as u16,
-                5 => self.uint_reg[1] += value as u16,
-                6 => self.float_reg[0] += value,
-                7 => self.float_reg[1] += value,
-                n if n > 5 => self.report_invalid_register(),
-                _ => {
-                    let current_value = self.int_reg[*n as usize];
-                    let new_value = i32::from(current_value) + value as i32;
-                    self.check_overflow(new_value);
-                    self.int_reg[*n as usize] = new_value as i16;
+            let new_value = match *n {
+                4 => {
+                    self.uint_reg[0] += value as u16;
+                    self.uint_reg[0] as i64 + value as i64
                 }
-            }
+                5 => {
+                    self.uint_reg[1] += value as u16;
+                    self.uint_reg[1] as i64 + value as i64
+                }
+                6 => {
+                    self.float_reg[0] += value;
+                    self.float_reg[0] as i64 + value as i64
+                }
+                7 => {
+                    self.float_reg[1] += value;
+                    self.float_reg[1] as i64 + value as i64
+                }
+                n if n > 5 => {
+                    self.report_invalid_register();
+                    0
+                }
+                _ => {
+                    self.int_reg[*n as usize] += value as i16;
+                    self.int_reg[*n as usize] as i64 + value as i64
+                }
+            };
+            self.check_overflow(new_value, *n as u16);
         }
     }
 
@@ -75,20 +89,48 @@ impl CPU {
             return;
         }
         if let Register(n) = arg1 {
-            match *n {
-                4 => self.uint_reg[0] /= divisor as u16,
-                5 => self.uint_reg[1] /= divisor as u16,
-                6 => self.float_reg[0] /= divisor,
-                7 => self.float_reg[1] /= divisor,
-                n if n > 5 => self.report_invalid_register(),
-                _ => {
-                    let current_value = self.int_reg[*n as usize];
-                    if f32::from(current_value) % divisor != 0.0 {
+            let new_value = match *n {
+                4 => {
+                    if self.uint_reg[0] as f32 % divisor != 0.0 {
                         self.rflag = true;
                     }
-                    self.int_reg[*n as usize] = (i32::from(current_value) / divisor as i32) as i16;
+                    self.uint_reg[0] /= divisor as u16;
+                    self.uint_reg[0] as i64 / divisor as i64
                 }
-            }
+                5 => {
+                    if self.uint_reg[1] as f32 % divisor != 0.0 {
+                        self.rflag = true;
+                    }
+                    self.uint_reg[1] /= divisor as u16;
+                    self.uint_reg[1] as i64 / divisor as i64
+                }
+                6 => {
+                    if self.float_reg[0] % divisor != 0.0 {
+                        self.rflag = true;
+                    }
+                    self.float_reg[0] /= divisor;
+                    self.float_reg[0] as i64 / divisor as i64
+                }
+                7 => {
+                    if self.float_reg[1] % divisor != 0.0 {
+                        self.rflag = true;
+                    }
+                    self.float_reg[1] /= divisor;
+                    self.float_reg[1] as i64 / divisor as i64
+                }
+                n if n > 5 => {
+                    self.report_invalid_register();
+                    0
+                }
+                _ => {
+                    if f32::from(self.int_reg[*n as usize]) % divisor != 0.0 {
+                        self.rflag = true;
+                    }
+                    self.int_reg[*n as usize] /= divisor as i16;
+                    self.int_reg[*n as usize] as i64 / divisor as i64
+                }
+            };
+            self.check_overflow(new_value, *n as u16);
         }
     }
 
@@ -133,7 +175,7 @@ impl CPU {
                 7 => self.float_reg[1] = source,
                 n if n > 5 => self.report_invalid_register(),
                 _ => {
-                    self.check_overflow(source as i32);
+                    self.check_overflow(source as i64, *n as u16);
                     self.int_reg[*n as usize] = source as i16;
                 }
             }
@@ -184,19 +226,33 @@ impl CPU {
     pub fn handle_mul(&mut self, arg1: &Argument, arg2: &Argument) {
         let value = self.get_value(arg2);
         if let Register(n) = arg1 {
-            match *n {
-                4 => self.uint_reg[0] *= value as u16,
-                5 => self.uint_reg[1] *= value as u16,
-                6 => self.float_reg[0] *= value,
-                7 => self.float_reg[1] *= value,
-                n if n > 5 => self.report_invalid_register(),
-                _ => {
-                    let current_value = self.int_reg[*n as usize];
-                    let new_value = i32::from(current_value) * value as i32;
-                    self.check_overflow(new_value);
-                    self.int_reg[*n as usize] = new_value as i16;
+            let new_value = match *n {
+                4 => {
+                    self.uint_reg[0] *= value as u16;
+                    self.uint_reg[0] as i64 * value as i64
                 }
-            }
+                5 => {
+                    self.uint_reg[1] *= value as u16;
+                    self.uint_reg[1] as i64 * value as i64
+                }
+                6 => {
+                    self.float_reg[0] *= value;
+                    self.float_reg[0] as i64 * value as i64
+                }
+                7 => {
+                    self.float_reg[1] *= value;
+                    self.float_reg[1] as i64 * value as i64
+                }
+                n if n > 5 => {
+                    self.report_invalid_register();
+                    0
+                }
+                _ => {
+                    self.int_reg[*n as usize] *= value as i16;
+                    self.int_reg[*n as usize] as i64 * value as i64
+                }
+            };
+            self.check_overflow(new_value, *n as u16);
         }
     }
 
@@ -209,18 +265,53 @@ impl CPU {
         if let Register(_) = arg {
             val = self.get_value(arg);
         }
-        if self.sp > self.bp {
+        if self.sp > self.bp || self.backward_stack {
+            /*
             for i in self.bp..self.sp {
                 if self.memory[i as usize].is_none() {
-                    if self.sp != self.bp {
-                        RecoverableError::BackwardStack(self.pc, None).err();
+                    */
+            if self.sp != self.bp {
+                RecoverableError::BackwardStack(self.pc, None).err();
+            } /*
+                      self.memory[i as usize] = Some(val as i16);
+                      self.sp = i;
+                      break;
+                  }
+              }*/
+            loop {
+                match self.memory[self.sp as usize] {
+                    Some(_) => {
+                        self.sp += 1;
                     }
-                    self.memory[i as usize] = Some(val as i16);
-                    self.sp = i;
-                    break;
+                    None => {
+                        self.memory[self.sp as usize] = Some(val as i16);
+                        break;
+                    }
                 }
             }
+            if self.sp >= self.bp {
+                self.backward_stack = true;
+            }
         } else {
+            if self.sp == 0 {
+                UnrecoverableError::StackOverflow(
+                    self.pc,
+                    Some("Overflowed while pushing onto stack".to_string()),
+                )
+                .err();
+            }
+            loop {
+                match self.memory[self.sp as usize] {
+                    Some(_) => {
+                        self.sp -= 1;
+                    }
+                    None => {
+                        self.memory[self.sp as usize] = Some(val as i16);
+                        break;
+                    }
+                }
+            }
+            /*
             let mut i = self.bp;
             while i <= self.bp {
                 if self.memory[i as usize].is_none() {
@@ -230,6 +321,7 @@ impl CPU {
                 }
                 i -= 1;
             }
+            */
         }
     }
     pub fn handle_mov(&mut self, arg1: &Argument, arg2: &Argument) {

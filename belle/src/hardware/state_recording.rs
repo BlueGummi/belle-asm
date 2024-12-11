@@ -7,14 +7,13 @@ use std::sync::Mutex;
 pub static CPU_STATE: Lazy<Mutex<HashMap<u32, Arc<ModCPU>>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 pub static CLOCK: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
-const MAX_MEMORY_LIMIT: usize = 1024 * 1024 * 5;
 
 pub struct ModCPU {
     pub int_reg: [i16; 4], // r0 thru r5
     pub uint_reg: [u16; 2],
-    pub float_reg: [f32; 2],       // r6 and r7
-    pub memory: HashMap<u16, i16>, // Use Box to allocate the array on the heap
-    pub pc: u16,                   // program counter
+    pub float_reg: [f32; 2], // r6 and r7
+    pub memory: HashMap<u16, i16>,
+    pub pc: u16, // program counter
     pub ir: i16,
     pub starts_at: u16,
     pub running: bool,
@@ -31,10 +30,9 @@ pub struct ModCPU {
 impl ModCPU {
     pub fn modcpu_from_cpu(origin: &CPU) -> ModCPU {
         let mut memory = std::collections::HashMap::new();
-
         for (i, element) in origin.memory.iter().enumerate() {
             if let Some(value) = element {
-                memory.insert(i as u16, *value); // assuming value is of type YourType
+                memory.insert(i as u16, *value);
             }
         }
 
@@ -42,7 +40,7 @@ impl ModCPU {
             int_reg: origin.int_reg,
             uint_reg: origin.uint_reg,
             float_reg: origin.float_reg,
-            memory, // use the constructed memory HashMap here
+            memory,
             pc: origin.pc,
             ir: origin.ir,
             starts_at: origin.starts_at,
@@ -63,12 +61,14 @@ impl CPU {
     pub fn record_state(&self) {
         let mut state = CPU_STATE.lock().unwrap();
         let clock = CLOCK.lock().unwrap();
-
+        // Idiot might still overflow
+        /*
         while state.len() * std::mem::size_of::<(u32, Arc<CPU>)>() > MAX_MEMORY_LIMIT {
             if let Some((&oldest_key, _)) = state.iter().next() {
                 state.remove(&oldest_key);
             }
         }
+        */
         let modified = ModCPU::modcpu_from_cpu(self);
         state.insert(*clock, Arc::new(modified));
     }
