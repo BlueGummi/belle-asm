@@ -1,7 +1,6 @@
 use crate::Argument::*;
 use crate::*;
-use std::io::{self, Read, Write};
-use termios::{tcsetattr, Termios, ECHO, ICANON, TCSANOW};
+use std::io::{self, Read};
 
 impl CPU {
     pub fn handle_add(&mut self, arg1: &Argument, arg2: &Argument) {
@@ -370,17 +369,9 @@ impl CPU {
                 }
             }
             9 => {
-                let stdin = 0;
-                let termios = Termios::from_fd(stdin).unwrap();
-                let mut new_termios = termios;
-                new_termios.c_lflag &= !(ICANON | ECHO);
-                tcsetattr(stdin, TCSANOW, &new_termios).unwrap();
-                let stdout = io::stdout();
-                let mut buffer = [0; 1]; // thank you random stranger on stack overflow
-                stdout.lock().flush().unwrap(); // for graciously providing me with this
-                io::stdin().read_exact(&mut buffer).unwrap(); // wonderful code block to read
-                self.int_reg[0] = buffer[0] as i16; // a single letter/character from stdin
-                tcsetattr(stdin, TCSANOW, &termios).unwrap();
+                let mut buffer = [0; 1];
+                io::stdin().read_exact(&mut buffer).unwrap();
+                self.int_reg[0] = buffer[0] as i16;
             }
             10 => std::thread::sleep(std::time::Duration::from_secs(1)),
             11 => self.zflag = true,
