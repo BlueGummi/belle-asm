@@ -1,12 +1,15 @@
 ---
 title: 'BELLE - The complete program utility set for the Big Endian, Low Level Emulator'
 author: 'BlueGummi'
+tableOfContents:
+    minHeadingLevel: 2
+    maxHeadingLevel: 2
 ---
 
 ## Quickstart
 
 ```
-git clone https://github.com/BlueGummi/belle
+git clone https://github.com/BlueGummi/belle && cd belle
 ```
 
 
@@ -22,7 +25,7 @@ Every executable in this repository can have the `--help` flag passed to display
 Or, for Windows
 
 ```pwsh
-.\build.ps1 -w && .\install.ps1 -c
+.\build.ps1 -w && .\install.ps1 -c # This installs the binaries to ~/.local/bin on Windows
 ```
 
 The binaries can be run by calling `basm`, `belle`, or `bdump`.
