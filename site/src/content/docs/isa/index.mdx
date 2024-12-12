@@ -15,21 +15,36 @@ author: BlueGummi
 
 # Introduction
 
+## Overview
+
 The **BELLE-ISA**, also colloquially known as **"ISABELLE"**, is the instruction set for **BELLE**. This document and all further documententation will be referring to the instruction set as the **BELLE-ISA** to avoid confusion.
+
+## Bit-sizes
 
 The instructions are all fixed to **16-bits** in length, being able to change CPU flags, memory, registers, and other components of the emulator with the use of **pseudo-instructions**.
 
 The opcodes are all fixed to **4 bits**, which reside in the **first 4** bits of any given instruction. Instructions can take anywhere between **0 to 2** arguments, and are formatted `Instruction Destination, Source` for 2 argument instructions, `Instruction Location` for 1 argument instructions, and simply `Instruction` for instructions that **do not take any arguments**.
 
+## Instruction count
+
 There are **16** total instructions in the **BELLE-ISA**, however, each instruction **can take arguments of different types**. For example, the `mov` instruction can take a **literal value**, **pointer**, **memory address**, or **register** for the right-hand side of the instruction, and the conditional `jump` instructions can all take either a memory address or a register pointer.
+
+To accomplish this, *determinant* bits are used, which allow the CPU to *determine* what the next value is to be interpreted as.
+
+## Directives and clock cycles
 
 Instructions in this ISA all take one clock cycle to execute, with the exception of "pseudo-instruction" CPU *directives*. "Pseudo-instructions", such as `.start` and `.ssp` are read once when the instructions are loaded into memory, and the appropriate parts of the CPU are adjusted.
 
 For example, the `.start` directive controls the starting memory address of the program, and thus when it is read by the CPU, the program will begin at a different memory address.
 
+## Loading into memory
+
 Instructions are all loaded into memory prior to the CPU being run, and the fixed-length nature of instructions in this ISA can allow for easy, efficient, and parallel loading of instructions.
 
 # Opcodes
+
+The following table contains each operation and its respective *opcode*, in binary format.
+
 
 | Operation | Opcode |
 | :-------- | :----: |
@@ -49,4 +64,186 @@ Instructions are all loaded into memory prior to the CPU being run, and the fixe
 | `INT`     | `1101` |
 | `MOV`     | `1110` |
 | `NOP`     | `1111` |
+
+# Instruction listings
+
+The BELLE-ISA has 16 instructions, which were mentioned in the above opcode table. Below is a description, definition, use case, and example of every instruction.
+
+## 1. HLT
+
+    HLT - The HALT instruction
+
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    | HLT  | None      | `HLT` will halt BELLE when it is encountered. The program will stop and gracefully exit, and no other instructions will be performed. In binary, it is simply 16 consecutive zeros, thus making it possible to call a halt instruction by simply loading a zero into a memory address and performing a jump to the address. | Halting once the overflow flag is stopped to prevent further register overflow. | `hlt ; Stop the program to prevent a segmentation fault` |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        | `[0000]` | `[000]`  
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
+
+## 1. HLT
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |      |           |             |          |         |
+
+    ### Binary encoding
+        | Opcode | Left-hand side argument | Determinant bits | Right-hand side argument | 
+        | :----- | :---------------------- | :--------------- | :----------------------- |
+        |        |                         |                  |                          |
 
