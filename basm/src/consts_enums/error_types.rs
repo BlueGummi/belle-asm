@@ -21,21 +21,21 @@ impl Error<'_> {
             .and_then(|s| s.to_str())
             .unwrap_or_default();
         let line_number = match self {
-            Error::InvalidSyntax(_, n, _) => *n,
-            Error::ExpectedArgument(_, n, _) => *n,
-            Error::NonexistentData(_, n, _) => *n,
-            Error::UnknownCharacter(_, n, _) => *n,
-            Error::OtherError(_, n, _) => *n,
+            Error::InvalidSyntax(_, n, _)
+            | Error::ExpectedArgument(_, n, _)
+            | Error::NonexistentData(_, n, _)
+            | Error::UnknownCharacter(_, n, _)
+            | Error::OtherError(_, n, _) => *n,
+
             Error::LineLessError(_) => {
                 return eprintln!(
                     "{} {}\n{}",
                     binary_name.blue(),
                     "error: ".red().bold(),
                     self.message()
-                )
+                );
             }
         };
-
         let error_message = match self {
             Error::InvalidSyntax(s, _, _) => format!("invalid syntax: \n{s}"),
             Error::ExpectedArgument(s, _, _) => format!("expected an argument: \n{s}"),
@@ -45,11 +45,12 @@ impl Error<'_> {
             _ => unreachable!(),
         };
         let location = match self {
-            Error::InvalidSyntax(_, _, n) => n,
-            Error::ExpectedArgument(_, _, n) => n,
-            Error::NonexistentData(_, _, n) => n,
-            Error::UnknownCharacter(_, _, n) => n,
-            Error::OtherError(_, _, n) => n,
+            Error::InvalidSyntax(_, _, n)
+            | Error::ExpectedArgument(_, _, n)
+            | Error::NonexistentData(_, _, n)
+            | Error::UnknownCharacter(_, _, n)
+            | Error::OtherError(_, _, n) => n,
+
             _ => unreachable!(),
         };
         eprintln!(

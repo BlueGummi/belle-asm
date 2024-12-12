@@ -17,9 +17,7 @@ impl Tip<'_> {
             Tip::NoIdea(_) => msg.as_str(),
         };
         let tip_message = match self {
-            Tip::Try(s) => s,
-            Tip::Maybe(s) => s,
-            Tip::NoIdea(s) => s,
+            Tip::Try(s) | Tip::Maybe(s) | Tip::NoIdea(s) => s,
         };
         if CONFIG.tips {
             println!("{} {} {}", "tip:".yellow(), tip, tip_message);
