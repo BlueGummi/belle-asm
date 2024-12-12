@@ -12,7 +12,7 @@ pub struct ModCPU {
     pub int_reg: [i16; 4], // r0 thru r5
     pub uint_reg: [u16; 2],
     pub float_reg: [f32; 2], // r6 and r7
-    pub memory: HashMap<u16, i16>,
+    pub memory: Vec<(u16, i16)>,
     pub pc: u16, // program counter
     pub ir: i16,
     pub starts_at: u16,
@@ -29,14 +29,7 @@ pub struct ModCPU {
 
 impl ModCPU {
     pub fn modcpu_from_cpu(origin: &CPU) -> ModCPU {
-        /*let mut memory = std::collections::HashMap::new();
-        for (i, element) in origin.memory.iter().enumerate() {
-            if let Some(value) = element {
-                memory.insert(i as u16, *value);
-            }
-        }
-        */
-        let memory: HashMap<u16, i16> = origin
+        let memory: Vec<(u16, i16)> = origin
             .memory
             .iter()
             .enumerate()
@@ -105,7 +98,7 @@ impl CPU {
             let mut tmp = CPU::new();
             tmp.ir = cpu.ir;
             println!("  Disassembled Instruction : {}", tmp.parse_instruction());
-            if let Some(n) = cpu.memory.get(&cpu.pc) {
+            if let Some((_, n)) = cpu.memory.iter().find(|&&(first, _)| first == cpu.pc) {
                 let mut tmp = CPU::new();
                 tmp.ir = *n;
                 println!("  Next instruction         : {}\n", tmp.parse_instruction());
@@ -119,7 +112,11 @@ impl CPU {
 pub fn display_mem(addr: &usize, clock: &u32) -> Option<i32> {
     let state = CPU_STATE.lock().unwrap();
     if let Some(cpu) = state.get(clock) {
-        if let Some(v) = cpu.memory.get(&(*addr as u16)) {
+        if let Some((_, v)) = cpu
+            .memory
+            .iter()
+            .find(|&&(first, _)| first == (*addr as u16))
+        {
             Some(*v as i32)
         } else {
             eprintln!("Nothing in memory here on this clock cycle\n");

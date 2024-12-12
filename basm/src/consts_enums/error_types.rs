@@ -15,24 +15,35 @@ pub enum Error<'a> {
 }
 impl Error<'_> {
     pub fn perror(&self) {
-        let exe_path = std::env::args().next().unwrap_or_default();
+        let exe_path = std::env::args()
+            .next()
+            .unwrap_or_default();
+
         let binary_name = Path::new(&exe_path)
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or_default();
-        let line_number = match self {
-            Error::InvalidSyntax(_, n, _)
-            | Error::ExpectedArgument(_, n, _)
-            | Error::NonexistentData(_, n, _)
-            | Error::UnknownCharacter(_, n, _)
-            | Error::OtherError(_, n, _) => *n,
 
-            Error::LineLessError(_) => {
+        #[rustfmt::skip]
+        let line_number = match self {
+            | Error::InvalidSyntax    (_, n, _)
+            | Error::ExpectedArgument (_, n, _)
+            | Error::NonexistentData  (_, n, _)
+            | Error::UnknownCharacter (_, n, _)
+            | Error::OtherError       (_, n, _) 
+                => *n,
+
+            | Error::LineLessError(_) 
+            => {
                 return eprintln!(
                     "{} {}\n{}",
-                    binary_name.blue(),
-                    "error: ".red().bold(),
-                    self.message()
+                    binary_name
+                    .blue(),
+                    "error: "
+                    .red()
+                    .bold(),
+                    self
+                    .message()
                 );
             }
         };
@@ -45,12 +56,11 @@ impl Error<'_> {
             _ => unreachable!(),
         };
         let location = match self {
-            Error::InvalidSyntax(_, _, n)
+            | Error::InvalidSyntax(_, _, n)
             | Error::ExpectedArgument(_, _, n)
             | Error::NonexistentData(_, _, n)
             | Error::UnknownCharacter(_, _, n)
             | Error::OtherError(_, _, n) => n,
-
             _ => unreachable!(),
         };
         eprintln!(
