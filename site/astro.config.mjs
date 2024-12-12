@@ -30,9 +30,9 @@ export default defineConfig({
                 {
                     label: 'Hardware',
                     items: [
-                        { label: 'CPU core', slug: 'cpu-core'},
-                        { label: 'CPU flags', slug: 'cpu-flags'},
-                        { label: 'CPU errors', slug: 'cpu-errors'},
+                        { label: 'CPU specification', slug: 'cpu-core'},
+                        { label: 'Flags', slug: 'cpu-flags'},
+                        { label: 'Errors', slug: 'cpu-errors'},
                         { label: 'Memory', slug: 'memory'},
                     ],
                 },
