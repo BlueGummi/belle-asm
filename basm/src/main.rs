@@ -62,6 +62,7 @@ fn main() -> io::Result<()> {
     process_start(&lines);
     load_subroutines(&lines);
 
+    let mut hlt_seen = false;
     for line in lines {
         let mut lexer = Lexer::new(&line, line_count);
         let tokens = lexer.lex();
@@ -83,25 +84,20 @@ fn main() -> io::Result<()> {
         if CONFIG.debug {
             println!("Raw line: {}", line.green());
         }
-        let mut hlt_seen = false;
-        if CONFIG.debug {
-            for token in tokens {
-                if *"hlt" == token.get_raw().to_lowercase() {
-                    hlt_seen = true;
-                }
+        for token in tokens {
+            if token.get_raw().to_lowercase() == String::from("hlt") {
+                hlt_seen = true;
+            }
+            if CONFIG.debug {
                 println!(
                     "{} {}",
                     "Token:".green().bold(),
                     token.to_string().blue().bold()
                 );
             }
-            println!();
         }
-        if !hlt_seen {
-            println!(
-                "{}: No HLT instruction found in program.",
-                "Warning".yellow()
-            );
+        if CONFIG.debug {
+            println!();
         }
         if let Some(ins) = instruction {
             let encoded_instruction = encode_instruction(ins, operand1, operand2, line_count);
@@ -127,6 +123,12 @@ fn main() -> io::Result<()> {
         }
 
         line_count += 1;
+    }
+    if !hlt_seen {
+        println!(
+            "{}: No HLT instruction found in program.",
+            "Warning".yellow()
+        );
     }
 
     if has_err {

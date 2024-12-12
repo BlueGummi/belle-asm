@@ -1,6 +1,6 @@
     ; This program calculates the fibonacci sequence to the largest signed 16 bit integer value
 .sbp $10
-.ssp $9
+.ssp $10
 .start $100
     mov %r6, #0         ; first value of fibonacci
     mov %r7, #1         ; second value of fibonacci
