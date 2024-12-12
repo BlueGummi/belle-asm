@@ -20,9 +20,11 @@ export default defineConfig({
                     ],
                 },
                 {
-                    label: 'Hardware and ISA',
+                    label: 'ISA reference',
                     items: [
-                        { label: 'Instruction Set', slug: 'isa'},
+                        { label: 'Overview', slug: 'overview'},
+                        { label: 'Encoding', slug: 'encoding'},
+                        { label: 'Instructions', slug: 'instructions'},
                     ],
                 },
             ],

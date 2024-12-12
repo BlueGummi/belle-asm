@@ -43,6 +43,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     println!("h | help      - Print help on BDB or a specific command");
                     println!("l | load      - Load program");
                     println!("r | run       - Run program");
+                    println!("rs            - Reset emulator");
                     println!("cls           - Clear screen\n");
                     println!("Can be used whether or not the CPU has ran:");
                     println!("spc           - Set program counter to a given value");
@@ -138,6 +139,9 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                             println!(
                                 "if an invalid value or nothing is entered, nothing will happen\n"
                             );
+                        }
+                        "rs" => {
+                            println!("'reset' takes no arguments");
                         }
                         _ => {
                             println!("Unknown command: '{arg}'");
