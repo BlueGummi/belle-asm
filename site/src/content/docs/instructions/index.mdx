@@ -136,15 +136,9 @@ Please refer to the [encoding](../encoding) document for more information about 
 
 ## 5. DIV
 
-    ### ADD - Add RHS to LHS, storing result in LHS
+    ### DIV - Divide LHS by RHS, storing the result in LHS
 
-    `ADD` will perform arithmetic addition, taking the second operand (right-hand side), and adding it to the first operand (left-hand side), storing the result in the first operand. `ADD` will always take 2 arguments, and can also perform subtraction if the value in RHS is negative. 
-
-    `ADD` will perform floating point arithmetic as the 6th and 7th registers are floating-point, however the values will be cast to integers if the destination is an integer register. 
-
-    `ADD` can only perform floating-point-to-floating-point addition if the two floating-point registers are passed as arguments. Literal values cannot be floating point.
-
-
+    `DIV` will perform **arithmetic division** 
 
     Compatible LHS argument types: Register
 
