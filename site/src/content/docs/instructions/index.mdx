@@ -317,7 +317,7 @@ Please refer to the [encoding](../encoding) document for more information about 
     lhs := memory[rhs]
     ```
 
-## 7. ST
+## 8. ST
 
     ### ST - Directly store into a memory address from a register
 
@@ -352,6 +352,59 @@ Please refer to the [encoding](../encoding) document for more information about 
     else
         memory[lhs] := reg_val(rhs)
     ```
+## 9. JMP
+
+    ### JMP - Unconditional jump  
+
+    `JMP` performs an **unconditional jump**, which sets the CPU's program counter to the destination specified.
+
+    When `JMP` is performed, the memory address that it is **performed at** is "`push`ed" onto the call stack. This memory address is known as a *return address* and is retrieved if the jump is to be returned from. Thus, if a value is to be retrieved off the stack after `JMP`, the return address must first be removed, or the stack and base pointers must be adjusted. 
+    
+    > **Note**: The value it pushes onto the stack may **overflow a memory address**, as memory address values are signed but the addresses themselves are not. Thus, if the program is **very large** or starts at a very high memory address, it may **not be feasible** to retrieve a jumped address as it may have overflowed. This is **unlikely** unless the assembly program is above **27,000 lines of source code**.
+
+    As subroutines and labels in assembly **resolve to memory addresses**, `JMP` will always jump to a memory address if the jump location is a subroutine, granted the destination is small enough to fit within `11` bits.
+
+    `JMP` can also take a **register pointer** argument, meaning that the value in a register is interpreted as a memory address for the destination of a jump. This must be set manually, as the assembler **will not do this**.
+
+    Using a register as the destination can be beneficial, as `r4` and `r5` are unsigned 16 bit integers, being **able to address all memory addresses**. It is also possible to pass `r6` or `r7` - the floating point registers - to this instruction.
+
+    > Note: Any jump instruction can overflow the stack if it is full
+
+    Compatible DEST types: Register pointer, memory address
+
+    Flags affected: None 
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    | JMP   | 1         | Jump | Recursion | `jmp $31 ; jump to address 31` |
+
+    
+    #### Binary encoding
+
+        Instruction: `JMP $50`
+
+        | Opcode   | DTB     | DEST |
+        | :-----   | :------ | :--- |
+        | `[0010]` | `[0]` | `[00000110010]` |
+
+    #### Pseudocode representation
+        ```go
+        if sp > bp // adjust stack pointer
+            sp := sp + 1
+        else
+            sp := sp - 1
+
+        if sp < 0 || sp > 65535
+            throw overflow_err
+
+        memory[sp] := pc // push onto stack
+            
+        if dtb = 1
+            pc := reg_val(dest)
+        else 
+            pc := memory[dest]
+        ```
+
 
 ## 7. LD
 
