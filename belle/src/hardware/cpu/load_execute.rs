@@ -45,7 +45,8 @@ impl CPU {
                 5 => self.uint_reg[1] = value as u16,
                 6 => self.float_reg[0] = value,
                 7 => self.float_reg[1] = value,
-                n if n > 7 => self.report_invalid_register(),
+                n if n > 3 => self.report_invalid_register(),
+                n if n < 0 => self.report_invalid_register(),
                 _ => self.int_reg[*n as usize] = value as i16,
             }
         }
@@ -85,6 +86,12 @@ impl CPU {
                     );
                 }
                 let tmp = self.memory[*n as usize].unwrap() as usize;
+                if tmp > MEMORY_SIZE {
+                    UnrecoverableError::IllegalInstruction(
+                        self.pc,
+                        Some("Segmentation fault whilst processing pointer.\nMemory address invalid (too large).".to_string()),
+                    ).err();
+                }
                 if self.memory[tmp].is_none() {
                     self.handle_segmentation_fault(
                         "Segmentation fault while dereferencing pointer.\nThe address the pointer references is empty.",

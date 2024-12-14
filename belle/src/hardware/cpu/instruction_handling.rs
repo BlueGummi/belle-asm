@@ -79,7 +79,7 @@ impl CPU {
 
     pub fn handle_div(&mut self, arg1: &Argument, arg2: &Argument) {
         let divisor = self.get_value(arg2);
-        if divisor == 0.0 {
+        if divisor == 0.0 || divisor as u16 == 0 {
             self.report_divide_by_zero();
             self.pc = self.starts_at;
             return;
