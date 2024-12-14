@@ -23,7 +23,7 @@ impl CPU {
             RET => self.handle_ret(),
             LD(arg1, arg2) => self.handle_ld(arg1, arg2),
             ST(arg1, arg2) => self.handle_st(arg1, arg2),
-            SWP(arg1, arg2) => self.handle_swp(arg1, arg2),
+            JMP(arg) => self.handle_jmp(arg),
             JZ(arg) => self.handle_jz(arg),
             CMP(arg1, arg2) => self.handle_cmp(arg1, arg2),
             MUL(arg1, arg2) => self.handle_mul(arg1, arg2),
@@ -116,7 +116,7 @@ impl CPU {
         } else {
             0
         };
-        let it_is_bouncy = opcode == JZ_OP || opcode == JO_OP;
+        let it_is_bouncy = opcode == JZ_OP || opcode == JO_OP || opcode == JMP_OP;
         let indirect_bounce = (self.ir & 0b100000000000) >> 11 == 1;
         let tmp = self.ir & 0b1111111;
 
@@ -183,7 +183,13 @@ impl CPU {
                     ST(MemAddr(part), Register(self.ir & 0b111))
                 }
             }
-            SWP_OP => SWP(Register(destination), Register(self.ir & 0b111)),
+            JMP_OP => {
+                if ins_type == 4 {
+                    JMP(RegPtr(source))
+                } else {
+                    JMP(MemAddr(source))
+                }
+            }
             JZ_OP => {
                 if ins_type == 4 {
                     JZ(RegPtr(source))

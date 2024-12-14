@@ -182,12 +182,12 @@ impl CPU {
         }
     }
 
-    pub fn handle_swp(&mut self, arg1: &Argument, arg2: &Argument) {
-        let source = self.get_value(arg2);
-        if let Register(_) = arg1 {
-            let dest = self.get_value(arg1);
-            self.set_register_value(arg1, source);
-            self.set_register_value(arg2, dest);
+    pub fn handle_jmp(&mut self, arg: &Argument) {
+        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
+        if let MemAddr(n) = arg {
+            self.pc = (*n as u16) - 2;
+        } else if let RegPtr(n) = arg {
+            self.pc = self.get_value(&Argument::Register(*n)) as u16;
         }
     }
 
@@ -265,7 +265,8 @@ impl CPU {
                     self.sp += 1;
                 }
                 None => {*/
-            if (self.sp == self.bp && self.memory[self.bp as usize].is_some()) || self.sp != self.bp {
+            if (self.sp == self.bp && self.memory[self.bp as usize].is_some()) || self.sp != self.bp
+            {
                 self.sp += 1;
             }
             self.memory[self.sp as usize] = Some(val as i16);
@@ -290,7 +291,8 @@ impl CPU {
                     self.sp -= 1;
                 }
                 None => {*/
-            if (self.sp == self.bp && self.memory[self.bp as usize].is_some()) || self.sp != self.bp {
+            if (self.sp == self.bp && self.memory[self.bp as usize].is_some()) || self.sp != self.bp
+            {
                 self.sp -= 1;
             }
             self.memory[self.sp as usize] = Some(val as i16);

@@ -9,23 +9,19 @@
     mov %r4, #100
     add %r4, #51 ; 151
     mul %r5, %r4
-    int #11
-    jz @loop
+    jmp @loop
 loop:
     pop %r4 ; pop off return address
     add %r0, #1
     int #0
     cmp %r0, %r5
-    int #13
-    jz @loop
-    int #11
     jz @sub_loop
+    jmp @loop
 sub_loop:
     pop %r4 ; pop off that return address
     add %r0, #-1
     int #0
     cmp %r0, %r1
-    int #13
-    jz @sub_loop
-    int #11
     jz @loop
+    jmp @sub_loop
+

@@ -118,8 +118,8 @@ void print_output(Instruction *ins) {
     }
 
     bool two_reg_args =
-        (strcmp(op, "add") == 0 || strcmp(op, "div") == 0 || strcmp(op, "swp") == 0 ||
-         strcmp(op, "cmp") == 0 || strcmp(op, "mul") == 0 || strcmp(op, "mov") == 0);
+        (strcmp(op, "add") == 0 || strcmp(op, "div") == 0 || strcmp(op, "cmp") == 0 ||
+         strcmp(op, "mul") == 0 || strcmp(op, "mov") == 0);
 
     if (two_reg_args) {
         print_two_reg_args(ins, colors);
@@ -129,7 +129,7 @@ void print_output(Instruction *ins) {
         } else {
             printf("%snop\n");
         }
-    } else if (strcmp(op, "jz") == 0 || strcmp(op, "jo") == 0) {
+    } else if (strcmp(op, "jz") == 0 || strcmp(op, "jo") == 0 || strcmp(op, "jmp") == 0) {
         print_jump_instruction(ins, colors);
     } else if (strcmp(op, "ret") == 0) {
         printf("\n");

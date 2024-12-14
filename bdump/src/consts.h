@@ -14,7 +14,7 @@
 #define RET_OP 0b0101
 #define LD_OP 0b0110
 #define ST_OP 0b0111
-#define SWP_OP 0b1000
+#define JMP_OP 0b1000
 #define JZ_OP 0b1001
 #define CMP_OP 0b1010
 #define MUL_OP 0b1011

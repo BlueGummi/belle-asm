@@ -4,7 +4,7 @@ use std::process;
 #[must_use]
 pub fn verify(ins: &Token, arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> bool {
     let instructions = [
-        "ADD", "HLT", "JO", "POP", "DIV", "RET", "LD", "ST", "SWP", "JZ", "PUSH", "CMP", "MUL",
+        "ADD", "HLT", "JO", "POP", "DIV", "RET", "LD", "ST", "JMP", "JZ", "PUSH", "CMP", "MUL",
         "INT", "MOV",
     ];
     let raw_token = ins.get_raw().to_uppercase();
@@ -31,13 +31,13 @@ fn check_instruction(
         "HLT" | "RET" => {
             check_no_arguments(arg1, arg2, raw_token, line_num);
         }
-        "SWP" | "ADD" | "LD" | "ST" | "MOV" | "MUL" | "CMP" | "DIV" => {
+        "ADD" | "LD" | "ST" | "MOV" | "MUL" | "CMP" | "DIV" => {
             check_two_arguments(arg1, arg2, raw_token, line_num);
         }
         "INT" => {
             check_one_or_no_arguments(arg1, arg2, raw_token, line_num);
         }
-        "JZ" | "PUSH" | "POP" | "JO" => {
+        "JZ" | "PUSH" | "POP" | "JO" | "JMP" => {
             check_one_argument(arg1, arg2, raw_token, line_num);
         }
         _ => {

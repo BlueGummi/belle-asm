@@ -1,7 +1,7 @@
 use crate::consts_enums::Error::{InvalidSyntax, NonexistentData};
 use crate::{
-    Tip, Token, ADD_OP, CMP_OP, DIV_OP, HLT_OP, INT_OP, JO_OP, JZ_OP, LD_OP, MOV_OP, MUL_OP,
-    NOP_OP, POP_OP, PUSH_OP, RET_OP, ST_OP, SWP_OP,
+    Tip, Token, ADD_OP, CMP_OP, DIV_OP, HLT_OP, INT_OP, JMP_OP, JO_OP, JZ_OP, LD_OP, MOV_OP,
+    MUL_OP, NOP_OP, POP_OP, PUSH_OP, RET_OP, ST_OP,
 };
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
@@ -99,7 +99,17 @@ pub fn encode_instruction(
                 }
                 ST_OP // 7
             }
-            "SWP" => SWP_OP, // 8
+            "JMP" => {
+                ins_type = "one_arg";
+                if let Some(&Token::SRCall(_)) = arg1.or(arg2) {
+                    // handle subroutine call
+                    ins_type = "call";
+                } else if let Some(&Token::RegPointer(_)) = arg1.or(arg2) {
+                    ins_type = "jwr";
+                }
+                JMP_OP
+            }
+
             "JZ" => {
                 ins_type = "one_arg";
                 if let Some(&Token::SRCall(_)) = arg1.or(arg2) {

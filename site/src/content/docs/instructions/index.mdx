@@ -14,6 +14,8 @@ Please refer to the [encoding](../encoding) document for more information about 
 
 > Note: The BELLE-ISA uses 16 bit long memory addresses. This is done for simplicity's sake, as using smaller, typically standard 8-bit memory addresses requires more and typically somewhat unnecessary effort on both the emulator and programmer's side.
 
+> Rounding: For instructions that will round a number, the number will simply have its decimal points cut off. It will not be rounded to the nearest integer, it will simply have the decimal places removed. (e.g. 4.5 becomes 4)
+
 ## 1. HLT
 
     ### HLT - The HALT instruction
@@ -30,13 +32,19 @@ Please refer to the [encoding](../encoding) document for more information about 
 
     Flags affected: `running` state.
 
-    ### Binary encoding
+    #### Binary encoding
 
         Instruction: `hlt`
 
-        | Opcode   | LHS     | DTBs     | RHS       | 
-        | :-----   | :------ | :------- | :-------- |
-        | `[0000]` | `[000]` | `[0000]` | `[00000]` |
+        | Opcode   | Rest of instruction | 
+        | :-----   | :------ |
+        | `[0000]` | `[000000000000]` |
+
+    
+    ##### Pseudocode representation
+        ```go
+        running := false
+        ```
 
 ## 2. ADD
 
@@ -61,13 +69,28 @@ Please refer to the [encoding](../encoding) document for more information about 
     | ADD  | 2         | ADD two values | Adding values in a Fibonacci sequence | `add %r0, #3 ; add 3 to r0` |
 
     
-    ### Binary encoding
+    #### Binary encoding
 
         Instruction: `add %r4, &r3`
 
         | Opcode   | LHS     | DTBs     | RHS       | 
         | :-----   | :------ | :------- | :-------- |
         | `[0001]` | `[100]` | `[0010]` | `[00011]` |
+    
+    #### Pseudocode representation
+        ```go
+        if rhs = register
+            lhs := lhs + reg_val(rhs)
+
+        else if rhs = literal
+            lhs := lhs + rhs
+
+        else if rhs = reg_ptr
+            lhs := lhs + memory[reg_val(rhs)]
+
+        else if rhs = mem_ptr
+            lhs := lhs + memory[memory[lhs]]
+        ```
 
 ## 3. JO
 
@@ -89,6 +112,8 @@ Please refer to the [encoding](../encoding) document for more information about 
 
     If the overflow flag is **not set**, the jump will **simply be skipped**, and the next instruction will be executed accordingly.
 
+    > Note: Any jump instruction can overflow the stack if it is full
+
     Compatible DEST types: Register pointer, memory address
 
     Flags affected: Affected by overflow flag. Cannot change any flags.
@@ -98,7 +123,7 @@ Please refer to the [encoding](../encoding) document for more information about 
     | JO   | 1         | Jump if overflow flag is true | Leaving a loop when a register overflows | `jo $3 ; jump to address 3 if overflow flag is set` |
 
     
-    ### Binary encoding
+    #### Binary encoding
 
         Instruction: `jo &r3`
 
@@ -106,6 +131,26 @@ Please refer to the [encoding](../encoding) document for more information about 
         | :-----   | :------ | :--- |
         | `[0010]` | `[1]` | `[00000000011]` |
 
+    #### Pseudocode representation
+        ```go
+        if zero_flag
+            if sp > bp
+                sp := sp + 1
+            else
+                sp := sp - 1
+
+            if sp < 0 || sp > 65535
+                throw overflow_err
+
+            memory[sp] := pc // push onto stack
+            
+            if dtb = 1
+                pc := reg_val(dest)
+            else 
+                pc := memory[dest]
+        else
+            return
+        ```
 
 ## 4. POP
 
@@ -126,7 +171,7 @@ Please refer to the [encoding](../encoding) document for more information about 
     | POP  | 1         | Take a value off the stack | Retrieving a memory address from a JMP | `pop %r4 ; pop a value off the stack into register 4` |
 
     
-    ### Binary encoding
+    #### Binary encoding
 
         Instruction: `pop %r2`
 
@@ -134,11 +179,25 @@ Please refer to the [encoding](../encoding) document for more information about 
         | :-----   | :------ |
         | `[0011]` | `[000000000010]` |
 
+    #### Pseudocode representation
+        ```go
+        if memory[sp] = NULL
+            throw underflow_err
+
+        register(dest) := memory[sp]
+        memory[sp] := NULL
+
+        if sp > bp
+            sp := sp - 1
+        else
+            sp := sp + 1
+        ```
+
 ## 5. DIV
 
     ### DIV - Divide LHS by RHS, storing the result in LHS
 
-    `DIV` will perform **arithmetic division** 
+    `DIV` will perform **arithmetic division** between the two arguments passed to it, and the result will be **cast to an integer** if the destination is not a register capable of storing floating point values (any register that is not register 6 or 7). 
 
     Compatible LHS argument types: Register
 
@@ -148,29 +207,91 @@ Please refer to the [encoding](../encoding) document for more information about 
     
     | Name | Arguments | Description | Use case | Example |
     | :--- | :-------- | :---------: | :------- | :------ |
-    | ADD  | 2         | ADD two values | Adding values in a Fibonacci sequence | `add %r0, #3 ; add 3 to r0` |
+    | DIV  | 2         | DIVide two values | Floating-point math | `div %r4, #3 ; divide value in r4 by 3` |
 
     
-    ### Binary encoding
+    #### Binary encoding
 
-        Instruction: `add %r4, &r3`
+        Instruction: `div %r1, &$2`
 
         | Opcode   | LHS     | DTBs     | RHS       | 
         | :-----   | :------ | :------- | :-------- |
-        | `[0001]` | `[100]` | `[0010]` | `[00011]` |
+        | `[0100]` | `[001]` | `[0100]` | `[00010]` |
+
+    #### Pseudocode representation
+        ```
+        if rhs == register
+            lhs := lhs / reg_val(rhs)
+
+        else if rhs == literal
+            lhs := lhs / rhs
+
+        else if rhs == reg_ptr
+            lhs := lhs / memory[reg_val(rhs)]
+
+        else if rhs == mem_ptr
+            lhs := lhs / memory[memory[lhs]]
+        ```
+
+## 6. RET
+
+    ### RET - Return
+
+    `RET` will read the value that the memory address that the stack pointer points to holds. The program counter will then be set to this address, and the memory address will be cleared. This instruction is similar to the `POP` instruction, however, it doesn't load the value into a register.
+
+    `RET` takes no arguments.
+
+    `RET` can be used after a jump instruction is called to return to where the jump instruction was called from if the return address is still on the top of the call stack. If not, it is possible to artificially create a return address on the call stack by saving the return address after a jump, then pushing it back on before `RET` is called.
+
+    #### Example:
+        ```asm
+        jmp @somewhere
+        somewhere:
+            pop %r4  ; save the return address
+            push %r3 ; do other things with the stack
+            ...
+            push %r4 ; push the return address back on
+            ret ; the first line should be returned to
+        ```
 
 
-## 2. ADD
+    Compatible argument types: None
 
-    ### ADD - Add RHS to LHS, storing result in LHS
+    Flags affected: None
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    | RET | None | Return | Returning from a jump | `ret` |
 
-    `ADD` will perform arithmetic addition, taking the second operand (right-hand side), and adding it to the first operand (left-hand side), storing the result in the first operand. `ADD` will always take 2 arguments, and can also perform subtraction if the value in RHS is negative. 
+    
+    #### Binary encoding
 
-    `ADD` will perform floating point arithmetic as the 6th and 7th registers are floating-point, however the values will be cast to integers if the destination is an integer register. 
+        Instruction: `ret`
 
-    `ADD` can only perform floating-point-to-floating-point addition if the two floating-point registers are passed as arguments. Literal values cannot be floating point.
+        | Opcode   | Rest of instruction | 
+        | :-----   | :------ |
+        | `0101` | `000000000000` |
 
+    #### Pseudocode representation
+        ```go
+        if memory[sp] = NULL
+            throw underflow_err
+        
+        pc := memory[sp]
+        memory[sp] := NULL
 
+        if sp > bp
+            sp := sp - 1
+        else
+            sp := sp + 1
+
+        ```
+
+## 7. LD
+
+    ### Placeholder - placeholder
+
+    description
 
     Compatible LHS argument types: Register
 
@@ -180,79 +301,18 @@ Please refer to the [encoding](../encoding) document for more information about 
     
     | Name | Arguments | Description | Use case | Example |
     | :--- | :-------- | :---------: | :------- | :------ |
-    | ADD  | 2         | ADD two values | Adding values in a Fibonacci sequence | `add %r0, #3 ; add 3 to r0` |
+    |   |          |  |  |  |
 
     
-    ### Binary encoding
+    #### Binary encoding
 
-        Instruction: `add %r4, &r3`
+        Instruction: ``
 
         | Opcode   | LHS     | DTBs     | RHS       | 
         | :-----   | :------ | :------- | :-------- |
-        | `[0001]` | `[100]` | `[0010]` | `[00011]` |
+        | `` | `` | `` | `` |
 
-
-## 2. ADD
-
-    ### ADD - Add RHS to LHS, storing result in LHS
-
-    `ADD` will perform arithmetic addition, taking the second operand (right-hand side), and adding it to the first operand (left-hand side), storing the result in the first operand. `ADD` will always take 2 arguments, and can also perform subtraction if the value in RHS is negative. 
-
-    `ADD` will perform floating point arithmetic as the 6th and 7th registers are floating-point, however the values will be cast to integers if the destination is an integer register. 
-
-    `ADD` can only perform floating-point-to-floating-point addition if the two floating-point registers are passed as arguments. Literal values cannot be floating point.
-
-
-
-    Compatible LHS argument types: Register
-
-    Compatible RHS argument types: Register, literal, register pointer, memory address pointer, can be signed and unsigned
-
-    Flags affected: None
-    
-    | Name | Arguments | Description | Use case | Example |
-    | :--- | :-------- | :---------: | :------- | :------ |
-    | ADD  | 2         | ADD two values | Adding values in a Fibonacci sequence | `add %r0, #3 ; add 3 to r0` |
-
-    
-    ### Binary encoding
-
-        Instruction: `add %r4, &r3`
-
-        | Opcode   | LHS     | DTBs     | RHS       | 
-        | :-----   | :------ | :------- | :-------- |
-        | `[0001]` | `[100]` | `[0010]` | `[00011]` |
-
-
-## 2. ADD
-
-    ### ADD - Add RHS to LHS, storing result in LHS
-
-    `ADD` will perform arithmetic addition, taking the second operand (right-hand side), and adding it to the first operand (left-hand side), storing the result in the first operand. `ADD` will always take 2 arguments, and can also perform subtraction if the value in RHS is negative. 
-
-    `ADD` will perform floating point arithmetic as the 6th and 7th registers are floating-point, however the values will be cast to integers if the destination is an integer register. 
-
-    `ADD` can only perform floating-point-to-floating-point addition if the two floating-point registers are passed as arguments. Literal values cannot be floating point.
-
-
-
-    Compatible LHS argument types: Register
-
-    Compatible RHS argument types: Register, literal, register pointer, memory address pointer, can be signed and unsigned
-
-    Flags affected: None
-    
-    | Name | Arguments | Description | Use case | Example |
-    | :--- | :-------- | :---------: | :------- | :------ |
-    | ADD  | 2         | ADD two values | Adding values in a Fibonacci sequence | `add %r0, #3 ; add 3 to r0` |
-
-    
-    ### Binary encoding
-
-        Instruction: `add %r4, &r3`
-
-        | Opcode   | LHS     | DTBs     | RHS       | 
-        | :-----   | :------ | :------- | :-------- |
-        | `[0001]` | `[100]` | `[0010]` | `[00011]` |
-
-
+    #### Pseudocode representation
+    ```go
+    var x := 42
+    ```

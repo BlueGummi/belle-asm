@@ -6,8 +6,7 @@
     mov %r7, #1         ; second value of fibonacci
     push %r6            ; r6 onto stack
     push %r7            ; r7 onto stack 
-    int #11             
-    jz @fib_loop
+    jmp @fib_loop
 fib_loop:
     pop %r0             ; pop the jump address and save it
     mov %r5, #0         ; final value of fibonacci
@@ -21,6 +20,6 @@ fib_loop:
     push %r7
     jo @finish
     int #5              ; print the value in register 5
-    jz @fib_loop        ; continue loop
+    jmp @fib_loop        ; continue loop
 finish:
     hlt
