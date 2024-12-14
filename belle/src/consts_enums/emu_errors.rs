@@ -2,6 +2,7 @@ use crate::CONFIG;
 use colored::Colorize;
 pub enum EmuError {
     FileNotFound(),
+    IsDirectory(),
     MemoryOverflow(),
     Duplicate(String),
     ReadFail(String),
@@ -29,6 +30,9 @@ impl EmuError {
             }
             EmuError::Impossible(s) => {
                 eprintln!("{}: {}", "Configuration combination not possible".red(), s);
+            }
+            EmuError::IsDirectory() => {
+                eprintln!("{} is a directory", CONFIG.file.to_string().green());
             }
         }
         if let EmuError::ReadFail(_) = self {

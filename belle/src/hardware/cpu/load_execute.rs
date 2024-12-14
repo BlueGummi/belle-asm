@@ -58,6 +58,23 @@ impl CPU {
                 5 => self.uint_reg[1].into(),
                 6 => self.float_reg[0],
                 7 => self.float_reg[1],
+                n if *n > 3 => {
+                    UnrecoverableError::IllegalInstruction(
+                        self.pc,
+                        Some("Illegal register".to_string()),
+                    )
+                    .err();
+                    0.0
+                }
+                n if *n < 0 => {
+                    UnrecoverableError::IllegalInstruction(
+                        self.pc,
+                        Some("Illegal register".to_string()),
+                    )
+                    .err();
+                    0.0
+                }
+
                 _ => self.int_reg[*n as usize].into(),
             },
             Literal(n) => (*n).into(),
@@ -81,6 +98,22 @@ impl CPU {
                     5 => self.uint_reg[1].into(),
                     6 => self.float_reg[0],
                     7 => self.float_reg[1],
+                    n if *n > 3 => {
+                        UnrecoverableError::IllegalInstruction(
+                            self.pc,
+                            Some("Illegal register pointer".to_string()),
+                        )
+                        .err();
+                        0.0
+                    }
+                    n if *n < 0 => {
+                        UnrecoverableError::IllegalInstruction(
+                            self.pc,
+                            Some("Illegal register pointer".to_string()),
+                        )
+                        .err();
+                        0.0
+                    }
                     _ => self.int_reg[*n as usize].into(),
                 };
                 let memloc: usize = tmp as usize;

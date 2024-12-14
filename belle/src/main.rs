@@ -5,7 +5,7 @@
  * This code is licensed under the BSD 3-Clause License.
  */
 use belle::{bin_to_vec, run_bdb, EmuError, CONFIG, CPU};
-use std::fs::File;
+use std::fs::{self, File};
 use std::io;
 use std::path::Path;
 use std::process;
@@ -18,6 +18,13 @@ fn main() -> io::Result<()> {
         EmuError::Impossible("Cannot have both debug and quiet flags".to_string()).err();
     }
     let executable_path = &CONFIG.file;
+
+    if let Ok(metadata) = fs::metadata(executable_path) {
+        if metadata.is_dir() {
+            EmuError::IsDirectory().err();
+            process::exit(1);
+        }
+    }
     if File::open(Path::new(executable_path)).is_err() {
         EmuError::FileNotFound().err();
         process::exit(1);
