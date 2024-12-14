@@ -56,8 +56,6 @@ Please refer to the [encoding](../encoding) document for more information about 
 
     `ADD` can only perform floating-point-to-floating-point addition if the two floating-point registers are passed as arguments. Literal values **cannot be floating point**.
 
-
-
     Compatible **LHS** argument types: Register
 
     Compatible **RHS** argument types: Register, literal, register pointer, memory address pointer, can be signed and unsigned
@@ -134,7 +132,7 @@ Please refer to the [encoding](../encoding) document for more information about 
     #### Pseudocode representation
         ```go
         if zero_flag
-            if sp > bp
+            if sp > bp // adjust stack pointer
                 sp := sp + 1
             else
                 sp := sp - 1
@@ -184,10 +182,10 @@ Please refer to the [encoding](../encoding) document for more information about 
         if memory[sp] = NULL
             throw underflow_err
 
-        register(dest) := memory[sp]
+        dest := memory[sp]
         memory[sp] := NULL
 
-        if sp > bp
+        if sp > bp // adjust stack pointer
             sp := sp - 1
         else
             sp := sp + 1
@@ -197,7 +195,7 @@ Please refer to the [encoding](../encoding) document for more information about 
 
     ### DIV - Divide LHS by RHS, storing the result in LHS
 
-    `DIV` will perform **arithmetic division** between the two arguments passed to it, and the result will be **cast to an integer** if the destination is not a register capable of storing floating point values (any register that is not register 6 or 7). 
+    `DIV` will perform **arithmetic division** between the two arguments passed to it, and the result will be **cast to an integer** if the destination is not a register **capable of storing floating point values** (any register that is not register 6 or 7). 
 
     Compatible LHS argument types: Register
 
@@ -220,16 +218,16 @@ Please refer to the [encoding](../encoding) document for more information about 
 
     #### Pseudocode representation
         ```
-        if rhs == register
+        if rhs = register
             lhs := lhs / reg_val(rhs)
 
-        else if rhs == literal
+        else if rhs = literal
             lhs := lhs / rhs
 
-        else if rhs == reg_ptr
+        else if rhs = reg_ptr
             lhs := lhs / memory[reg_val(rhs)]
 
-        else if rhs == mem_ptr
+        else if rhs = mem_ptr
             lhs := lhs / memory[memory[lhs]]
         ```
 
@@ -237,11 +235,11 @@ Please refer to the [encoding](../encoding) document for more information about 
 
     ### RET - Return
 
-    `RET` will read the value that the memory address that the stack pointer points to holds. The program counter will then be set to this address, and the memory address will be cleared. This instruction is similar to the `POP` instruction, however, it doesn't load the value into a register.
+    `RET` will read the value that the memory address that the stack pointer points to holds. The program counter will then be set to this address, and the memory address will be **cleared**. This instruction is similar to the `POP` instruction, however, it doesn't load the value **into a register**.
 
     `RET` takes no arguments.
 
-    `RET` can be used after a jump instruction is called to return to where the jump instruction was called from if the return address is still on the top of the call stack. If not, it is possible to artificially create a return address on the call stack by saving the return address after a jump, then pushing it back on before `RET` is called.
+    `RET` can be used after a **jump instruction** is called to return to where the jump instruction was called from if the return address is still on the **top of the call stack**. If not, it is possible to **create a return address** on the call stack by saving the return address after a jump, then **pushing it back** on before `RET` is called.
 
     #### Example:
         ```asm
@@ -253,7 +251,6 @@ Please refer to the [encoding](../encoding) document for more information about 
             push %r4 ; push the return address back on
             ret ; the first line should be returned to
         ```
-
 
     Compatible argument types: None
 
@@ -270,7 +267,7 @@ Please refer to the [encoding](../encoding) document for more information about 
 
         | Opcode   | Rest of instruction | 
         | :-----   | :------ |
-        | `0101` | `000000000000` |
+        | `[0101]` | `[000000000000]` |
 
     #### Pseudocode representation
         ```go
@@ -280,13 +277,111 @@ Please refer to the [encoding](../encoding) document for more information about 
         pc := memory[sp]
         memory[sp] := NULL
 
-        if sp > bp
+        if sp > bp // adjust stack pointer
             sp := sp - 1
         else
             sp := sp + 1
 
         ```
 
+## 7. LD
+
+    ### LD - Directly load from a memory address into a register
+
+    `LD` will read the **memory address** provided by the **RHS**, and retrieve the value at the memory address specified. Then, the value will be loaded into the register provided by the **LHS** of the instruction. If no value is found, a **segmentation fault** will occur, and the emulator will halt.
+
+    Compatible LHS argument types: Register
+
+    Compatible RHS argument types: Memory address 
+
+    Flags affected: None
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    | LD  | 2 | Load from address to register  | Loading to registers | `ld %r0, $40 ; load value at address 40 into r0`  |
+
+    
+    #### Binary encoding
+
+        Instruction: `ld %r5, $42`
+
+        | Opcode   | LHS     | RHS       | 
+        | :-----   | :------ | :-------- |
+        | `[0110]` | `[101]` | `[000101010]` |
+
+    #### Pseudocode representation
+    ```go
+    if memory[rhs] = NULL
+        throw segfault_err
+
+    lhs := memory[rhs]
+    ```
+
+## 7. ST
+
+    ### ST - Directly store into a memory address from a register
+
+    `ST` takes two arguments, and retrieves the value in the RHS register and stores it into the LHS. LHS can be either a register pointer, or a direct memory address. This allows the `ST` instruction to addresses all addresses if used indirectly via a register pointer. `ST` will overwrite any data at the destination address, and it can also overwrite program memory if the destination address is also part of program memory. Using `ST` in conjunction with `LD` or with the call stack can allow for full usage of the memory of the BELLE-ISA.
+
+    If a given register pointer is *negative*, the value will simply be stored at address 0.
+
+    Compatible LHS argument types: Register pointer, memory address
+
+    Compatible RHS argument types: Register
+
+    Flags affected: None
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    | ST | 2 | Store into an address | <-- | `st $4, %r1 ; store r1 into addr 4` |
+
+    
+    #### Binary encoding
+
+        Instruction: `st &r3, %r4`
+
+        | Opcode   | DTB     | LHS     | RHS       | 
+        | :-----   | :------ | :------- | :-------- |
+        | `[0111]` | `[1]` | `[011]` | `[00000100]` |
+
+    #### Pseudocode representation
+    ```go
+    if lhs = reg_ptr
+        memory[reg_val(lhs)] := reg_val(rhs)
+
+    else
+        memory[lhs] := reg_val(rhs)
+    ```
+
+## 7. LD
+
+    ### Placeholder - placeholder
+
+    description
+
+    Compatible LHS argument types: Register
+
+    Compatible RHS argument types: Register, literal, register pointer, memory address pointer, can be signed and unsigned
+
+    Flags affected: None
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    |   |          |  |  |  |
+
+    
+    #### Binary encoding
+
+        Instruction: ``
+
+        | Opcode   | LHS     | DTBs     | RHS       | 
+        | :-----   | :------ | :------- | :-------- |
+        | `` | `` | `` | `` |
+
+    #### Pseudocode representation
+    ```go
+    var x := 42
+    ```
 ## 7. LD
 
     ### Placeholder - placeholder
