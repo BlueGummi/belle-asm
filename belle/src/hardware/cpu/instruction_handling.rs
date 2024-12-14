@@ -334,13 +334,17 @@ impl CPU {
                 let memory = &self.memory;
 
                 for index in starting_point..=end_point {
-                    if let Some(value) = memory[index as usize] {
-                        print!("{}", char::from_u32(value.try_into().unwrap()).unwrap());
-                    } else {
+                    if let None = memory[index as usize] {
                         self.handle_segmentation_fault(
                             "Segmentation fault. Memory index out of bounds on interrupt call 8.",
                         );
                         return;
+                    }
+                }
+
+                for index in starting_point..=end_point {
+                    if let Some(value) = memory[index as usize] {
+                        print!("{}", char::from_u32(value.try_into().unwrap()).unwrap());
                     }
                 }
             }
