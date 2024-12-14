@@ -4,7 +4,7 @@ pub static CONFIG: Lazy<Cli> = Lazy::new(declare_config);
 /// Command line arguments
 #[derive(Parser)]
 #[command(name = "belle")]
-#[command(version = "0.1.0")]
+#[command(version = "0.2.0")]
 #[command(author = "gummi")]
 #[command(about = "BELLE - The Big Endian, Low Level Emulator", long_about = None)]
 pub struct Cli {
