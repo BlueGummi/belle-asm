@@ -189,12 +189,20 @@ impl CPU {
             }
         };
         let destination = (self.ir & 0b111000000000) >> 9;
-        let part = match ins_type {
+        let mut part = match ins_type {
             0 => Register(source),
             1 => Literal(source),
             2 => MemPtr(source),
             _ => RegPtr(source),
         };
+
+        if let RegPtr(value) = part {
+            part = RegPtr(value & 0b111);
+        }
+
+        if let MemPtr(value) = part {
+            part = MemPtr(value & 0b1111111);
+        }
 
         // println!("{:04b}", opcode);
         match opcode {

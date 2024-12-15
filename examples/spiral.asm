@@ -24,4 +24,3 @@ sub_loop:
     cmp %r0, %r1
     jz @loop
     jmp @sub_loop
-
