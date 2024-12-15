@@ -269,6 +269,14 @@ impl CPU {
             {
                 self.sp += 1;
             }
+            if self.sp as usize >= MEMORY_SIZE {
+                UnrecoverableError::StackOverflow(
+                    self.pc,
+                    Some("Overflowed while pushing onto stack".to_string()),
+                )
+                .err();
+            }
+
             self.memory[self.sp as usize] = Some(val as i16);
             //break;
             //}
