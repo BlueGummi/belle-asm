@@ -1,8 +1,9 @@
 use crate::CONFIG;
 use colored::Colorize;
 use std::fmt;
-#[derive(Debug)]
+
 // self explanatory, you got this
+#[derive(Debug)]
 pub enum Token {
     Ident(String),
     Register(i16),

@@ -1,11 +1,6 @@
-use crate::consts_enums::Error::{InvalidSyntax, NonexistentData};
-use crate::{
-    Tip, Token, ADD_OP, CMP_OP, DIV_OP, HLT_OP, INT_OP, JMP_OP, JO_OP, JZ_OP, LD_OP, MOV_OP,
-    MUL_OP, NOP_OP, POP_OP, PUSH_OP, RET_OP, ST_OP,
-};
+use crate::*;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
-use std::process;
 use std::sync::Mutex;
 
 pub static SUBROUTINE_MAP: Lazy<Mutex<HashMap<String, u32>>> =
@@ -13,51 +8,48 @@ pub static SUBROUTINE_MAP: Lazy<Mutex<HashMap<String, u32>>> =
 
 pub static MEMORY_COUNTER: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(0));
 static START_LOCATION: Lazy<Mutex<i32>> = Lazy::new(|| Mutex::new(0));
-pub fn argument_to_binary(arg: Option<&Token>, line_num: u32) -> i16 {
+
+pub fn argument_to_binary(arg: Option<&Token>, line_num: u32) -> Result<i16, String> {
     match arg {
-        // register
         Some(Token::Register(num)) => {
-            if *num > 8 {
-                InvalidSyntax("register number cannot be greater than 7", line_num, None).perror();
-                Tip::Try("change the number to a value below 7").display_tip();
-                process::exit(1);
+            if *num > 7 {
+                return Err(format!(
+                    "Register number cannot be greater than 7 at line {}",
+                    line_num
+                ));
             }
-            *num
+            Ok(*num)
         }
-        // all looks good
-        Some(Token::Literal(literal)) => (1 << 8) | *literal,
+        Some(Token::Literal(literal)) => Ok((1 << 8) | *literal),
         Some(Token::SR(sr) | Token::SRCall(sr)) => {
             let map = SUBROUTINE_MAP.lock().unwrap();
             if let Some(&address) = map.get(sr) {
-                address as i16
+                Ok(address as i16)
             } else {
-                NonexistentData(
-                    format!("subroutine \"{sr}\" does not exist").as_str(),
-                    line_num,
-                    None,
-                )
-                .perror();
-                Tip::Maybe("misspelled it?").display_tip();
-                process::exit(1);
+                Err(format!(
+                    "Subroutine \"{}\" does not exist at line {}",
+                    sr, line_num
+                ))
             }
         }
-        Some(Token::MemAddr(n)) => *n,
+        Some(Token::MemAddr(n)) => Ok(*n),
         Some(Token::Label(keyword)) => {
             let label_val: i16 = match keyword.as_str() {
                 "start" => 1,
                 "ssp" => 2,
                 "sbp" => 3,
                 _ => {
-                    InvalidSyntax("label not recognized after '.'", line_num, Some(1)).perror();
-                    Tip::Try("change the label name to a valid one\nsuch as .start").display_tip();
-                    std::process::exit(1);
+                    return Err(format!(
+                        "Label not recognized after '.' at line {}",
+                        line_num
+                    ))
                 }
             };
-            label_val
+            Ok(label_val)
         }
-        Some(Token::MemPointer(mem)) => (1 << 7) | mem,
-        Some(Token::RegPointer(reg)) => (1 << 6) | reg,
-        _ => 0,
+        Some(Token::MemPointer(mem)) => Ok((1 << 7) | mem),
+        Some(Token::RegPointer(reg)) => Ok((1 << 6) | reg),
+        _ => Ok(0),
     }
 }
 
@@ -67,143 +59,141 @@ pub fn encode_instruction(
     arg1: Option<&Token>,
     arg2: Option<&Token>,
     line_num: u32,
-) -> Option<i16> {
+) -> Result<Option<i16>, String> {
     let mut ins_type = "default";
     let instruction_bin = match ins {
         Token::Ident(ref instruction) => match instruction.to_uppercase().as_str() {
-            "HLT" => HLT_OP, // 0
-            "ADD" => ADD_OP, // 1
+            "HLT" => Ok(HLT_OP), // 0
+            "ADD" => Ok(ADD_OP), // 1
             "JO" => {
                 ins_type = "one_arg";
                 if let Some(&Token::SRCall(_)) = arg1.or(arg2) {
-                    // handle subroutine call
                     ins_type = "call";
                 } else if let Some(&Token::RegPointer(_)) = arg1.or(arg2) {
                     ins_type = "jwr";
                 }
-
-                JO_OP // 2
+                Ok(JO_OP) // 2
             }
             "POP" => {
                 ins_type = "one_arg";
-                POP_OP // 3
+                Ok(POP_OP) // 3
             }
-            "DIV" => DIV_OP, // 4
-            "RET" => RET_OP, // 5
-            "LD" => LD_OP,   // 6
+            "DIV" => Ok(DIV_OP), // 4
+            "RET" => Ok(RET_OP), // 5
+            "LD" => Ok(LD_OP),   // 6
             "ST" => {
                 if let Some(&Token::RegPointer(_)) = arg1.or(arg2) {
                     ins_type = "sti";
                 } else {
                     ins_type = "st";
                 }
-                ST_OP // 7
+                Ok(ST_OP) // 7
             }
             "JMP" => {
                 ins_type = "one_arg";
                 if let Some(&Token::SRCall(_)) = arg1.or(arg2) {
-                    // handle subroutine call
                     ins_type = "call";
                 } else if let Some(&Token::RegPointer(_)) = arg1.or(arg2) {
                     ins_type = "jwr";
                 }
-                JMP_OP
+                Ok(JMP_OP)
             }
-
             "JZ" => {
                 ins_type = "one_arg";
                 if let Some(&Token::SRCall(_)) = arg1.or(arg2) {
-                    // handle subroutine call
                     ins_type = "call";
                 } else if let Some(&Token::RegPointer(_)) = arg1.or(arg2) {
                     ins_type = "jwr";
                 }
-                JZ_OP // 9
+                Ok(JZ_OP) // 9
             }
-            "CMP" => CMP_OP, // 10
-            "MUL" => MUL_OP, // 11
+            "CMP" => Ok(CMP_OP), // 10
+            "MUL" => Ok(MUL_OP), // 11
             "PUSH" => {
                 ins_type = "one_arg";
-                PUSH_OP // 12
+                Ok(PUSH_OP) // 12
             }
             "INT" => {
                 ins_type = "one_arg";
-                INT_OP // 13
+                Ok(INT_OP) // 13
             }
-            "NOP" => NOP_OP,
-            "MOV" => MOV_OP, // 14
-            _ => {
-                InvalidSyntax("instruction not recognized", line_num, None).perror();
-                Tip::Try("look at the instructions.rs file in\nsrc/consts_enums/instructions.rs")
-                    .display_tip();
-                process::exit(1);
-            }
+            "NOP" => Ok(NOP_OP),
+            "MOV" => Ok(MOV_OP), // 14
+            _ => Err(format!("Instruction not recognized at line {}", line_num)),
         },
         Token::SR(_) => {
             ins_type = "subr";
-            0
+            Ok(0)
         }
         Token::Label(_) => {
             ins_type = "label";
-            HLT_OP
+            Ok(HLT_OP)
         }
-        _ => {
-            InvalidSyntax("invalid instruction type", line_num, None).perror();
-            Tip::NoIdea("yeah I have no idea how you got here").display_tip();
-            process::exit(1);
-        }
-    };
+        _ => Err(format!("Invalid instruction type at line {}", line_num)),
+    }?;
 
     match ins_type.trim().to_lowercase().as_str() {
-        "one_arg" => Some((instruction_bin << 12) | argument_to_binary(arg1, line_num)),
-        "st" => Some(
-            (instruction_bin << 12)
-                | (argument_to_binary(arg1, line_num) << 3)
-                | argument_to_binary(arg2, line_num),
-        ),
+        "one_arg" => {
+            let arg_bin = argument_to_binary(arg1, line_num)?;
+            Ok(Some((instruction_bin << 12) | arg_bin))
+        }
+        "st" => {
+            let arg1_bin = argument_to_binary(arg1, line_num)?;
+            let arg2_bin = argument_to_binary(arg2, line_num)?;
+            Ok(Some((instruction_bin << 12) | (arg1_bin << 3) | arg2_bin))
+        }
         "sti" => {
-            let raw = arg1?.get_raw();
-            let parsed_int = raw.trim().parse::<i16>().unwrap();
-            Some(
+            let raw = arg1
+                .ok_or_else(|| format!("Missing argument for STI at line {}", line_num))?
+                .get_raw();
+            let parsed_int = raw
+                .trim()
+                .parse::<i16>()
+                .map_err(|_| format!("Failed to parse integer at line {}", line_num))?;
+            Ok(Some(
                 (instruction_bin << 12)
                     | (1 << 11)
-                    | (argument_to_binary(Some(&Token::Register(parsed_int)), line_num) << 7)
-                    | argument_to_binary(arg2, line_num),
-            )
+                    | (argument_to_binary(Some(&Token::Register(parsed_int)), line_num)? << 7)
+                    | argument_to_binary(arg2, line_num)?,
+            ))
         }
-        "label" => Some(
-            (instruction_bin << 12)
-                | (argument_to_binary(Some(ins), line_num) << 9)
-                | argument_to_binary(arg1, line_num),
-        ),
+        "label" => {
+            let arg_bin = argument_to_binary(Some(ins), line_num)?;
+            Ok(Some(
+                (instruction_bin << 12) | (arg_bin << 9) | argument_to_binary(arg1, line_num)?,
+            ))
+        }
         "default" => {
-            let arg1_bin = argument_to_binary(arg1, line_num);
-            let arg2_bin = argument_to_binary(arg2, line_num);
-            Some((instruction_bin << 12) | (arg1_bin << 9) | arg2_bin)
+            let arg1_bin = argument_to_binary(arg1, line_num)?;
+            let arg2_bin = argument_to_binary(arg2, line_num)?;
+            Ok(Some((instruction_bin << 12) | (arg1_bin << 9) | arg2_bin))
         }
         "call" => {
-            let address = argument_to_binary(arg1, line_num);
-            Some((instruction_bin << 12) | address)
+            let address = argument_to_binary(arg1, line_num)?;
+            Ok(Some((instruction_bin << 12) | address))
         }
         "jwr" => {
-            let raw_str = arg1?.get_raw();
-            let parsed_int = raw_str.trim().parse::<i16>().unwrap(); // this cannot and will not
-                                                                     // fail
-            Some(
+            let raw_str = arg1
+                .ok_or_else(|| format!("Missing argument for JWR at line {}", line_num))?
+                .get_raw();
+            let parsed_int = raw_str
+                .trim()
+                .parse::<i16>()
+                .map_err(|_| format!("Failed to parse integer for JWR at line {}", line_num))?;
+            Ok(Some(
                 (instruction_bin << 12)
                     | 1 << 11
-                    | argument_to_binary(Some(&Token::Register(parsed_int)), line_num),
-            )
+                    | argument_to_binary(Some(&Token::Register(parsed_int)), line_num)?,
+            ))
         }
-        _ => {
-            InvalidSyntax("Instruction type not recognized", line_num, None).perror();
-            Tip::NoIdea("this should be unreachable").display_tip();
-            process::exit(1);
-        }
+        _ => Err(format!(
+            "Instruction type not recognized at line {}",
+            line_num
+        )),
     }
 }
 
-pub fn process_start(lines: &Vec<String>) {
+pub fn process_start(lines: &[String]) -> Result<(), String> {
     let mut start_number: Option<i32> = None;
 
     for line in lines {
@@ -217,14 +207,22 @@ pub fn process_start(lines: &Vec<String>) {
     }
 
     if let Some(num) = start_number {
-        let mut start_location = START_LOCATION.lock().unwrap();
+        let mut start_location = START_LOCATION
+            .lock()
+            .map_err(|_| "Failed to lock START_LOCATION")?;
         *start_location = num;
     }
+
+    Ok(())
 }
 
-pub fn load_subroutines(lines: &Vec<String>) {
-    let mut subroutine_counter = 1 + *START_LOCATION.lock().unwrap() as u32;
-    let mut subroutine_map = SUBROUTINE_MAP.lock().unwrap();
+pub fn load_subroutines(lines: &[String]) -> Result<(), String> {
+    let mut subroutine_counter = 1 + *START_LOCATION
+        .lock()
+        .map_err(|_| "Failed to lock START_LOCATION")? as u32;
+    let mut subroutine_map = SUBROUTINE_MAP
+        .lock()
+        .map_err(|_| "Failed to lock SUBROUTINE_MAP")?;
 
     for line in lines {
         if line.trim().is_empty()
@@ -242,8 +240,14 @@ pub fn load_subroutines(lines: &Vec<String>) {
 
         subroutine_counter += 1;
     }
+
+    Ok(())
 }
-pub fn update_memory_counter() {
-    let mut counter = MEMORY_COUNTER.lock().unwrap();
+
+pub fn update_memory_counter() -> Result<(), String> {
+    let mut counter = MEMORY_COUNTER
+        .lock()
+        .map_err(|_| "Failed to lock MEMORY_COUNTER")?;
     *counter += 1;
+    Ok(())
 }

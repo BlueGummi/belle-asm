@@ -1,6 +1,5 @@
-use crate::Error::{ExpectedArgument, InvalidSyntax, UnknownCharacter};
-use crate::{Tip, Token, CONFIG, SUBROUTINE_MAP};
-use std::process;
+use crate::Error::*;
+use crate::*;
 
 pub struct Lexer<'a> {
     location: u32,
@@ -20,13 +19,11 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn lex(&mut self) -> &Vec<Token> {
+    pub fn lex(&mut self) -> Result<&Vec<Token>, Error<'a>> {
         while let Some(c) = self.chars.next() {
             self.location += 1;
             match c {
-                ' ' => {
-                    continue;
-                }
+                ' ' => continue,
                 '\t' => {
                     self.location += 3;
                     continue;
@@ -39,40 +36,39 @@ impl<'a> Lexer<'a> {
                 ';' => break,
                 '&' => {
                     self.location += 1;
-                    self.lex_pointer(c);
+                    self.lex_pointer(c)?;
                 }
                 '%' => {
                     self.location += 1;
-                    self.lex_register(c);
+                    self.lex_register(c)?;
                 }
                 '@' => self.lex_subroutine_call(),
-                'a'..='z' | 'A'..='Z' => self.lex_identifier(c),
+                'a'..='z' | 'A'..='Z' => {
+                    self.lex_identifier(c)?;
+                }
                 '#' => {
                     self.location += 1;
-                    self.lex_literal(c);
+                    self.lex_literal(c)?;
                 }
                 '$' => {
                     self.location += 1;
-                    self.lex_memory_address(c);
+                    self.lex_memory_address(c)?;
                 }
-                '.' => self.lex_label(),
+                '.' => self.lex_label()?,
                 _ => {
-                    UnknownCharacter(
-                        c.to_string().as_str(),
+                    return Err(UnknownCharacter(
+                        c.to_string(),
                         self.line_number,
                         Some(self.location),
-                    )
-                    .perror();
-                    Tip::Maybe("meant a numeric literal, such as #42").display_tip();
-                    process::exit(1);
+                    ));
                 }
             }
-            //
         }
-        &self.tokens
+
+        Ok(&self.tokens)
     }
 
-    fn lex_pointer(&mut self, c: char) {
+    fn lex_pointer(&mut self, c: char) -> Result<(), Error<'a>> {
         let mut pointer = String::new();
         pointer.push(c);
 
@@ -80,24 +76,19 @@ impl<'a> Lexer<'a> {
             Some(&'r' | &'R') => {
                 self.location += 1;
                 pointer.push(self.chars.next().unwrap());
-
                 true
             }
             Some(&'$') => {
                 self.location += 1;
                 pointer.push(self.chars.next().unwrap());
-
                 false
             }
             _ => {
-                ExpectedArgument(
+                return Err(ExpectedArgument(
                     "expected 'r' or '$' after '&'",
                     self.line_number,
                     Some(self.location),
-                )
-                .perror();
-                Tip::Try("change it to something like &r0 or &$50").display_tip();
-                process::exit(1);
+                ));
             }
         };
 
@@ -110,76 +101,65 @@ impl<'a> Lexer<'a> {
         }
 
         if is_reg {
-            self.handle_register(pointer);
+            self.handle_register(pointer)?;
         } else {
-            self.handle_memory(pointer);
+            self.handle_memory(pointer)?;
         }
+        Ok(())
     }
 
-    fn handle_register(&mut self, pointer: String) {
+    fn handle_register(&mut self, pointer: String) -> Result<(), Error<'a>> {
         if pointer.len() > 2 {
+            self.location += 1;
             if let Ok(reg) = pointer.trim()[2..].parse::<i16>() {
                 self.tokens.push(Token::RegPointer(reg));
             } else {
-                InvalidSyntax(
+                return Err(InvalidSyntax(
                     "invalid register number",
                     self.line_number,
                     Some(self.location),
-                )
-                .perror();
-                Tip::Try("reduce the register number").display_tip();
-                process::exit(1);
+                ));
             }
         } else {
-            InvalidSyntax(
+            return Err(InvalidSyntax(
                 "register must have a number",
                 self.line_number,
                 Some(self.location),
-            )
-            .perror();
-            Tip::Try("change the value after 'r' to a numeric value under 8").display_tip();
-            process::exit(1);
+            ));
         }
+        Ok(())
     }
 
-    fn handle_memory(&mut self, pointer: String) {
+    fn handle_memory(&mut self, pointer: String) -> Result<(), Error<'a>> {
         if pointer.len() > 2 {
             if let Ok(mem) = pointer.trim()[2..].parse::<i16>() {
-                if pointer.trim()[2..].parse::<i16>().unwrap() < 512 {
+                if mem < 512 {
                     self.tokens.push(Token::MemPointer(mem));
                 } else {
-                    InvalidSyntax(
+                    return Err(InvalidSyntax(
                         "address must be between 0-512",
                         self.line_number,
                         Some(self.location),
-                    )
-                    .perror();
-                    Tip::Try("reduce the address").display_tip();
-                    process::exit(1);
+                    ));
                 }
             } else {
-                InvalidSyntax(
+                return Err(InvalidSyntax(
                     "invalid memory number",
                     self.line_number,
                     Some(self.location),
-                )
-                .perror();
-                Tip::NoIdea("this statement should be unreachable").display_tip();
-                process::exit(1);
+                ));
             }
         } else {
-            InvalidSyntax(
+            return Err(InvalidSyntax(
                 "memory must have a number",
                 self.line_number,
                 Some(self.location),
-            )
-            .perror();
-            Tip::Maybe("meant to write a register or pointer").display_tip();
-            process::exit(1);
+            ));
         }
+        Ok(())
     }
 
-    fn lex_register(&mut self, c: char) {
+    fn lex_register(&mut self, c: char) -> Result<(), Error<'a>> {
         let mut reg = String::new();
         reg.push(c);
 
@@ -187,25 +167,18 @@ impl<'a> Lexer<'a> {
             if next == 'r' || next == 'R' {
                 reg.push(self.chars.next().unwrap());
             } else {
-                ExpectedArgument(
+                return Err(ExpectedArgument(
                     "expected 'r' or 'R' after '%'",
                     self.line_number,
                     Some(self.location),
-                )
-                .perror();
-                Tip::Try("change the character after % to r").display_tip();
-                process::exit(1);
+                ));
             }
         } else {
-            ExpectedArgument(
+            return Err(ExpectedArgument(
                 "expected register identifier after '%'",
                 self.line_number,
                 Some(self.location),
-            )
-            .perror();
-            Tip::Maybe("meant something else? there doesn't appear to be anything after the '%'")
-                .display_tip();
-            process::exit(1);
+            ));
         }
 
         while let Some(&next) = self.chars.peek() {
@@ -220,25 +193,20 @@ impl<'a> Lexer<'a> {
             if let Ok(reg_num) = reg.trim()[2..].parse::<i16>() {
                 self.tokens.push(Token::Register(reg_num));
             } else {
-                InvalidSyntax(
+                return Err(InvalidSyntax(
                     "invalid register number",
                     self.line_number,
                     Some(self.location),
-                )
-                .perror();
-                Tip::Maybe("didn't mean to write a register?").display_tip();
-                process::exit(1);
+                ));
             }
         } else {
-            InvalidSyntax(
+            return Err(InvalidSyntax(
                 "register must have a number",
                 self.line_number,
                 Some(self.location),
-            )
-            .perror();
-            Tip::Try("put a number after the 'r'").display_tip();
-            process::exit(1);
+            ));
         }
+        Ok(())
     }
 
     fn lex_subroutine_call(&mut self) {
@@ -253,7 +221,7 @@ impl<'a> Lexer<'a> {
         self.tokens.push(Token::SRCall(subroutine_call));
     }
 
-    fn lex_identifier(&mut self, c: char) {
+    fn lex_identifier(&mut self, c: char) -> Result<(), Error<'a>> {
         let mut ident = String::new();
         ident.push(c);
         while let Some(&next) = self.chars.peek() {
@@ -266,13 +234,14 @@ impl<'a> Lexer<'a> {
         if let Some(&next) = self.chars.peek() {
             if next == ':' {
                 self.chars.next();
-                return;
+                return Ok(());
             }
         }
         self.tokens.push(Token::Ident(ident));
+        Ok(())
     }
 
-    fn lex_literal(&mut self, c: char) {
+    fn lex_literal(&mut self, c: char) -> Result<(), Error<'a>> {
         let mut number = c.to_string();
         if let Some(&next) = self.chars.peek() {
             if next == '-' {
@@ -291,23 +260,19 @@ impl<'a> Lexer<'a> {
         let num_value = if let Ok(value) = number[1..].parse::<i16>() {
             value
         } else {
-            InvalidSyntax(
+            return Err(InvalidSyntax(
                 "value after # must be a numeric literal",
                 self.line_number,
                 Some(self.location),
-            )
-            .perror();
-            process::exit(1);
+            ));
         };
 
         if !(-128..=127).contains(&num_value) {
-            InvalidSyntax(
+            return Err(InvalidSyntax(
                 "numeric literal cannot be over +/- 128",
                 self.line_number,
                 Some(self.location),
-            )
-            .perror();
-            process::exit(1);
+            ));
         }
 
         let stored_value = if num_value < 0 {
@@ -317,9 +282,10 @@ impl<'a> Lexer<'a> {
             num_value as u8
         };
         self.tokens.push(Token::Literal(i16::from(stored_value)));
+        Ok(())
     }
 
-    fn lex_memory_address(&mut self, c: char) {
+    fn lex_memory_address(&mut self, c: char) -> Result<(), Error<'a>> {
         let mut addr = c.to_string();
         while let Some(&next) = self.chars.peek() {
             if next.is_ascii_digit() {
@@ -330,29 +296,26 @@ impl<'a> Lexer<'a> {
         }
 
         if addr[1..].parse::<i16>().is_err() {
-            InvalidSyntax(
+            return Err(InvalidSyntax(
                 "value after $ must be numeric, 0-511",
                 self.line_number,
                 Some(self.location),
-            )
-            .perror();
-            process::exit(1);
+            ));
         }
 
         let addr_val = addr[1..].parse::<i16>().unwrap();
         if addr_val > 512 || addr_val < 0 {
-            InvalidSyntax(
+            return Err(InvalidSyntax(
                 "address must be between 0-512",
                 self.line_number,
                 Some(self.location),
-            )
-            .perror();
-            process::exit(1);
+            ));
         }
         self.tokens.push(Token::MemAddr(addr_val));
+        Ok(())
     }
 
-    fn lex_label(&mut self) {
+    fn lex_label(&mut self) -> Result<(), Error<'a>> {
         let mut label = String::new();
         while let Some(&next) = self.chars.peek() {
             if next.is_alphanumeric() || next == '_' {
@@ -362,6 +325,7 @@ impl<'a> Lexer<'a> {
             }
         }
         self.tokens.push(Token::Label(label));
+        Ok(())
     }
 }
 

@@ -1,12 +1,12 @@
     ; This program prints "Hello, world!" to stdout
 .start $50
     mov %r2, #72
-    st $1, %r2
-    mov %r2, #101
-    st $2, %r2
+    st $a, %rb
+    mov %r2, 101
+    st $2, %2
     mov %r2, #108
     st $3, %r2
-    mov %r2, #108
+    mov %r, #108
     st $4, %r2
     mov %r2, #111
     st $5, %r2
@@ -26,8 +26,8 @@
     st $12, %r2
     mov %r2, #33
     st $13, %r2
-    ;mov %r2, #10
-    ;st $14, %r2
+    mov %r2, #10
+    st $14, %r2
     mov %r0, #1
     mov %r1, #14
     int #8

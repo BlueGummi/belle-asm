@@ -4,11 +4,8 @@
  *
  * This code is licensed under the BSD 3-Clause License.
  */
-use basm::Error::{LineLessError, OtherError};
-use basm::{
-    encode_instruction, load_subroutines, print_subroutine_map, process_start, verify, Lexer,
-    Token, CONFIG,
-};
+use basm::Error::*;
+use basm::*;
 use colored::Colorize;
 use regex::Regex;
 use std::fs;
@@ -59,71 +56,85 @@ fn main() -> io::Result<()> {
     let mut line_count: u32 = 1;
     let mut write_to_file: bool = true;
     let mut has_err: bool = false;
-    process_start(&lines);
-    load_subroutines(&lines);
+    let _ = process_start(&lines);
+    let _ = load_subroutines(&lines);
 
     let mut hlt_seen = false;
     for line in lines {
         let mut lexer = Lexer::new(&line, line_count);
-        let tokens = lexer.lex();
-        if tokens.is_empty() {
-            line_count += 1;
-            continue;
-        }
+        match lexer.lex() {
+            Ok(tokens) => {
+                if tokens.is_empty() {
+                    line_count += 1;
+                    continue;
+                }
 
-        let instruction = tokens.first();
-        let operand1 = tokens.get(1);
-        let operand2 = {
-            if let Some(Token::Comma) = tokens.get(2) {
-                tokens.get(3)
-            } else {
-                tokens.get(2)
-            }
-        };
+                let instruction = tokens.first();
+                let operand1 = tokens.get(1);
+                let operand2 = {
+                    if let Some(Token::Comma) = tokens.get(2) {
+                        tokens.get(3)
+                    } else {
+                        tokens.get(2)
+                    }
+                };
 
-        if CONFIG.debug {
-            println!("Raw line: {}", line.green());
-        }
-        for token in tokens {
-            if token.get_raw().to_lowercase() == String::from("hlt") {
-                hlt_seen = true;
+                if CONFIG.debug {
+                    println!("Raw line: {}", line.green());
+                }
+                for token in tokens {
+                    if token.get_raw().to_lowercase() == "hlt" {
+                        hlt_seen = true;
+                    }
+                    if CONFIG.debug {
+                        println!(
+                            "{} {}",
+                            "Token:".green().bold(),
+                            token.to_string().blue().bold()
+                        );
+                    }
+                }
+                if CONFIG.debug {
+                    println!();
+                }
+                if let Some(ins) = instruction {
+                    let encoded_instruction =
+                        encode_instruction(ins, operand1, operand2, line_count);
+
+                    match encoded_instruction {
+                        Ok(Some(encoded)) => {
+                            if let Err(err_msg) = verify(ins, operand1, operand2, line_count) {
+                                write_to_file = false;
+                                has_err = true;
+                                eprintln!("{}", err_msg);
+                            } else {
+                                encoded_instructions.extend(&encoded.to_be_bytes());
+                                if CONFIG.verbose || CONFIG.debug {
+                                    println!("Instruction: {:016b}", encoded);
+                                }
+                            }
+                        }
+                        Ok(None) => {
+                            continue;
+                        }
+                        Err(err_msg) => {
+                            write_to_file = false;
+                            has_err = true;
+                            eprintln!("{}", err_msg);
+                        }
+                    }
+                }
+
+                line_count += 1;
             }
-            if CONFIG.debug {
-                println!(
-                    "{} {}",
-                    "Token:".green().bold(),
-                    token.to_string().blue().bold()
-                );
-            }
-        }
-        if CONFIG.debug {
-            println!();
-        }
-        if let Some(ins) = instruction {
-            let encoded_instruction = encode_instruction(ins, operand1, operand2, line_count);
-            if encoded_instruction.is_none() {
-                continue;
-            }
-            if verify(ins, operand1, operand2, line_count) {
-                write_to_file = false;
+            Err(err) => {
+                eprintln!("{err}");
                 has_err = true;
+                write_to_file = false;
             }
-            encoded_instructions.extend(&encoded_instruction.unwrap().to_be_bytes());
-            if CONFIG.verbose || CONFIG.debug {
-                println!("Instruction: {:016b}", encoded_instruction.unwrap());
-            }
-        } else {
-            OtherError(
-                format!("not enough lines to encode instruction {line}").as_str(),
-                line_count,
-                None,
-            )
-            .perror();
-            process::exit(1);
         }
-
-        line_count += 1;
     }
+
     if !hlt_seen {
         println!(
             "{}: No HLT instruction found in program.",
@@ -132,7 +143,6 @@ fn main() -> io::Result<()> {
     }
 
     if has_err {
-        eprintln!("{}", "Exiting...".red());
         process::exit(1);
     }
 
