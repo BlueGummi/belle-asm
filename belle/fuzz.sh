@@ -5,7 +5,7 @@ trap "exit" SIGINT
 run_belle() {
     while true; do
         head -c 256 /dev/urandom > random_data.bin
-
+	timeout 2 belle random_data.bin
         output=$(timeout 2 belle random_data.bin 2>&1)
         exit_code=$?
 
@@ -17,9 +17,5 @@ run_belle() {
     done
 }
 
-# Start 10 instances
-for i in {1..10}; do
-    run_belle &
-done
-
+run_belle
 wait
