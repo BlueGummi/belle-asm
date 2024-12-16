@@ -218,7 +218,9 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                     break 'exc;
                 };
                 let parsed_ins = dbgcpu.parse_instruction();
-                dbgcpu.execute_instruction(&parsed_ins);
+                if let Err(e) = dbgcpu.execute_instruction(&parsed_ins) {
+                    eprintln!("An error occurred: {e}");
+                }
                 dbgcpu.record_state();
                 println!("  Signed Integer Registers : {:?}", dbgcpu.int_reg);
                 println!("  Uint registers           : {:?}", dbgcpu.uint_reg);

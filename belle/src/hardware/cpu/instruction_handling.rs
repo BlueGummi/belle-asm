@@ -3,8 +3,17 @@ use crate::*;
 use std::io::{self, Read};
 
 impl CPU {
-    pub fn handle_add(&mut self, arg1: &Argument, arg2: &Argument) {
-        let value = self.get_value(arg2);
+    pub fn handle_add(
+        &mut self,
+        arg1: &Argument,
+        arg2: &Argument,
+    ) -> Result<(), UnrecoverableError> {
+        let mut value = 0.0;
+        if let Err(e) = self.get_value(arg2) {
+            return Err(e);
+        } else if let Ok(v) = self.get_value(arg2) {
+            value = v;
+        }
         if let Register(n) = arg1 {
             let new_value = match *n {
                 4 => {
@@ -32,27 +41,35 @@ impl CPU {
                     self.int_reg[*n as usize] as i64 + value as i64
                 }
             };
-            self.check_overflow(new_value, *n as u16);
+            if let Err(e) = self.check_overflow(new_value, *n as u16) {
+                eprint!("{e}");
+            }
         }
+        Ok(())
     }
 
-    pub fn handle_jo(&mut self, arg: &Argument) {
+    pub fn handle_jo(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
         if !self.oflag {
-            return;
+            return Ok(());
         }
-        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
+        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()))?;
         if let MemAddr(n) = arg {
             self.pc = (*n as u16) - 2;
         } else if let RegPtr(n) = arg {
-            self.pc = self.get_value(&Argument::Register(*n)) as u16;
+            if let Err(e) = self.get_value(&Argument::Register(*n)) {
+                return Err(e);
+            } else if let Ok(v) = self.get_value(&Argument::Register(*n)) {
+                self.pc = v as u16;
+            }
         }
+        Ok(())
     }
 
-    pub fn handle_pop(&mut self, arg: &Argument) {
+    pub fn handle_pop(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
         if let Register(_) = arg {
             let temp: i32 = self.sp.into();
             if let Some(v) = self.memory[temp as usize] {
-                self.set_register_value(arg, v.into());
+                self.set_register_value(arg, v.into())?;
                 if self.sp > self.bp {
                     if self.sp != self.bp {
                         println!("{}", RecoverableError::BackwardStack(self.pc, None));
@@ -68,16 +85,31 @@ impl CPU {
                     }
                 }
             } else {
+                self.err = true;
                 self.running = false;
+                return Err(UnrecoverableError::SegmentationFault(
+                    self.pc,
+                    Some("segmentation fault while executing pop".to_string()),
+                ));
             }
         }
+        Ok(())
     }
 
-    pub fn handle_div(&mut self, arg1: &Argument, arg2: &Argument) {
-        let divisor = self.get_value(arg2);
+    pub fn handle_div(
+        &mut self,
+        arg1: &Argument,
+        arg2: &Argument,
+    ) -> Result<(), UnrecoverableError> {
+        let mut divisor = 0.0;
+        if let Err(e) = self.get_value(arg2) {
+            return Err(e);
+        } else if let Ok(v) = self.get_value(arg2) {
+            divisor = v;
+        }
         if divisor == 0.0 || divisor as u16 == 0 {
             self.report_divide_by_zero();
-            return;
+            return Err(UnrecoverableError::DivideByZero(self.pc, None));
         }
         if let Register(n) = arg1 {
             let new_value = match *n {
@@ -110,8 +142,7 @@ impl CPU {
                     self.float_reg[1] as i64 / divisor as i64
                 }
                 n if n > 5 => {
-                    self.report_invalid_register();
-                    0
+                    return Err(self.report_invalid_register());
                 }
                 _ => {
                     if f32::from(self.int_reg[*n as usize]) % divisor != 0.0 {
@@ -121,11 +152,14 @@ impl CPU {
                     self.int_reg[*n as usize] as i64 / divisor as i64
                 }
             };
-            self.check_overflow(new_value, *n as u16);
+            if let Err(e) = self.check_overflow(new_value, *n as u16) {
+                eprint!("{e}");
+            }
         }
+        Ok(())
     }
 
-    pub fn handle_ret(&mut self) {
+    pub fn handle_ret(&mut self) -> Result<(), UnrecoverableError> {
         let temp: i32 = self.sp.into();
         if let Some(v) = self.memory[temp as usize] {
             self.pc = v as u16;
@@ -141,72 +175,131 @@ impl CPU {
                 }
             }
         } else {
-            eprintln!("{}", UnrecoverableError::StackUnderflow(self.pc, None));
-            self.err = true;
-            self.running = false;
+            return Err(UnrecoverableError::StackUnderflow(self.pc, None));
         }
+        Ok(())
     }
 
-    pub fn handle_ld(&mut self, arg1: &Argument, arg2: &Argument) {
-        let source = self.get_value(arg2);
+    pub fn handle_ld(
+        &mut self,
+        arg1: &Argument,
+        arg2: &Argument,
+    ) -> Result<(), UnrecoverableError> {
+        let mut source = 0.0;
+        if let Err(e) = self.get_value(arg2) {
+            return Err(e);
+        } else if let Ok(v) = self.get_value(arg2) {
+            source = v;
+        }
         if let Register(n) = arg1 {
             match *n {
                 4 => self.uint_reg[0] = source as u16,
                 5 => self.uint_reg[1] = source as u16,
                 6 => self.float_reg[0] = source,
                 7 => self.float_reg[1] = source,
-                n if n > 5 => self.report_invalid_register(),
+                n if n > 5 => return Err(self.report_invalid_register()),
                 _ => {
-                    self.check_overflow(source as i64, *n as u16);
+                    if let Err(e) = self.check_overflow(source as i64, *n as u16) {
+                        eprint!("{e}");
+                        return Ok(());
+                    }
                     self.int_reg[*n as usize] = source as i16;
                 }
             }
         }
+        Ok(())
     }
 
-    pub fn handle_st(&mut self, arg1: &Argument, arg2: &Argument) {
-        let source = self.get_value(arg2);
+    pub fn handle_st(
+        &mut self,
+        arg1: &Argument,
+        arg2: &Argument,
+    ) -> Result<(), UnrecoverableError> {
+        let mut source = 0.0;
+        if let Err(e) = self.get_value(arg2) {
+            return Err(e);
+        } else if let Ok(v) = self.get_value(arg2) {
+            source = v;
+        }
         if let MemAddr(n) = arg1 {
             self.memory[*n as usize] = Some(source as i16);
         } else if let RegPtr(n) = arg1 {
-            let address = self.get_value(&Register(*n));
-            self.memory[address as usize] = Some(source as i16);
+            if let Err(e) = self.get_value(&Register(*n)) {
+                return Err(e);
+            } else if let Ok(addr) = self.get_value(&Register(*n)) {
+                self.memory[addr as usize] = Some(source as i16);
+            }
         }
+        Ok(())
     }
 
-    pub fn handle_jmp(&mut self, arg: &Argument) {
-        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
+    pub fn handle_jmp(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
+        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()))?;
         if let MemAddr(n) = arg {
             self.pc = (*n as u16) - 2;
         } else if let RegPtr(n) = arg {
-            self.pc = self.get_value(&Argument::Register(*n)) as u16;
+            if let Err(e) = self.get_value(&Argument::Register(*n)) {
+                return Err(e);
+            } else if let Ok(v) = self.get_value(&Argument::Register(*n)) {
+                self.pc = v as u16;
+            }
         }
+        Ok(())
     }
 
-    pub fn handle_jz(&mut self, arg: &Argument) {
+    pub fn handle_jz(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
         if !self.zflag {
-            return;
+            return Ok(());
         }
-        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
+        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()))?;
         if let MemAddr(n) = arg {
             self.pc = (*n as u16) - 2;
         } else if let RegPtr(n) = arg {
-            self.pc = self.get_value(&Argument::Register(*n)) as u16;
+            if let Err(e) = self.get_value(&Argument::Register(*n)) {
+                return Err(e);
+            } else if let Ok(v) = self.get_value(&Argument::Register(*n)) {
+                self.pc = v as u16;
+            }
         }
+        Ok(())
     }
 
-    pub fn handle_cmp(&mut self, arg1: &Argument, arg2: &Argument) {
-        let src = self.get_value(arg2);
+    pub fn handle_cmp(
+        &mut self,
+        arg1: &Argument,
+        arg2: &Argument,
+    ) -> Result<(), UnrecoverableError> {
+        let mut src = 0.0;
+        if let Err(e) = self.get_value(arg2) {
+            return Err(e);
+        } else if let Ok(v) = self.get_value(arg2) {
+            src = v;
+        }
         if let Register(_) = arg1 {
-            let value = self.get_value(arg1);
+            let mut value = 0.0;
+            if let Err(e) = self.get_value(arg1) {
+                return Err(e);
+            } else if let Ok(v) = self.get_value(arg1) {
+                value = v;
+            }
             let result = value - src;
             self.zflag = (result).abs() < f32::EPSILON;
             self.sflag = result < 0.0;
         }
+        Ok(())
     }
 
-    pub fn handle_mul(&mut self, arg1: &Argument, arg2: &Argument) {
-        let value = self.get_value(arg2);
+    pub fn handle_mul(
+        &mut self,
+        arg1: &Argument,
+        arg2: &Argument,
+    ) -> Result<(), UnrecoverableError> {
+        let mut value = 0.0;
+        if let Err(e) = self.get_value(arg2) {
+            return Err(e);
+        } else if let Ok(v) = self.get_value(arg2) {
+            value = v;
+        }
         if let Register(n) = arg1 {
             let new_value = match *n {
                 4 => {
@@ -234,18 +327,25 @@ impl CPU {
                     self.int_reg[*n as usize] as i64 * value as i64
                 }
             };
-            self.check_overflow(new_value, *n as u16);
+            if let Err(e) = self.check_overflow(new_value, *n as u16) {
+                eprint!("{e}");
+            }
         }
+        Ok(())
     }
 
-    pub fn handle_push(&mut self, arg: &Argument) {
+    pub fn handle_push(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
         let mut val: f32 = 0.0;
         if let Literal(l) = arg {
             val = (*l).into();
         }
 
         if let Register(_) = arg {
-            val = self.get_value(arg);
+            if let Err(e) = self.get_value(arg) {
+                return Err(e);
+            } else if let Ok(v) = self.get_value(arg) {
+                val = v;
+            }
         }
         if self.sp > self.bp || self.backward_stack {
             if self.sp != self.bp {
@@ -256,15 +356,11 @@ impl CPU {
             }
             if self.sp as usize >= MEMORY_SIZE {
                 self.running = false;
-                println!(
-                    "{}",
-                    UnrecoverableError::StackOverflow(
-                        self.pc,
-                        Some("Overflowed while pushing onto stack".to_string()),
-                    )
-                );
                 self.err = true;
-                return;
+                return Err(UnrecoverableError::StackOverflow(
+                    self.pc,
+                    Some("Overflowed while pushing onto stack".to_string()),
+                ));
             }
 
             self.memory[self.sp as usize] = Some(val as i16);
@@ -274,40 +370,52 @@ impl CPU {
         } else {
             if self.sp == 0 {
                 self.running = false;
-                println!(
-                    "{}",
-                    UnrecoverableError::StackOverflow(
-                        self.pc,
-                        Some("Overflowed while pushing onto stack".to_string()),
-                    )
-                );
                 self.err = true;
-                return;
+                return Err(UnrecoverableError::StackOverflow(
+                    self.pc,
+                    Some("Overflowed while pushing onto stack".to_string()),
+                ));
             }
             if self.sp != self.bp || self.memory[self.bp as usize].is_some() {
                 self.sp -= 1;
             }
             self.memory[self.sp as usize] = Some(val as i16);
         }
+        Ok(())
     }
-    pub fn handle_mov(&mut self, arg1: &Argument, arg2: &Argument) {
-        let value = self.get_value(arg2);
+    pub fn handle_mov(
+        &mut self,
+        arg1: &Argument,
+        arg2: &Argument,
+    ) -> Result<(), UnrecoverableError> {
+        let mut value = 0.0;
+        if let Err(e) = self.get_value(arg2) {
+            return Err(e);
+        } else if let Ok(v) = self.get_value(arg2) {
+            value = v;
+        }
         if let Register(n) = arg1 {
             match *n {
                 4 => self.uint_reg[0] = value as u16,
                 5 => self.uint_reg[1] = value as u16,
                 6 => self.float_reg[0] = value,
                 7 => self.float_reg[1] = value,
-                n if n > 5 => self.report_invalid_register(),
+                n if n > 5 => return Err(self.report_invalid_register()),
                 _ => {
                     self.int_reg[*n as usize] = value as i16;
                 }
             }
         }
+        Ok(())
     }
 
-    pub fn handle_int(&mut self, arg: &Argument) {
-        let code = self.get_value(arg) as u16;
+    pub fn handle_int(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
+        let mut code = 0;
+        if let Err(e) = self.get_value(arg) {
+            return Err(e);
+        } else if let Ok(v) = self.get_value(arg) {
+            code = v as u16;
+        }
         match code {
             0_u16..=3_u16 => {
                 println!("{}", self.int_reg[code as usize]);
@@ -323,10 +431,9 @@ impl CPU {
 
                 for index in starting_point..=end_point {
                     if memory[index as usize].is_none() {
-                        self.handle_segmentation_fault(
+                        return Err(self.handle_segmentation_fault(
                             "Segmentation fault. Memory index out of bounds on interrupt call 8.",
-                        );
-                        return;
+                        ));
                     }
                 }
 
@@ -378,5 +485,6 @@ impl CPU {
                 )
             ),
         }
+        Ok(())
     }
 }

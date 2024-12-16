@@ -176,7 +176,10 @@ impl CPU {
 
             self.ir = self.memory[self.pc as usize].unwrap();
             let parsed_ins = self.parse_instruction();
-            self.execute_instruction(&parsed_ins);
+            if let Err(e) = self.execute_instruction(&parsed_ins) {
+                self.running = false;
+                return Err(e);
+            }
 
             if CONFIG.debug || CONFIG.verbose {
                 self.record_state();

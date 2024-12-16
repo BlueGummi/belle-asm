@@ -59,7 +59,7 @@ impl fmt::Display for UnrecoverableError {
             }
         }
         if CONFIG.debug || CONFIG.verbose {
-            write!(f, " at memory address {}", location.to_string().green())?;
+            writeln!(f, " at memory address {}", location.to_string().green())?;
         }
         Ok(())
     }
@@ -67,6 +67,9 @@ impl fmt::Display for UnrecoverableError {
 
 impl fmt::Display for RecoverableError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if !CONFIG.debug && !CONFIG.verbose {
+            return Ok(());
+        }
         let (err_type, location, msg) = self.details();
         write!(f, "{}: ", "RECOVERABLE ERROR:".yellow())?;
         write!(f, "{}", err_type.yellow())?;
@@ -77,7 +80,7 @@ impl fmt::Display for RecoverableError {
             }
         }
         if CONFIG.debug || CONFIG.verbose {
-            write!(f, " at memory address {}", location.to_string().green())?;
+            writeln!(f, " at memory address {}", location.to_string().green())?;
         }
         Ok(())
     }
