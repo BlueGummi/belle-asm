@@ -1,6 +1,7 @@
-use crate::{cpu, EmuError, RecoverableError, UnrecoverableError, CLOCK, CONFIG};
+use crate::*;
+use std::thread;
+use std::time::Duration;
 use std::vec::Vec;
-
 pub const MEMORY_SIZE: usize = 65535;
 
 #[derive(Clone)]
@@ -24,6 +25,7 @@ pub struct CPU {
     pub backward_stack: bool,
     pub max_clk: Option<usize>,
     pub hit_max_clk: bool,
+    pub do_not_run: bool,
 }
 
 impl Default for CPU {
@@ -55,6 +57,7 @@ impl CPU {
             backward_stack: false,
             max_clk: None,
             hit_max_clk: false,
+            do_not_run: false,
         }
     }
 
@@ -67,6 +70,7 @@ impl CPU {
                 // start directive
                 if start_found {
                     EmuError::Duplicate(".start directives".to_string()).err();
+                    self.do_not_run = true;
                 }
                 self.starts_at = (element & 0b111111111) as u16;
                 if CONFIG.verbose {
@@ -136,13 +140,15 @@ impl CPU {
         }
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self) -> Result<(), UnrecoverableError> {
         self.has_ran = true; // for debugger
         self.running = true;
+        if self.do_not_run {
+            return Ok(());
+        }
         if CONFIG.verbose {
             println!("  Starts At MemAddr: {}", self.starts_at);
         }
-        let mut restart_count = 0;
         while self.running {
             if !CONFIG.debug {
                 let _ = ctrlc::set_handler(move || {
@@ -152,50 +158,37 @@ impl CPU {
             }
             let mut clock = CLOCK.lock().unwrap(); // might panic
             *clock += 1;
-            std::thread::sleep(std::time::Duration::from_millis(
-                CONFIG.time_delay.unwrap().into(),
-            ));
+            thread::sleep(Duration::from_millis(CONFIG.time_delay.unwrap().into()));
             std::mem::drop(clock); // clock must go bye bye so it unlocks
+
+            // Check for segmentation fault
             if self.memory[self.pc as usize].is_none() {
                 if CONFIG.verbose {
                     println!("PC: {}", self.pc);
                 }
-                UnrecoverableError::SegmentationFault(
+                return Err(UnrecoverableError::SegmentationFault(
                     self.pc,
                     Some("Segmentation fault while finding next instruction".to_string()),
-                )
-                .err();
-                if restart_count > 10 {
-                    println!("More than ten restarts have been attempted.\nExiting...");
-                    return;
-                }
-                if CONFIG.debug {
-                    return;
-                }
-                if !CONFIG.quiet {
-                    println!("Attempting to recover by restarting...");
-                }
-                std::thread::sleep(std::time::Duration::from_secs(1));
-                self.pc = self.starts_at;
-                restart_count += 1;
+                ));
             }
+
             self.ir = self.memory[self.pc as usize].unwrap();
             let parsed_ins = self.parse_instruction();
             self.execute_instruction(&parsed_ins);
+
             if CONFIG.debug || CONFIG.verbose {
                 self.record_state();
             }
+
             let clock = CLOCK.lock().unwrap();
             if CONFIG.verbose {
                 cpu::CPU::display_state(&clock);
             }
-            if self.oflag {
-                RecoverableError::Overflow(self.pc, Some("Overflowed a register.".to_string()))
-                    .err();
-                if self.hlt_on_overflow {
-                    self.running = false;
-                }
+
+            if self.oflag && self.hlt_on_overflow {
+                self.running = false;
             }
+
             if let Some(v) = self.max_clk {
                 if *clock == v as u32 {
                     self.running = false;
@@ -205,6 +198,7 @@ impl CPU {
                 }
             }
         }
+
         if !self.running {
             if CONFIG.verbose {
                 println!("Halting...");
@@ -213,10 +207,12 @@ impl CPU {
             *clock += 1;
             std::mem::drop(clock);
             self.record_state();
+
             let clock = CLOCK.lock().unwrap(); // might panic
             if CONFIG.verbose {
                 cpu::CPU::display_state(&clock);
             }
+
             if CONFIG.pretty {
                 for i in 0..=3 {
                     println!(
@@ -231,9 +227,8 @@ impl CPU {
                     println!("Float Register {}: {}", i, self.float_reg[i]);
                 }
             }
-            if !CONFIG.debug {
-                std::process::exit(0);
-            }
         }
+
+        Ok(())
     }
 }

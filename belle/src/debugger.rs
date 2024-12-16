@@ -157,8 +157,8 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                         "{}",
                         "CPU memory is empty.\nTry to load the program first.\n".red()
                     );
-                } else {
-                    dbgcpu.run();
+                } else if let Err(e) = dbgcpu.run() {
+                    eprintln!("{e}");
                 }
             }
             "spc" => 'spc: {

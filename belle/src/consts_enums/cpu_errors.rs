@@ -1,6 +1,8 @@
 use crate::{CONFIG, CPU_STATE};
 use colored::Colorize;
+use std::fmt;
 
+#[derive(Debug)]
 pub enum UnrecoverableError {
     SegmentationFault(u16, Option<String>),
     IllegalInstruction(u16, Option<String>),
@@ -10,16 +12,22 @@ pub enum UnrecoverableError {
     StackUnderflow(u16, Option<String>),
 }
 
+#[derive(Debug)]
 pub enum RecoverableError {
     UnknownFlag(u16, Option<String>),
     Overflow(u16, Option<String>),
     BackwardStack(u16, Option<String>),
 }
 
+pub type Oopsie = Result<(), RecoverableError>;
+pub type Death = Result<(), UnrecoverableError>; // what am I supposed to call it?
+
+impl std::error::Error for UnrecoverableError {}
+impl std::error::Error for RecoverableError {}
 impl UnrecoverableError {
     pub fn err(&self) {
         if CONFIG.quiet && !CONFIG.debug {
-            std::process::exit(1);
+            return;
         }
 
         eprint!("{} ", "UNRECOVERABLE ERROR:".red());
@@ -40,9 +48,6 @@ impl UnrecoverableError {
         }
 
         eprintln!("{}", "CRASHING...".red());
-        if !CONFIG.debug {
-            std::process::exit(1);
-        }
     }
 
     fn details(&self) -> (&str, u16, &Option<String>) {
@@ -95,5 +100,35 @@ impl RecoverableError {
             RecoverableError::Overflow(loc, msg) => ("Overflow", *loc, msg),
             RecoverableError::BackwardStack(loc, msg) => ("Backwards stack", *loc, msg),
         }
+    }
+}
+
+impl fmt::Display for UnrecoverableError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (err_type, location, msg) = self.details();
+        write!(f, "{}: ", "UNRECOVERABLE ERROR:".red())?;
+        write!(f, "{}", err_type.bold().red())?;
+
+        if let Some(s) = msg {
+            write!(f, ": {}", s.magenta())?;
+        }
+
+        write!(f, ": at memory address {}", location.to_string().green())?;
+        Ok(())
+    }
+}
+
+impl fmt::Display for RecoverableError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (err_type, location, msg) = self.details();
+        write!(f, "{}: ", "RECOVERABLE ERROR:".yellow())?;
+        write!(f, "{}", err_type.yellow())?;
+
+        if let Some(s) = msg {
+            write!(f, ": {}", s.magenta())?;
+        }
+
+        write!(f, ": at memory address {}", location.to_string().green())?;
+        Ok(())
     }
 }

@@ -68,9 +68,7 @@ impl CPU {
                         println!("Float Register {}: {}", i, self.float_reg[i]);
                     }
                 }
-                if !CONFIG.debug {
-                    std::process::exit(0);
-                } // dumb hack for a dumb bug (cpu would overflow twice)
+                if !CONFIG.debug {} // dumb hack for a dumb bug (cpu would overflow twice)
             }
         }
     }

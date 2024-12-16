@@ -106,11 +106,13 @@ impl CPU {
                     6 => self.float_reg[0],
                     7 => self.float_reg[1],
                     n if *n > 3 => {
-                        UnrecoverableError::IllegalInstruction(
-                            self.pc,
-                            Some("Illegal register pointer".to_string()),
-                        )
-                        .err();
+                        println!(
+                            "{}",
+                            UnrecoverableError::IllegalInstruction(
+                                self.pc,
+                                Some("Illegal register pointer".to_string()),
+                            )
+                        );
                         0.0
                     }
                     n if *n < 0 => {
@@ -144,7 +146,7 @@ impl CPU {
             _ => unreachable!("Argument types are invalid (how did you get here?)"),
         }
     }
-    #[must_use]
+
     pub fn parse_instruction(&self) -> Instruction {
         let opcode = (self.ir >> 12) & 0b1111u16 as i16;
         let mut ins_type = if ((self.ir >> 8) & 1) == 1 {

@@ -68,11 +68,7 @@ impl CPU {
                     }
                 }
             } else {
-                UnrecoverableError::StackUnderflow(self.pc, None).err();
                 self.running = false;
-                if !CONFIG.debug {
-                    std::process::exit(1);
-                }
             }
         }
     }
@@ -146,12 +142,8 @@ impl CPU {
                 }
             }
         } else {
-            UnrecoverableError::StackUnderflow(self.pc, None).err();
-
+            eprintln!("{}", UnrecoverableError::StackUnderflow(self.pc, None));
             self.running = false;
-            if !CONFIG.debug {
-                std::process::exit(1);
-            }
         }
     }
 
@@ -265,11 +257,11 @@ impl CPU {
                     self.sp += 1;
                 }
                 None => {*/
-            if (self.sp == self.bp && self.memory[self.bp as usize].is_some()) || self.sp != self.bp
-            {
+            if self.sp != self.bp || self.memory[self.bp as usize].is_some() {
                 self.sp += 1;
             }
             if self.sp as usize >= MEMORY_SIZE {
+                self.running = false;
                 UnrecoverableError::StackOverflow(
                     self.pc,
                     Some("Overflowed while pushing onto stack".to_string()),
@@ -287,6 +279,7 @@ impl CPU {
             }
         } else {
             if self.sp == 0 {
+                self.running = false;
                 UnrecoverableError::StackOverflow(
                     self.pc,
                     Some("Overflowed while pushing onto stack".to_string()),
@@ -299,8 +292,7 @@ impl CPU {
                     self.sp -= 1;
                 }
                 None => {*/
-            if (self.sp == self.bp && self.memory[self.bp as usize].is_some()) || self.sp != self.bp
-            {
+            if self.sp != self.bp || self.memory[self.bp as usize].is_some() {
                 self.sp -= 1;
             }
             self.memory[self.sp as usize] = Some(val as i16);
@@ -342,7 +334,7 @@ impl CPU {
                 let memory = &self.memory;
 
                 for index in starting_point..=end_point {
-                    if let None = memory[index as usize] {
+                    if memory[index as usize].is_none() {
                         self.handle_segmentation_fault(
                             "Segmentation fault. Memory index out of bounds on interrupt call 8.",
                         );

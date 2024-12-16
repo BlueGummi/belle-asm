@@ -1,5 +1,6 @@
 use crate::CONFIG;
 use colored::Colorize;
+use std::fmt;
 pub enum EmuError {
     FileNotFound(),
     IsDirectory(),
@@ -10,6 +11,9 @@ pub enum EmuError {
 }
 impl EmuError {
     pub fn err(&self) {
+        if CONFIG.quiet {
+            return;
+        }
         eprint!("{} ", "Emulator Error:".red());
         match self {
             EmuError::FileNotFound() => {
@@ -37,8 +41,56 @@ impl EmuError {
         }
         if let EmuError::ReadFail(_) = self {
             println!("{}", "Retrying..".yellow());
-        } else {
-            std::process::exit(1);
+        }
+    }
+}
+
+impl fmt::Display for EmuError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            EmuError::FileNotFound() => {
+                write!(
+                    f,
+                    "{} File {} not found",
+                    "Emulator Error:".red(),
+                    CONFIG.file.to_string().green(),
+                )
+            }
+            EmuError::MemoryOverflow() => {
+                write!(
+                    f,
+                    "{} {}",
+                    "Emulator Error:".red(),
+                    "Memory will overflow".red()
+                )
+            }
+            EmuError::Duplicate(s) => {
+                write!(f, "{} Duplicate: {}", "Emulator Error:".red(), s.red(),)
+            }
+            EmuError::ReadFail(s) => {
+                write!(
+                    f,
+                    "{} Failed to read from stdin and parse to i16: {}",
+                    "Emulator Error:".red(),
+                    s,
+                )
+            }
+            EmuError::Impossible(s) => {
+                write!(
+                    f,
+                    "{} Configuration combination not possible: {}",
+                    "Emulator Error:".red(),
+                    s,
+                )
+            }
+            EmuError::IsDirectory() => {
+                write!(
+                    f,
+                    "{} {} is a directory",
+                    "Emulator Error:".red(),
+                    CONFIG.file.to_string().green(),
+                )
+            }
         }
     }
 }
