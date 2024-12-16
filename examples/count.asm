@@ -1,7 +1,7 @@
     ; This program counts to the 16 bit unsigned integer limit 
     ; It is indefinite
-.start $0
-.ssp $11
+.start $40
+.ssp $10
 .sbp $10
     jmp @add_loop
 add_loop:
