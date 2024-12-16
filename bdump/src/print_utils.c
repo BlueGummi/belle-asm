@@ -157,10 +157,10 @@ void print_output(Instruction *ins) {
         if (ins->destination >> 2 == 1) {
             if (colors) {
                 printf("%s&r%d%s, %s%%r%d%s\n", ANSI_YELLOW,
-                       (ins->destination & 0b11) << 1 | ins->type, ANSI_RESET, ANSI_YELLOW,
+                       ins->type << 1  | (ins->source & 0b10000000) >> 7, ANSI_RESET, ANSI_YELLOW,
                        ins->source, ANSI_RESET);
             } else {
-                printf("&r%d, %%r%d\n", (ins->destination & 0b11) << 1 | ins->type, ins->source);
+                printf("&r%d, %%r%d\n", ins->type << 1 | (ins->source & 0b10000000) >> 7, (ins->source & 0b111));
             }
             return;
         }
