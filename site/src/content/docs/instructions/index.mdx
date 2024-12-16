@@ -16,9 +16,7 @@ Please refer to the [encoding](../encoding) document for more information about 
 
 > Rounding: For instructions that will round a number, the number will simply have its decimal points cut off. It will not be rounded to the nearest integer, it will simply have the decimal places removed. (e.g. 4.5 becomes 4)
 
-## HLT
-
-    ### HLT - The HALT instruction
+## HLT - Halt
     
     `HLT` will halt BELLE when it is encountered. The program will **stop** and gracefully exit, and **no other instructions will be executed**. 
 
@@ -46,9 +44,7 @@ Please refer to the [encoding](../encoding) document for more information about 
         running := false
         ```
 
-## ADD
-
-    ### ADD - Signed floating point addition 
+## ADD - Addition
 
     `ADD` will perform **arithmetic addition**, taking the second operand (right-hand side), and adding it to the first operand (left-hand side), storing the result in the **first operand**. `ADD` will always take 2 arguments, and can also perform **subtraction** if the value in RHS is **negative**. 
 
@@ -80,9 +76,7 @@ Please refer to the [encoding](../encoding) document for more information about 
         lhs := lhs + rhs
         ```
 
-## JO and JZ
-
-    > The conditional jump instructions
+## JO and JZ - Conditional jump
 
     ### JO - Jump if the overflow flag is set, JZ - Jump if the zero flag is set
 
@@ -159,9 +153,7 @@ Please refer to the [encoding](../encoding) document for more information about 
             return
         ```
 
-## POP
-
-    ### POP - Pop a value off the stack 
+## POP - Pop off the stack
 
     `POP` reads the stack pointer, and then "`pop`s" the value contained at the stack pointer into **a destination**. The destination can only **be a register**, and `POP` will only ever take one argument. The value at the **top of the call stack** - which is referenced with the stack pointer - will be **cleared**, and the stack pointer will be adjusted depending on the direction the call stack is "going". 
 
@@ -200,9 +192,7 @@ Please refer to the [encoding](../encoding) document for more information about 
             sp := sp + 1
         ```
 
-## DIV
-
-    ### DIV - Signed floating point division
+## DIV - Division 
 
     `DIV` divides LHS by RHS, storing the result in LHS.
 
@@ -237,9 +227,7 @@ Please refer to the [encoding](../encoding) document for more information about 
 	    rflag := true
         ```
 
-## RET
-
-    ### RET - Return
+## RET - Return
 
     `RET` will read the value that the memory address that the stack pointer points to holds. The program counter will then be set to this address, and the memory address will be **cleared**. This instruction is similar to the `POP` instruction, however, it doesn't load the value **into a register**.
 
@@ -290,9 +278,7 @@ Please refer to the [encoding](../encoding) document for more information about 
 
         ```
 
-## LD
-
-    ### LD - Directly load a value from a memory address
+## LD - Load direct 
 
     `LD` will read the **memory address** provided by the **RHS**, and retrieve the value at the memory address specified. Then, the value will be loaded into the register provided by the **LHS** of the instruction. If no value is found, a **segmentation fault** will occur, and the emulator will halt.
 
@@ -323,9 +309,7 @@ Please refer to the [encoding](../encoding) document for more information about 
     lhs := memory[rhs]
     ```
 
-## ST
-
-    ### ST - Store a value at a memory address
+## ST - Store direct and indirect
 
     `ST` takes two arguments, and retrieves the value in the RHS register and stores it into the LHS. LHS can be either a register pointer, or a direct memory address. This allows the `ST` instruction to addresses all addresses if used indirectly via a register pointer. `ST` will overwrite any data at the destination address, and it can also overwrite program memory if the destination address is also part of program memory. Using `ST` in conjunction with `LD` or with the call stack can allow for full usage of the memory of the BELLE-ISA.
 
@@ -358,9 +342,7 @@ Please refer to the [encoding](../encoding) document for more information about 
     else
         memory[lhs] := reg_val(rhs)
     ```
-## JMP
-
-    ### JMP - Unconditional jump  
+## JMP - Unconditional jump
 
     `JMP` performs an **unconditional jump**, which sets the CPU's program counter to the destination specified.
 
@@ -411,9 +393,7 @@ Please refer to the [encoding](../encoding) document for more information about 
             pc := memory[dest]
         ```
 
-## CMP
-
-    ### CMP - Compare two operands
+## CMP - Compare two operands
 
     `CMP` Takes two arguments and **compares their values**, setting flags accordingly. The zero and sign flags are affected with this instruction, with the **sign flag** being set if the compared values result in a negative result, and the **zero flag** being set if they are equal. `CMP` requires two arguments.
 
@@ -451,9 +431,7 @@ Please refer to the [encoding](../encoding) document for more information about 
         sflag := true
     ```
 
-## MUL
-
-    ### MUL - Signed floating point multiplication 
+## MUL - Multiplication
 
     `MUL` will perform **arithmetic signed floating point multiplication** (as there are floating point registers), and will cast the value to an integer if the destination is an integer register.
 
@@ -487,9 +465,7 @@ Please refer to the [encoding](../encoding) document for more information about 
     lhs := lhs * rhs 
     ```
 
-## PUSH
-
-    ### PUSH - Push a value onto the stack
+## PUSH - Push a value onto the stack
 
     `PUSH` will take either a **register or literal value**, increment or decrement the stack pointer depending on the direction of the call stack, then assign the **memory address** in the stack pointer to the value passed to the instruction.
 
@@ -531,9 +507,7 @@ Please refer to the [encoding](../encoding) document for more information about 
     memory[sp] := src // push onto stack
     ```
 
-## INT
-
-    ### INT - The whimsical and silly "interrupt"/pseudo-instruction
+## INT - The whimsical and silly "interrupt"/pseudo-instruction
 
     `INT` is a "pseudo-instruction". In **other architectures**, `INT` is the "interrupt" instruction, which generates a **system interrupt** to stop the program momentarily to **perform an action**, such as reading from the standard input, writing to the standard output, or waiting for an event to finish.
 
@@ -586,5 +560,68 @@ Please refer to the [encoding](../encoding) document for more information about 
         | Opcode   | SRC     |
         | :-----   | :------ |
         | `[1101]` | `[000000101010]` |
+
+## MOV - Move
+
+    `MOV` will move a value from a **source to a destination**, keeping the source intact. `MOV` takes two arguments, and the RHS can be a literal, register pointer, memory address pointer, register, and can be **both signed and unsigned**. Similar to other instructions, `MOV` uses floating point reassignments to **reassign values of registers**, and if the destination is an integer register, casts it as an integer.
+
+    `MOV` can accept floating point values to move around if the source is a floating point register. Otherwise, it will only accept an integer.
+
+    The destination, or the LHS of `MOV` must always be a register. To change memory address values, please refer to [ST](#st).
+
+    The source, or RHS of `MOV` cannot be a memory address. Refer to [LD](#ld) for loading from memory addresses.
+
+    Unlike `LD`, however, `MOV` allows register indirects - otherwise known as register pointers - to be passed as the RHS of the instruction. This allows for `MOV` to load from very large memory addresses that wouldn't fit into a simple `LD` instruction. Thus, `MOV` is also the *indirect load* instruction (in other architectures).
+
+    Compatible **LHS** argument types: Register
+
+    Compatible **RHS** argument types: Register, literal, register pointer, memory address pointer, can be signed and unsigned
+
+    Flags affected: None
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    | MOV  | 2         | Copy a value | Any program ever | `mov %r0, #22 ; mov 22 into r0` |
+
+    
+    #### Binary encoding
+
+        Instruction: `mov %r4, &r3`
+
+        | Opcode   | LHS     | DTBs     | RHS       | 
+        | :-----   | :------ | :------- | :-------- |
+        | `[1110]` | `[100]` | `[0010]` | `[00011]` |
+    
+    #### Pseudocode representation
+        ```go
+        lhs := rhs // we'll ignore segfaults
+        ```
+
+## NOP - No operation
+
+    `NOP` is an instruction that does *absolutely nothing* - or as close to nothing as possible - and continues the program.
+
+    In BELLE, the emulated `NOP` instruction calls a *real* `NOP` instruction via *inline assembly*.
+
+    Flags affected: None
+    
+    | Name | Arguments | Description | Use case | Example |
+    | :--- | :-------- | :---------: | :------- | :------ |
+    | NOP  | 0 | NO-OP | Timing alignments | `nop ; do nothing` |
+
+    
+    #### Binary encoding
+
+        Instruction: `nop`
+
+        | Opcode   | Rest of instruction | 
+        | :-----   | :-----------------: |
+        | `[1111]` | `[000000000000]`  |
+    
+    #### Pseudocode representation
+        ```go
+        // 😛
+        ```
+
 
 
