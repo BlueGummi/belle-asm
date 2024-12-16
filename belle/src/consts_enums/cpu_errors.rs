@@ -1,4 +1,4 @@
-use crate::{CONFIG, CPU_STATE};
+use crate::*;
 use colored::Colorize;
 use std::fmt;
 
@@ -25,31 +25,6 @@ pub type Death = Result<(), UnrecoverableError>; // what am I supposed to call i
 impl std::error::Error for UnrecoverableError {}
 impl std::error::Error for RecoverableError {}
 impl UnrecoverableError {
-    pub fn err(&self) {
-        if CONFIG.quiet && !CONFIG.debug {
-            return;
-        }
-
-        eprint!("{} ", "UNRECOVERABLE ERROR:".red());
-        let (err_type, location, msg) = self.details();
-
-        if !CONFIG.verbose && !CONFIG.debug {
-            eprintln!("{}", err_type.bold().red());
-        } else {
-            eprint!("{}", err_type.yellow());
-            if let Some(s) = msg {
-                eprint!(" {}", s.magenta());
-            }
-            eprintln!(" at memory address {}", location.to_string().green());
-        }
-
-        if CONFIG.debug {
-            self.debug_info(&location);
-        }
-
-        eprintln!("{}", "CRASHING...".red());
-    }
-
     fn details(&self) -> (&str, u16, &Option<String>) {
         match self {
             UnrecoverableError::SegmentationFault(loc, msg) => ("Segmentation fault", *loc, msg),
@@ -60,40 +35,9 @@ impl UnrecoverableError {
             UnrecoverableError::StackUnderflow(loc, msg) => ("Stack underflow", *loc, msg),
         }
     }
-
-    fn debug_info(&self, location: &u16) {
-        let state = CPU_STATE.lock().unwrap();
-        if let Some(cpu) = state.values().find(|cpu| cpu.pc == *location) {
-            if let Some((_, data)) = cpu.memory.iter().find(|&&(first, _)| first == *location) {
-                eprintln!("Instruction is {}", format!("{:016b}", data).magenta());
-            } else {
-                eprintln!(
-                    "{}",
-                    "No instruction found at this program counter".red().bold()
-                );
-            }
-        }
-    }
 }
 
 impl RecoverableError {
-    pub fn err(&self) {
-        if !CONFIG.verbose {
-            return;
-        }
-
-        eprint!("{} ", "RECOVERABLE ERROR:".yellow());
-        let (err_type, location, msg) = self.details();
-
-        eprint!("{}", err_type.yellow());
-        if let Some(s) = msg {
-            eprint!(": {}", s.magenta());
-        }
-        if CONFIG.verbose || CONFIG.debug {
-            eprintln!(" at memory address {}", location.to_string().green());
-        }
-    }
-
     fn details(&self) -> (&str, u16, &Option<String>) {
         match self {
             RecoverableError::UnknownFlag(loc, msg) => ("Unknown flag", *loc, msg),

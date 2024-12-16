@@ -60,19 +60,25 @@ impl CPU {
                 6 => self.float_reg[0],
                 7 => self.float_reg[1],
                 n if *n > 3 => {
-                    UnrecoverableError::IllegalInstruction(
-                        self.pc,
-                        Some("Illegal register".to_string()),
-                    )
-                    .err();
+                    println!(
+                        "{}",
+                        UnrecoverableError::IllegalInstruction(
+                            self.pc,
+                            Some("Illegal register".to_string()),
+                        )
+                    );
+                    self.err = true;
                     0.0
                 }
                 n if *n < 0 => {
-                    UnrecoverableError::IllegalInstruction(
-                        self.pc,
-                        Some("Illegal register".to_string()),
-                    )
-                    .err();
+                    println!(
+                        "{}",
+                        UnrecoverableError::IllegalInstruction(
+                            self.pc,
+                            Some("Illegal register".to_string()),
+                        )
+                    );
+                    self.err = true;
                     0.0
                 }
 
@@ -87,10 +93,11 @@ impl CPU {
                 }
                 let tmp = self.memory[*n as usize].unwrap() as usize;
                 if tmp > MEMORY_SIZE {
-                    UnrecoverableError::IllegalInstruction(
+                    println!("{}", UnrecoverableError::IllegalInstruction(
                         self.pc,
                         Some("Segmentation fault whilst processing pointer.\nMemory address invalid (too large).".to_string()),
-                    ).err();
+                    ));
+                    self.err = true;
                 }
                 if self.memory[tmp].is_none() {
                     self.handle_segmentation_fault(
@@ -113,15 +120,19 @@ impl CPU {
                                 Some("Illegal register pointer".to_string()),
                             )
                         );
+                        self.err = true;
                         self.running = false;
                         0.0
                     }
                     n if *n < 0 => {
-                        UnrecoverableError::IllegalInstruction(
-                            self.pc,
-                            Some("Illegal register pointer".to_string()),
-                        )
-                        .err();
+                        println!(
+                            "{}",
+                            UnrecoverableError::IllegalInstruction(
+                                self.pc,
+                                Some("Illegal register pointer".to_string()),
+                            )
+                        );
+                        self.err = true;
                         self.running = false;
                         0.0
                     }

@@ -55,7 +55,7 @@ impl CPU {
                 self.set_register_value(arg, v.into());
                 if self.sp > self.bp {
                     if self.sp != self.bp {
-                        RecoverableError::BackwardStack(self.pc, None).err();
+                        println!("{}", RecoverableError::BackwardStack(self.pc, None));
                     }
                     self.memory[self.sp as usize] = None;
                     if self.sp != self.bp {
@@ -142,6 +142,7 @@ impl CPU {
             }
         } else {
             eprintln!("{}", UnrecoverableError::StackUnderflow(self.pc, None));
+            self.err = true;
             self.running = false;
         }
     }
@@ -248,18 +249,22 @@ impl CPU {
         }
         if self.sp > self.bp || self.backward_stack {
             if self.sp != self.bp {
-                RecoverableError::BackwardStack(self.pc, None).err();
+                println!("{}", RecoverableError::BackwardStack(self.pc, None));
             }
             if self.sp != self.bp || self.memory[self.bp as usize].is_some() {
                 self.sp += 1;
             }
             if self.sp as usize >= MEMORY_SIZE {
                 self.running = false;
-                UnrecoverableError::StackOverflow(
-                    self.pc,
-                    Some("Overflowed while pushing onto stack".to_string()),
-                )
-                .err();
+                println!(
+                    "{}",
+                    UnrecoverableError::StackOverflow(
+                        self.pc,
+                        Some("Overflowed while pushing onto stack".to_string()),
+                    )
+                );
+                self.err = true;
+                return;
             }
 
             self.memory[self.sp as usize] = Some(val as i16);
@@ -269,11 +274,15 @@ impl CPU {
         } else {
             if self.sp == 0 {
                 self.running = false;
-                UnrecoverableError::StackOverflow(
-                    self.pc,
-                    Some("Overflowed while pushing onto stack".to_string()),
-                )
-                .err();
+                println!(
+                    "{}",
+                    UnrecoverableError::StackOverflow(
+                        self.pc,
+                        Some("Overflowed while pushing onto stack".to_string()),
+                    )
+                );
+                self.err = true;
+                return;
             }
             if self.sp != self.bp || self.memory[self.bp as usize].is_some() {
                 self.sp -= 1;
@@ -361,11 +370,13 @@ impl CPU {
             // 10 - 20 set flags
             // 20 - 30 unset them
             // 30 - 40 invert them
-            _ => RecoverableError::UnknownFlag(
-                self.pc,
-                Some(String::from("Occurred whilst handling INT")),
-            )
-            .err(),
+            _ => println!(
+                "{}",
+                RecoverableError::UnknownFlag(
+                    self.pc,
+                    Some(String::from("Occurred whilst handling INT")),
+                )
+            ),
         }
     }
 }

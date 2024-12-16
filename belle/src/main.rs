@@ -50,5 +50,8 @@ fn main() -> io::Result<()> {
         eprintln!("{e}");
         process::exit(1);
     }
+    if cpu.err {
+        process::exit(1);
+    }
     Ok(())
 }

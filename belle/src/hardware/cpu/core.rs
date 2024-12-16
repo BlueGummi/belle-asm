@@ -26,6 +26,7 @@ pub struct CPU {
     pub max_clk: Option<usize>,
     pub hit_max_clk: bool,
     pub do_not_run: bool,
+    pub err: bool,
 }
 
 impl Default for CPU {
@@ -58,6 +59,7 @@ impl CPU {
             max_clk: None,
             hit_max_clk: false,
             do_not_run: false,
+            err: false,
         }
     }
 
