@@ -5,3 +5,6 @@ belle/target
 bin
 belle/.cargo
 basm/.cargo
+belle/*.asm
+basm/*.asm
+bdump/*.asm

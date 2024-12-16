@@ -12,33 +12,29 @@ use std::fs;
 use std::fs::File;
 use std::io::{self, BufRead, Write};
 use std::path::Path;
-use std::process;
 
 fn main() -> io::Result<()> {
-    if CONFIG.debug {
-        println!("Main func started.");
-    }
-
     let input: &String = &CONFIG.file;
     let file = Path::new(input);
 
     if input.is_empty() {
-        LineLessError("no input files").perror();
-        process::exit(1);
+        eprintln!("{}", Error::LineLessError("no input files"));
+        std::process::exit(1);
     }
+
     if File::open(file).is_err() {
-        LineLessError(format!("file {input} does not exist").as_str()).perror();
-        process::exit(1);
+        eprintln!(
+            "{}",
+            Error::LineLessError(format!("file {} does not exist", input).as_str())
+        );
+        std::process::exit(1);
     }
     if let Ok(metadata) = fs::metadata(input) {
         if metadata.is_dir() {
-            LineLessError(format!("{input} is a directory").as_str()).perror();
-            process::exit(1);
+            let error_message = format!("{} is a directory", input);
+            eprintln!("{}", Error::LineLessError(&error_message));
+            std::process::exit(1);
         }
-    }
-
-    if CONFIG.debug {
-        println!("File is Some");
     }
 
     let lines = process_includes(input)?;
@@ -55,7 +51,6 @@ fn main() -> io::Result<()> {
     let mut encoded_instructions = Vec::new();
     let mut line_count: u32 = 1;
     let mut write_to_file: bool = true;
-    let mut has_err: bool = false;
     let _ = process_start(&lines);
     let _ = load_subroutines(&lines);
 
@@ -105,7 +100,6 @@ fn main() -> io::Result<()> {
                         Ok(Some(encoded)) => {
                             if let Err(err_msg) = verify(ins, operand1, operand2, line_count) {
                                 write_to_file = false;
-                                has_err = true;
                                 eprintln!("{}", err_msg);
                             } else {
                                 encoded_instructions.extend(&encoded.to_be_bytes());
@@ -119,7 +113,6 @@ fn main() -> io::Result<()> {
                         }
                         Err(err_msg) => {
                             write_to_file = false;
-                            has_err = true;
                             eprintln!("{}", err_msg);
                         }
                     }
@@ -129,7 +122,6 @@ fn main() -> io::Result<()> {
             }
             Err(err) => {
                 eprintln!("{err}");
-                has_err = true;
                 write_to_file = false;
             }
         }
@@ -142,10 +134,6 @@ fn main() -> io::Result<()> {
         );
     }
 
-    if has_err {
-        process::exit(1);
-    }
-
     if CONFIG.debug {
         print_subroutine_map();
     }
@@ -154,7 +142,9 @@ fn main() -> io::Result<()> {
         Some(output_file) if write_to_file => {
             write_encoded_instructions_to_file(output_file, &encoded_instructions)?;
         }
-        _ => eprintln!("Did not write to output file"),
+        _ => {
+            std::process::exit(1);
+        }
     }
 
     Ok(())
@@ -170,8 +160,11 @@ fn process_includes(input: &String) -> io::Result<Vec<String>> {
         let content = match line {
             Ok(content) => content,
             Err(e) => {
-                LineLessError(format!("error while reading from file: {e}").as_str()).perror();
-                process::exit(1);
+                eprintln!(
+                    "{}",
+                    LineLessError(format!("error while reading from file: {e}").as_str())
+                );
+                return Err(e);
             }
         };
 
@@ -180,10 +173,14 @@ fn process_includes(input: &String) -> io::Result<Vec<String>> {
                 let include_file = captures[1].to_string();
                 if let Ok(included) = read_include_file(&include_file) {
                     included_lines.extend(included);
-                } else {
-                    LineLessError(format!("could not read included file: {include_file}").as_str())
-                        .perror();
-                    process::exit(1);
+                } else if let Err(e) = read_include_file(&include_file) {
+                    eprintln!(
+                        "{}",
+                        LineLessError(
+                            format!("could not read included file: {include_file}").as_str()
+                        )
+                    );
+                    return Err(e);
                 }
             }
             continue;
@@ -203,8 +200,11 @@ fn read_include_file(file_name: &str) -> io::Result<Vec<String>> {
         match line {
             Ok(content) => included_lines.push(content),
             Err(e) => {
-                LineLessError(format!("error while reading from include file: {e}").as_str())
-                    .perror();
+                eprintln!(
+                    "{}",
+                    LineLessError(format!("error while reading from include file: {e}").as_str())
+                );
+                return Err(e);
             }
         }
     }

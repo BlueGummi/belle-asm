@@ -12,31 +12,21 @@ Every executable in this repository can have the `--help` flag passed to display
 
 
 ```
-./build.sh -w && ./install.sh -c # This installs the binaries to ~/.local/bin on Unix OS's
+git clone https://github.com/BlueGummi/belle && cd belle && ./build.sh && ./install.sh
 ```
 
 Or, for Windows
 
 ```pwsh
-.\build.ps1 -w && .\install.ps1 -c
+git clone https://github.com/BlueGummi/belle && cd belle && .\build.ps1 && .\install.ps1 
 ```
 
 The binaries can be run by calling `basm`, `belle`, or `bdump`.
 
-## Further documentation - [docs](https://github.com/BlueGummi/belle/tree/master/docs)
-
-### ISA (Instruction set) - [docs/isa](https://github.com/BlueGummi/belle/tree/master/docs/isa)
-
-### Assembler - [docs/basm.md](https://github.com/BlueGummi/belle/blob/master/docs/basm.md)
-
-### Emulator - [docs/belle.md](https://github.com/BlueGummi/belle/blob/master/docs/belle.md)
-
-### Disassembler - [docs/bdump.md](https://github.com/BlueGummi/belle/blob/master/docs/bdump.md)
-
-### Utilities - [docs/btils.md](https://github.com/BlueGummi/belle/blob/master/docs/btils.md)
+## [Further documentation](https://bluegummi.github.io/belle)
 
 ### BELLE and the BELLE utilities in action:
-![BELLE Usage GIF](https://github.com/BlueGummi/belle/blob/master/docs/media/belle-usage.gif)
+![BELLE Usage GIF](https://github.com/BlueGummi/belle/blob/master/site/src/content/docs/belle-usage.gif)
 
 
 ## Naming
