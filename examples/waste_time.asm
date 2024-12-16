@@ -25,15 +25,16 @@
     st $61, %r2
     mov %r2, #46 ; .
     st $62, %r2
+    mov %r2, #10
+    st $63, %r2
     mov %r0, #51
-    mov %r1, #62    
-    int #11
-    jz @time_waster
+    mov %r1, #63    
+    jmp @time_waster
 time_waster:
     pop %r4 ; so the stack doesn't overflow
     nop
-    jz @print
-    jz @time_waster
+    jmp @print
+    jmp @time_waster
 print:
     int #8
     ret

@@ -53,7 +53,6 @@ pub fn argument_to_binary(arg: Option<&Token>, line_num: u32) -> Result<i16, Str
     }
 }
 
-#[must_use]
 pub fn encode_instruction(
     ins: &Token,
     arg1: Option<&Token>,

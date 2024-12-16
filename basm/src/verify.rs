@@ -1,6 +1,5 @@
 use crate::Token;
 
-#[must_use]
 pub fn verify(
     ins: &Token,
     arg1: Option<&Token>,

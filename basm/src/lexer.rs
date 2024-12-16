@@ -304,7 +304,7 @@ impl<'a> Lexer<'a> {
         }
 
         let addr_val = addr[1..].parse::<i16>().unwrap();
-        if addr_val > 512 || addr_val < 0 {
+        if !(0..=512).contains(&addr_val) {
             return Err(InvalidSyntax(
                 "address must be between 0-512",
                 self.line_number,
