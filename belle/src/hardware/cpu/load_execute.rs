@@ -113,6 +113,7 @@ impl CPU {
                                 Some("Illegal register pointer".to_string()),
                             )
                         );
+                        self.running = false;
                         0.0
                     }
                     n if *n < 0 => {
@@ -121,6 +122,7 @@ impl CPU {
                             Some("Illegal register pointer".to_string()),
                         )
                         .err();
+                        self.running = false;
                         0.0
                     }
                     _ => self.int_reg[*n as usize].into(),
@@ -140,6 +142,8 @@ impl CPU {
                     self.handle_segmentation_fault(
                         "Segmentation fault while loading from memory.\nMemory address is empty.",
                     );
+                    self.running = false;
+                    return 0.0;
                 }
                 self.memory[*n as usize].unwrap().into()
             }
@@ -226,7 +230,7 @@ impl CPU {
             }
             ST_OP => {
                 if (self.ir & 0b100000000000) >> 11 == 1 {
-                    let part = (self.ir & 0b11100000000) >> 8;
+                    let part = (self.ir & 0b1110000000) >> 7;
                     ST(RegPtr(part), Register(self.ir & 0b111))
                 } else {
                     let part = (self.ir & 0b111111111000) >> 3;

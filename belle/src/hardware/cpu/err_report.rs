@@ -75,14 +75,7 @@ impl CPU {
 
     pub fn handle_segmentation_fault(&mut self, message: &str) {
         UnrecoverableError::SegmentationFault(self.pc, Some(message.to_string())).err();
-        if CONFIG.debug {
-            self.running = false;
-            return;
-        }
-        if !CONFIG.quiet {
-            println!("Attempting to recover by restarting...");
-        }
-        std::thread::sleep(std::time::Duration::from_secs(1));
-        self.pc = self.starts_at;
+        self.running = false;
+        return;
     }
 }

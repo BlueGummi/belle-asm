@@ -77,7 +77,6 @@ impl CPU {
         let divisor = self.get_value(arg2);
         if divisor == 0.0 || divisor as u16 == 0 {
             self.report_divide_by_zero();
-            self.pc = self.starts_at;
             return;
         }
         if let Register(n) = arg1 {
@@ -251,12 +250,6 @@ impl CPU {
             if self.sp != self.bp {
                 RecoverableError::BackwardStack(self.pc, None).err();
             }
-            /*loop {
-            match self.memory[self.sp as usize] {
-                Some(_) => {
-                    self.sp += 1;
-                }
-                None => {*/
             if self.sp != self.bp || self.memory[self.bp as usize].is_some() {
                 self.sp += 1;
             }
@@ -270,10 +263,6 @@ impl CPU {
             }
 
             self.memory[self.sp as usize] = Some(val as i16);
-            //break;
-            //}
-            //}
-            //}
             if self.sp >= self.bp {
                 self.backward_stack = true;
             }
@@ -286,20 +275,10 @@ impl CPU {
                 )
                 .err();
             }
-            /*loop {
-            match self.memory[self.sp as usize] {
-                Some(_) => {
-                    self.sp -= 1;
-                }
-                None => {*/
             if self.sp != self.bp || self.memory[self.bp as usize].is_some() {
                 self.sp -= 1;
             }
             self.memory[self.sp as usize] = Some(val as i16);
-            //break;
-            //}
-            //}
-            //}
         }
     }
     pub fn handle_mov(&mut self, arg1: &Argument, arg2: &Argument) {

@@ -38,9 +38,9 @@ impl UnrecoverableError {
         } else {
             eprint!("{}", err_type.yellow());
             if let Some(s) = msg {
-                eprint!(": {}", s.magenta());
+                eprint!(" {}", s.magenta());
             }
-            eprintln!(": at memory address {}", location.to_string().green());
+            eprintln!(" at memory address {}", location.to_string().green());
         }
 
         if CONFIG.debug {
@@ -89,8 +89,8 @@ impl RecoverableError {
         if let Some(s) = msg {
             eprint!(": {}", s.magenta());
         }
-        if CONFIG.verbose {
-            eprintln!(": at memory address {}", location.to_string().green());
+        if CONFIG.verbose || CONFIG.debug {
+            eprintln!(" at memory address {}", location.to_string().green());
         }
     }
 
@@ -106,14 +106,17 @@ impl RecoverableError {
 impl fmt::Display for UnrecoverableError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (err_type, location, msg) = self.details();
-        write!(f, "{}: ", "UNRECOVERABLE ERROR:".red())?;
+        write!(f, "{} ", "UNRECOVERABLE ERROR:".red())?;
         write!(f, "{}", err_type.bold().red())?;
 
         if let Some(s) = msg {
-            write!(f, ": {}", s.magenta())?;
+            if CONFIG.debug || CONFIG.verbose {
+                write!(f, ": {}", s.magenta())?;
+            }
         }
-
-        write!(f, ": at memory address {}", location.to_string().green())?;
+        if CONFIG.debug || CONFIG.verbose {
+            write!(f, " at memory address {}", location.to_string().green())?;
+        }
         Ok(())
     }
 }
@@ -125,10 +128,13 @@ impl fmt::Display for RecoverableError {
         write!(f, "{}", err_type.yellow())?;
 
         if let Some(s) = msg {
-            write!(f, ": {}", s.magenta())?;
+            if CONFIG.debug || CONFIG.verbose {
+                write!(f, ": {}", s.magenta())?;
+            }
         }
-
-        write!(f, ": at memory address {}", location.to_string().green())?;
+        if CONFIG.debug || CONFIG.verbose {
+            write!(f, " at memory address {}", location.to_string().green())?;
+        }
         Ok(())
     }
 }
