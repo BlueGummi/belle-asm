@@ -32,6 +32,10 @@ pub struct Cli {
     /// Print the state of the CPU when it halts
     #[clap(short = 'p', long, default_value_t = false)]
     pub pretty: bool,
+
+    /// Fuzzing mode
+    #[clap(short = 'f', long, default_value_t = false)]
+    pub fuzz: bool,
 }
 
 fn default_config() -> Cli {
@@ -42,6 +46,7 @@ fn default_config() -> Cli {
         quiet: false,
         time_delay: Some(0),
         pretty: false,
+        fuzz: false,
     }
 }
 
@@ -54,6 +59,7 @@ pub fn declare_config() -> Cli {
             quiet: cli.quiet,
             time_delay: Some(cli.time_delay.unwrap_or(0)),
             pretty: cli.pretty,
+            fuzz: cli.fuzz,
         },
         Err(_) => default_config(),
     }

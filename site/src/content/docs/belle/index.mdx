@@ -171,6 +171,28 @@ Along with the above detailed features, the emulator also contains a verbose mod
 
 In this mode, the emulator will print out the status of the CPU after each instruction execution, allowing for the machine to be debugged without entering the debugger.
 
+## "I want to find bugs in your code."
+
+Really? Awesome! Get started by first installing `cargo-fuzz` with 
+
+```bash
+rustup install nightly && rustup default nightly && cargo install cargo-fuzz
+```
+
+Then, navigate to `./belle/fuzz`
+
+```bash
+cd ./belle/fuzz
+```
+
+And lastly, begin fuzzing with
+
+```bash
+cargo fuzz run fuzz_target_1
+```
+
+Have fun, and remember to report any panics to the GitHub page!
+
 # Technical details
 
 The emulated memory is an array of the `Option` type in Rust, which allows it to be either `Some(value)` or `None` (nothing). This is how the emulated memory can have *empty* memory addresses, and how segmentation faults can occur from it.
