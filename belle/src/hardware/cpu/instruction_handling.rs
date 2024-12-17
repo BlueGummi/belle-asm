@@ -244,7 +244,9 @@ impl CPU {
     }
 
     fn jmp(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
-        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()));
+        if let Err(e) = self.handle_push(&Argument::Literal(self.pc.try_into().unwrap())) {
+            return Err(e);
+        }
         if let MemAddr(n) = arg {
             if *n as i16 - 2 < 0 {
                 return Err(UnrecoverableError::IllegalInstruction(
