@@ -4,7 +4,7 @@ use belle::CPU;
 use libfuzzer_sys::fuzz_target;
 extern crate belle;
 
-fuzz_target!(|data: [i16; 512]| {
+fuzz_target!(|data: [i16; 1024]| {
     if !data.is_empty() {
         let mut cpu = CPU::new();
 
