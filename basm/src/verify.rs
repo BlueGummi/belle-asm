@@ -117,7 +117,6 @@ fn check_one_argument(
     Ok(())
 }
 
-// Check if a token is a valid argument
 fn is_arg(tok_to_check: Option<&Token>) -> bool {
     tok_to_check.map_or(false, |tok| {
         matches!(
@@ -132,7 +131,6 @@ fn is_arg(tok_to_check: Option<&Token>) -> bool {
     })
 }
 
-// Argument verification functions
 fn verify_add_args(
     arg1: Option<&Token>,
     arg2: Option<&Token>,
@@ -301,9 +299,9 @@ fn verify_pop_args(arg1: Option<&Token>, _: Option<&Token>, line_num: u32) -> Re
 }
 
 fn verify_jump_args(arg1: Option<&Token>, _: Option<&Token>, line_num: u32) -> Result<(), String> {
-    if !is_register_pointer(arg1) && !is_memory_address(arg1) {
+    if !is_register_pointer(arg1) && !is_memory_address(arg1) && !is_srcall(arg1) {
         return Err(format!(
-            "JZ/JO requires DEST to be a Register pointer or Memory address at line {}",
+            "JMP/JZ/JO requires DEST to be a Register pointer or Memory address at line {}",
             line_num
         ));
     }
@@ -328,4 +326,8 @@ fn is_memory_address_pointer(tok: Option<&Token>) -> bool {
 
 fn is_register_pointer(tok: Option<&Token>) -> bool {
     tok.map_or(false, |tok| matches!(tok, Token::RegPointer(_)))
+}
+
+fn is_srcall(tok: Option<&Token>) -> bool {
+    tok.map_or(false, |tok| matches!(tok, Token::SRCall(_)))
 }
