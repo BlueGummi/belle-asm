@@ -196,8 +196,20 @@ pub fn process_start(lines: &[String]) -> Result<(), String> {
     let mut start_number: Option<i32> = None;
 
     for line in lines {
-        if line.trim().starts_with(".start") {
-            start_number = line
+        let trimmed_line = line.trim();
+
+        if trimmed_line.is_empty() || trimmed_line.starts_with(';') {
+            continue;
+        }
+
+        let line_before_comment = if trimmed_line.contains(';') {
+            trimmed_line.split(';').next().unwrap_or(trimmed_line)
+        } else {
+            trimmed_line
+        };
+
+        if line_before_comment.starts_with(".start") {
+            start_number = line_before_comment
                 .split_whitespace()
                 .nth(1)
                 .and_then(|s| s.strip_prefix('$'))
