@@ -236,11 +236,12 @@ pub fn load_subroutines(lines: &[String]) -> Result<(), String> {
             trimmed_line
         };
         if line_before_comment.trim().ends_with(':') {
-            let subroutine_name = line_before_comment.trim().trim_end_matches(':').trim().to_string();
-            subroutine_map.insert(
-                subroutine_name.trim().to_string(),
-                subroutine_counter,
-            );
+            let subroutine_name = line_before_comment
+                .trim()
+                .trim_end_matches(':')
+                .trim()
+                .to_string();
+            subroutine_map.insert(subroutine_name.trim().to_string(), subroutine_counter);
             subroutine_counter -= 1;
         }
 
