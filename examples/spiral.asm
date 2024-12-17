@@ -1,7 +1,7 @@
     ; This program increments the number being printed to stdout, then detects an overflow, before decrementing it again
     ; It is indefinite
-.ssp $100
-.sbp $3
+.ssp $10
+.sbp $10
 .start $303
     mov %r5, #31
     mov %r4, #7
@@ -24,3 +24,4 @@ sub_loop:
     cmp %r0, %r1
     jz @loop
     jmp @sub_loop
+
