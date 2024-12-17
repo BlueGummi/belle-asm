@@ -216,7 +216,7 @@ pub fn process_start(lines: &[String]) -> Result<(), String> {
 }
 
 pub fn load_subroutines(lines: &[String]) -> Result<(), String> {
-    let mut subroutine_counter = 1 + *START_LOCATION
+    let mut subroutine_counter = *START_LOCATION
         .lock()
         .map_err(|_| "Failed to lock START_LOCATION")? as u32;
     let mut subroutine_map = SUBROUTINE_MAP
@@ -230,13 +230,15 @@ pub fn load_subroutines(lines: &[String]) -> Result<(), String> {
         {
             continue;
         }
-
-        let line_before_comment = trimmed_line.split(';').next().unwrap_or(trimmed_line);
-
+        let line_before_comment = if trimmed_line.contains(';') {
+            trimmed_line.split(';').next().unwrap_or(trimmed_line)
+        } else {
+            trimmed_line
+        };
         if line_before_comment.trim().ends_with(':') {
-            let subroutine_name = line_before_comment.trim_end_matches(':').trim().to_string();
+            let subroutine_name = line_before_comment.trim().trim_end_matches(':').trim().to_string();
             subroutine_map.insert(
-                subroutine_name[..subroutine_name.len() - 1].to_string(),
+                subroutine_name.trim().to_string(),
                 subroutine_counter,
             );
             subroutine_counter -= 1;

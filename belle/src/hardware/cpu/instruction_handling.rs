@@ -248,13 +248,13 @@ impl CPU {
             return Err(e);
         }
         if let MemAddr(n) = arg {
-            if *n as i16 - 2 < 0 {
+            if *n as i16 - 1 < 0 {
                 return Err(UnrecoverableError::IllegalInstruction(
                     self.pc,
                     Some("attempted to jump to an invalid address".to_string()),
                 ));
             }
-            self.pc = (*n as u16) - 2;
+            self.pc = (*n as u16) - 1;
         } else if let RegPtr(n) = arg {
             if let Err(e) = self.get_value(&Argument::Register(*n)) {
                 return Err(e);
