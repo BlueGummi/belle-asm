@@ -478,23 +478,23 @@ impl CPU {
                 }
             }
             9 => {
-                /*if !CONFIG.fuzz {
+                if !CONFIG.fuzz {
                     use crossterm::terminal;
                     terminal::enable_raw_mode().unwrap();
                     let mut buffer = [0; 1];
                     io::stdin().read_exact(&mut buffer).unwrap();
                     self.int_reg[0] = buffer[0] as i16;
                     terminal::disable_raw_mode().unwrap();
-                } else {*/
+                } else {
                     println!("interrupt call 9");
-                //}
+                }
             }
             10 => {
-                /*if !CONFIG.fuzz {
+                if !CONFIG.fuzz {
                     std::thread::sleep(std::time::Duration::from_secs(1));
-                } else {*/
+                } else {
                     println!("Interrupt call 10");
-                //}
+                }
             }
             11 => self.zflag = true,
             12 => self.zflag = false,

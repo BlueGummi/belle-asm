@@ -46,7 +46,7 @@ fn default_config() -> Cli {
         quiet: false,
         time_delay: Some(0),
         pretty: false,
-        fuzz: false,
+        fuzz: true,
     }
 }
 
