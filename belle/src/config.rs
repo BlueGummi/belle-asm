@@ -1,8 +1,9 @@
 use clap::Parser;
 use once_cell::sync::Lazy;
+
 pub static CONFIG: Lazy<Cli> = Lazy::new(declare_config);
-/// Command line arguments
-#[derive(Parser)]
+
+#[derive(Parser, Debug)]
 #[command(name = "belle")]
 #[command(version = "0.2.0")]
 #[command(author = "gummi")]
@@ -32,16 +33,30 @@ pub struct Cli {
     #[clap(short = 'p', long, default_value_t = false)]
     pub pretty: bool,
 }
-#[must_use]
-pub fn declare_config() -> Cli {
-    let cli = Cli::parse();
 
+fn default_config() -> Cli {
     Cli {
-        file: cli.file,
-        verbose: cli.verbose,
-        debug: cli.debug,
-        quiet: cli.quiet,
-        time_delay: Some(cli.time_delay.unwrap_or(0)),
-        pretty: cli.pretty,
+        file: "".to_string(),
+        verbose: false,
+        debug: false,
+        quiet: false,
+        time_delay: Some(0),
+        pretty: false,
+    }
+}
+
+pub fn declare_config() -> Cli {
+    match Cli::try_parse() {
+        Ok(cli) => Cli {
+            file: cli.file,
+            verbose: cli.verbose,
+            debug: cli.debug,
+            quiet: cli.quiet,
+            time_delay: Some(cli.time_delay.unwrap_or(0)),
+            pretty: cli.pretty,
+        },
+        Err(_) => {
+            default_config()
+        }
     }
 }

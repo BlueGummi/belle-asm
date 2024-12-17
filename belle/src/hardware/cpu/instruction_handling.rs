@@ -52,15 +52,8 @@ impl CPU {
         if !self.oflag {
             return Ok(());
         }
-        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()))?;
-        if let MemAddr(n) = arg {
-            self.pc = (*n as u16) - 2;
-        } else if let RegPtr(n) = arg {
-            if let Err(e) = self.get_value(&Argument::Register(*n)) {
-                return Err(e);
-            } else if let Ok(v) = self.get_value(&Argument::Register(*n)) {
-                self.pc = v as u16;
-            }
+        if let Err(e) = self.jmp(arg) {
+            return Err(e);
         }
         Ok(())
     }
@@ -234,15 +227,8 @@ impl CPU {
     }
 
     pub fn handle_jmp(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
-        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()))?;
-        if let MemAddr(n) = arg {
-            self.pc = (*n as u16) - 2;
-        } else if let RegPtr(n) = arg {
-            if let Err(e) = self.get_value(&Argument::Register(*n)) {
-                return Err(e);
-            } else if let Ok(v) = self.get_value(&Argument::Register(*n)) {
-                self.pc = v as u16;
-            }
+        if let Err(e) = self.jmp(arg) {
+            return Err(e);
         }
         Ok(())
     }
@@ -251,8 +237,20 @@ impl CPU {
         if !self.zflag {
             return Ok(());
         }
-        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()))?;
+        if let Err(e) = self.jmp(arg) {
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    fn jmp(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
         if let MemAddr(n) = arg {
+            if *n as i16 - 2 < 0 {
+                return Err(UnrecoverableError::IllegalInstruction(
+                    self.pc,
+                    Some("attempted to jump to an invalid address".to_string()),
+                ));
+            }
             self.pc = (*n as u16) - 2;
         } else if let RegPtr(n) = arg {
             if let Err(e) = self.get_value(&Argument::Register(*n)) {

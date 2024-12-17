@@ -36,7 +36,9 @@ impl CPU {
                 trust_me!("nop");
             } // NOP
         }
-
+        if self.pc as u64 + 1 > u16::MAX as u64 {
+            return Err(UnrecoverableError::IllegalInstruction(self.pc, Some("program counter is too large".to_string())));
+        }
         self.pc += 1;
         Ok(())
     }
