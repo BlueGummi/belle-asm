@@ -224,16 +224,21 @@ pub fn load_subroutines(lines: &[String]) -> Result<(), String> {
         .map_err(|_| "Failed to lock SUBROUTINE_MAP")?;
 
     for line in lines {
-        if line.trim().is_empty()
-            || line.trim_start().starts_with(';')
-            || line.trim().starts_with('.')
+        let trimmed_line = line.trim();
+
+        if trimmed_line.is_empty() || trimmed_line.starts_with(';') || trimmed_line.starts_with('.')
         {
             continue;
         }
 
-        if line.ends_with(':') {
-            let subroutine_name = line.trim_end_matches(':').trim().to_string();
-            subroutine_map.insert(subroutine_name, subroutine_counter);
+        let line_before_comment = trimmed_line.split(';').next().unwrap_or(trimmed_line);
+
+        if line_before_comment.trim().ends_with(':') {
+            let subroutine_name = line_before_comment.trim_end_matches(':').trim().to_string();
+            subroutine_map.insert(
+                subroutine_name[..subroutine_name.len() - 1].to_string(),
+                subroutine_counter,
+            );
             subroutine_counter -= 1;
         }
 
@@ -242,7 +247,6 @@ pub fn load_subroutines(lines: &[String]) -> Result<(), String> {
 
     Ok(())
 }
-
 pub fn update_memory_counter() -> Result<(), String> {
     let mut counter = MEMORY_COUNTER
         .lock()

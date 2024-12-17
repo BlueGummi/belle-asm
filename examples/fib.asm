@@ -7,7 +7,7 @@
     push %r6            ; r6 onto stack
     push %r7            ; r7 onto stack 
     jmp @fib_loop
-fib_loop:
+fib_loop: ; lib foop
     pop %r0             ; pop the jump address and save it
     mov %r5, #0         ; final value of fibonacci
     pop %r7             ; load values back into registers
@@ -21,5 +21,5 @@ fib_loop:
     jo @finish
     int #5              ; print the value in register 5
     jmp @fib_loop        ; continue loop
-finish:
+finish: ; done
     hlt
