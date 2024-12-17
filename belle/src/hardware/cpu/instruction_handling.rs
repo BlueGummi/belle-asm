@@ -332,7 +332,7 @@ impl CPU {
                 _ => {
                     self.int_reg[*n as usize] =
                         self.int_reg[*n as usize].wrapping_mul(value as i16);
-                    self.int_reg[*n as usize] as i64 * value as i64
+                    (self.int_reg[*n as usize] as i64).wrapping_mul(value as i64)
                 }
             };
 
