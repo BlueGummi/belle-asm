@@ -55,8 +55,6 @@ pub fn declare_config() -> Cli {
             time_delay: Some(cli.time_delay.unwrap_or(0)),
             pretty: cli.pretty,
         },
-        Err(_) => {
-            default_config()
-        }
+        Err(_) => default_config(),
     }
 }

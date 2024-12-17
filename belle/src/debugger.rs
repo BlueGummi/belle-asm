@@ -233,6 +233,7 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                 println!("  Remainder flag           : {}", dbgcpu.rflag);
                 println!("  Stack pointer            : {}", dbgcpu.sp);
                 println!("  Base pointer             : {}", dbgcpu.bp);
+                println!("  Instruction pointer      : {}", dbgcpu.ip);
                 println!(
                     "  Disassembled Instruction : {}",
                     dbgcpu.parse_instruction()

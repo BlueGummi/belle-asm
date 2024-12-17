@@ -52,9 +52,7 @@ impl CPU {
         if !self.oflag {
             return Ok(());
         }
-        if let Err(e) = self.jmp(arg) {
-            return Err(e);
-        }
+        self.jmp(arg)?;
         Ok(())
     }
 
@@ -227,9 +225,7 @@ impl CPU {
     }
 
     pub fn handle_jmp(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
-        if let Err(e) = self.jmp(arg) {
-            return Err(e);
-        }
+        self.jmp(arg)?;
         Ok(())
     }
 
@@ -237,18 +233,14 @@ impl CPU {
         if !self.zflag {
             return Ok(());
         }
-        if let Err(e) = self.jmp(arg) {
-            return Err(e);
-        }
+        self.jmp(arg)?;
         Ok(())
     }
 
     fn jmp(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
-        if let Err(e) = self.handle_push(&Argument::Literal(self.pc.try_into().unwrap())) {
-            return Err(e);
-        }
+        self.handle_push(&Argument::Literal(self.ip.try_into().unwrap()))?;
         if let MemAddr(n) = arg {
-            if *n as i16 - 1 < 0 {
+            if { *n } - 1 < 0 {
                 return Err(UnrecoverableError::IllegalInstruction(
                     self.pc,
                     Some("attempted to jump to an invalid address".to_string()),
@@ -446,7 +438,7 @@ impl CPU {
             }
             9 => {
                 use crossterm::terminal;
-            
+
                 terminal::enable_raw_mode().unwrap();
                 let mut buffer = [0; 1];
                 io::stdin().read_exact(&mut buffer).unwrap();

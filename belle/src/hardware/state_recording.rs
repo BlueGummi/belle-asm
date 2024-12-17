@@ -25,6 +25,7 @@ pub struct ModCPU {
     pub hlt_on_overflow: bool,
     pub sp: u16,
     pub bp: u16,
+    pub ip: u16,
 }
 
 impl ModCPU {
@@ -53,6 +54,7 @@ impl ModCPU {
             hlt_on_overflow: origin.hlt_on_overflow,
             sp: origin.sp,
             bp: origin.bp,
+            ip: origin.ip,
         }
     }
 }
@@ -95,6 +97,7 @@ impl CPU {
             println!("  Remainder flag           : {}", cpu.rflag);
             println!("  Stack pointer            : {}", cpu.sp);
             println!("  Base pointer             : {}", cpu.bp);
+            println!("  Instruction pointer      : {}", cpu.ip);
             let mut tmp = CPU::new();
             tmp.ir = cpu.ir;
             println!("  Disassembled Instruction : {}", tmp.parse_instruction());

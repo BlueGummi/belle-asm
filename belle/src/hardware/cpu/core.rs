@@ -22,6 +22,7 @@ pub struct CPU {
     pub hlt_on_overflow: bool,
     pub sp: u16,
     pub bp: u16,
+    pub ip: u16,
     pub backward_stack: bool,
     pub max_clk: Option<usize>,
     pub hit_max_clk: bool,
@@ -55,6 +56,7 @@ impl CPU {
             hlt_on_overflow: false,
             sp: 99,
             bp: 99,
+            ip: 0,
             backward_stack: false,
             max_clk: None,
             hit_max_clk: false,
@@ -164,17 +166,21 @@ impl CPU {
             std::mem::drop(clock); // clock must go bye bye so it unlocks
 
             // Check for segmentation fault
-            if self.memory[self.pc as usize].is_none() {
-                if CONFIG.verbose {
-                    println!("PC: {}", self.pc);
+            match self.memory[self.pc as usize] {
+                Some(instruction) => {
+                    self.ip = self.pc;
+                    self.ir = instruction;
                 }
-                return Err(UnrecoverableError::SegmentationFault(
-                    self.pc,
-                    Some("Segmentation fault while finding next instruction".to_string()),
-                ));
+                None => {
+                    if CONFIG.verbose {
+                        println!("PC: {}", self.pc);
+                    }
+                    return Err(UnrecoverableError::SegmentationFault(
+                        self.pc,
+                        Some("Segmentation fault while finding next instruction".to_string()),
+                    ));
+                }
             }
-
-            self.ir = self.memory[self.pc as usize].unwrap();
             let parsed_ins = self.parse_instruction();
             if let Err(e) = self.execute_instruction(&parsed_ins) {
                 self.running = false;
