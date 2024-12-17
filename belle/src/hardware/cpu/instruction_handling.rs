@@ -1,6 +1,5 @@
 use crate::Argument::*;
 use crate::*;
-use std::io::{self, Read};
 
 impl CPU {
     pub fn handle_add(
@@ -8,46 +7,47 @@ impl CPU {
         arg1: &Argument,
         arg2: &Argument,
     ) -> Result<(), UnrecoverableError> {
-        let mut value = 0.0;
-        if let Err(e) = self.get_value(arg2) {
-            return Err(e);
-        } else if let Ok(v) = self.get_value(arg2) {
-            value = v;
-        }
+        let value = self.get_value(arg2)?;
+
         if let Register(n) = arg1 {
             let new_value = match *n {
                 4 => {
-                    self.uint_reg[0] += value as u16;
-                    self.uint_reg[0] as i64 + value as i64
+                    let result = self.uint_reg[0].wrapping_add(value as u16);
+                    self.uint_reg[0] = result;
+                    result as i64 + value as i64
                 }
                 5 => {
-                    self.uint_reg[1] += value as u16;
-                    self.uint_reg[1] as i64 + value as i64
+                    let result = self.uint_reg[1].wrapping_add(value as u16);
+                    self.uint_reg[1] = result;
+                    result as i64 + value as i64
                 }
                 6 => {
-                    self.float_reg[0] += value;
-                    self.float_reg[0] as i64 + value as i64
+                    let result = self.float_reg[0] + value;
+                    self.float_reg[0] = result;
+                    (result as i64).wrapping_add(value as i64)
                 }
                 7 => {
-                    self.float_reg[1] += value;
-                    self.float_reg[1] as i64 + value as i64
+                    let result = self.float_reg[1] + value;
+                    self.float_reg[1] = result;
+                    (result as i64).wrapping_add(value as i64)
                 }
                 n if n > 5 => {
                     self.report_invalid_register();
                     0
                 }
                 _ => {
-                    self.int_reg[*n as usize] += value as i16;
-                    self.int_reg[*n as usize] as i64 + value as i64
+                    let result = self.int_reg[*n as usize].wrapping_add(value as i16);
+                    self.int_reg[*n as usize] = result;
+                    result as i64 + value as i64
                 }
             };
+
             if let Err(e) = self.check_overflow(new_value, *n as u16) {
                 eprint!("{e}");
             }
         }
         Ok(())
     }
-
     pub fn handle_jo(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
         if !self.oflag {
             return Ok(());
@@ -92,45 +92,50 @@ impl CPU {
         arg1: &Argument,
         arg2: &Argument,
     ) -> Result<(), UnrecoverableError> {
-        let mut divisor = 0.0;
-        if let Err(e) = self.get_value(arg2) {
-            return Err(e);
-        } else if let Ok(v) = self.get_value(arg2) {
-            divisor = v;
-        }
-        if divisor == 0.0 || divisor as u16 == 0 {
-            self.report_divide_by_zero();
-            return Err(UnrecoverableError::DivideByZero(self.pc, None));
-        }
+        let divisor = match self.get_value(arg2) {
+            Ok(v) => {
+                if v == 0.0 || v as u16 == 0 {
+                    self.report_divide_by_zero();
+                    return Err(UnrecoverableError::DivideByZero(self.pc, None));
+                }
+                v
+            }
+            Err(e) => return Err(e),
+        };
+
         if let Register(n) = arg1 {
             let new_value = match *n {
                 4 => {
                     if self.uint_reg[0] as f32 % divisor != 0.0 {
                         self.rflag = true;
                     }
-                    self.uint_reg[0] /= divisor as u16;
-                    self.uint_reg[0] as i64 / divisor as i64
+                    let result = self.uint_reg[0] / divisor as u16;
+                    self.uint_reg[0] = result;
+                    result as i64
                 }
                 5 => {
                     if self.uint_reg[1] as f32 % divisor != 0.0 {
                         self.rflag = true;
                     }
-                    self.uint_reg[1] /= divisor as u16;
-                    self.uint_reg[1] as i64 / divisor as i64
+                    let result = self.uint_reg[1] / divisor as u16;
+                    self.uint_reg[1] = result;
+                    result as i64
                 }
                 6 => {
                     if self.float_reg[0] % divisor != 0.0 {
                         self.rflag = true;
                     }
-                    self.float_reg[0] /= divisor;
-                    self.float_reg[0] as i64 / divisor as i64
+                    let result = self.float_reg[0] / divisor;
+                    self.float_reg[0] = result;
+                    result as i64
                 }
                 7 => {
                     if self.float_reg[1] % divisor != 0.0 {
                         self.rflag = true;
                     }
-                    self.float_reg[1] /= divisor;
-                    self.float_reg[1] as i64 / divisor as i64
+                    let result = self.float_reg[1] / divisor;
+                    self.float_reg[1] = result;
+                    result as i64
                 }
                 n if n > 5 => {
                     return Err(self.report_invalid_register());
@@ -139,17 +144,18 @@ impl CPU {
                     if f32::from(self.int_reg[*n as usize]) % divisor != 0.0 {
                         self.rflag = true;
                     }
-                    self.int_reg[*n as usize] /= divisor as i16;
-                    self.int_reg[*n as usize] as i64 / divisor as i64
+                    let result = self.int_reg[*n as usize] / divisor as i16;
+                    self.int_reg[*n as usize] = result;
+                    result as i64
                 }
             };
+
             if let Err(e) = self.check_overflow(new_value, *n as u16) {
                 eprint!("{e}");
             }
         }
         Ok(())
     }
-
     pub fn handle_ret(&mut self) -> Result<(), UnrecoverableError> {
         let temp: i32 = self.sp.into();
         if let Some(v) = self.memory[temp as usize] {
@@ -206,24 +212,34 @@ impl CPU {
         arg1: &Argument,
         arg2: &Argument,
     ) -> Result<(), UnrecoverableError> {
-        let mut source = 0.0;
-        if let Err(e) = self.get_value(arg2) {
-            return Err(e);
-        } else if let Ok(v) = self.get_value(arg2) {
-            source = v;
-        }
+        let source = match self.get_value(arg2) {
+            Ok(v) => v as i16,
+            Err(e) => return Err(e),
+        };
+
         if let MemAddr(n) = arg1 {
-            self.memory[*n as usize] = Some(source as i16);
-        } else if let RegPtr(n) = arg1 {
-            if let Err(e) = self.get_value(&Register(*n)) {
-                return Err(e);
-            } else if let Ok(addr) = self.get_value(&Register(*n)) {
-                self.memory[addr as usize] = Some(source as i16);
+            let index = *n as usize;
+            if index >= self.memory.len() {
+                return Err(UnrecoverableError::SegmentationFault(
+                    self.pc,
+                    Some("segmentation fault whilst storing to an address. OOB".to_string()),
+                ));
             }
+            self.memory[index] = Some(source);
+        } else if let RegPtr(n) = arg1 {
+            let addr = match self.get_value(&Register(*n)) {
+                Ok(a) => a as usize,
+                Err(e) => return Err(e),
+            };
+
+            if addr >= self.memory.len() {
+                return Err(UnrecoverableError::IllegalInstruction(self.pc, None));
+            }
+            self.memory[addr] = Some(source);
         }
+
         Ok(())
     }
-
     pub fn handle_jmp(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
         self.jmp(arg)?;
         Ok(())
@@ -281,52 +297,50 @@ impl CPU {
         }
         Ok(())
     }
-
     pub fn handle_mul(
         &mut self,
         arg1: &Argument,
         arg2: &Argument,
     ) -> Result<(), UnrecoverableError> {
-        let mut value = 0.0;
-        if let Err(e) = self.get_value(arg2) {
-            return Err(e);
-        } else if let Ok(v) = self.get_value(arg2) {
-            value = v;
-        }
+        let value = self.get_value(arg2)?;
+
         if let Register(n) = arg1 {
             let new_value = match *n {
                 4 => {
-                    self.uint_reg[0] *= value as u16;
+                    self.uint_reg[0] = self.uint_reg[0].wrapping_mul(value as u16);
                     self.uint_reg[0] as i64 * value as i64
                 }
                 5 => {
-                    self.uint_reg[1] *= value as u16;
+                    self.uint_reg[1] = self.uint_reg[1].wrapping_mul(value as u16);
                     self.uint_reg[1] as i64 * value as i64
                 }
                 6 => {
-                    self.float_reg[0] *= value;
-                    self.float_reg[0] as i64 * value as i64
+                    let temp = self.float_reg[0] * value;
+                    self.float_reg[0] = temp;
+                    temp as i64
                 }
                 7 => {
-                    self.float_reg[1] *= value;
-                    self.float_reg[1] as i64 * value as i64
+                    let temp = self.float_reg[1] * value;
+                    self.float_reg[1] = temp;
+                    temp as i64
                 }
                 n if n > 5 => {
                     self.report_invalid_register();
-                    0
+                    return Err(UnrecoverableError::InvalidRegister(self.pc, None));
                 }
                 _ => {
-                    self.int_reg[*n as usize] *= value as i16;
+                    self.int_reg[*n as usize] =
+                        self.int_reg[*n as usize].wrapping_mul(value as i16);
                     self.int_reg[*n as usize] as i64 * value as i64
                 }
             };
+
             if let Err(e) = self.check_overflow(new_value, *n as u16) {
                 eprint!("{e}");
             }
         }
         Ok(())
     }
-
     pub fn handle_push(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
         let mut val: f32 = 0.0;
         if let Literal(l) = arg {
@@ -423,6 +437,11 @@ impl CPU {
                 let memory = &self.memory;
 
                 for index in starting_point..=end_point {
+                    if index < 0 || index as usize >= memory.len() {
+                        return Err(self.handle_segmentation_fault(
+                            "Segmentation fault. Memory index out of bounds on interrupt call 8.",
+                        ));
+                    }
                     if memory[index as usize].is_none() {
                         return Err(self.handle_segmentation_fault(
                             "Segmentation fault. Memory index out of bounds on interrupt call 8.",
@@ -431,12 +450,34 @@ impl CPU {
                 }
 
                 for index in starting_point..=end_point {
+                    if index < 0 || index as usize >= memory.len() {
+                        return Err(self.handle_segmentation_fault(
+                            "Segmentation fault. Memory index out of bounds on interrupt call 8.",
+                        ));
+                    }
+
                     if let Some(value) = memory[index as usize] {
-                        print!("{}", char::from_u32(value.try_into().unwrap()).unwrap());
+                        match u32::try_from(value) {
+                            Ok(v) => {
+                                if let Some(character) = char::from_u32(v) {
+                                    print!("{}", character);
+                                } else {
+                                    return Err(self.handle_segmentation_fault(
+                                        "Segmentation fault. Invalid Unicode value.",
+                                    ));
+                                }
+                            }
+                            Err(_) => {
+                                return Err(self.handle_segmentation_fault(
+                    "Segmentation fault. Conversion error from memory value to u32.",
+                ));
+                            }
+                        }
                     }
                 }
             }
             9 => {
+                /*
                 use crossterm::terminal;
 
                 terminal::enable_raw_mode().unwrap();
@@ -444,8 +485,13 @@ impl CPU {
                 io::stdin().read_exact(&mut buffer).unwrap();
                 self.int_reg[0] = buffer[0] as i16;
                 terminal::disable_raw_mode().unwrap();
+                */
+                println!("interrupt call 9");
             }
-            10 => std::thread::sleep(std::time::Duration::from_secs(1)),
+            10 => {
+                //std::thread::sleep(std::time::Duration::from_secs(1));
+                println!("Interrupt call 10");
+            }
             11 => self.zflag = true,
             12 => self.zflag = false,
             13 => self.zflag = !self.zflag,

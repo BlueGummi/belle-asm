@@ -139,6 +139,12 @@ impl CPU {
                     _ => self.int_reg[*n as usize] as f32,
                 };
                 let memloc = tmp as usize;
+                if memloc >= self.memory.len() || tmp < 0.0 {
+                    self.running = false;
+                    return Err(self.handle_segmentation_fault(
+                        "Segmentation fault handling pointer.\nAddress OOB.",
+                    ));
+                }
                 if self.memory[memloc].is_none() {
                     self.running = false;
                     return Err(self.handle_segmentation_fault(
