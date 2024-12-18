@@ -440,17 +440,14 @@ impl CPU {
                 let end_point = self.int_reg[1];
                 let memory = &self.memory;
 
-                for index in starting_point..=end_point {
-                    if index < 0 || index as usize >= memory.len() {
-                        return Err(self.handle_segmentation_fault(
-                            "Segmentation fault. Memory index out of bounds on interrupt call 8.",
-                        ));
-                    }
-                    if memory[index as usize].is_none() {
-                        return Err(self.handle_segmentation_fault(
-                            "Segmentation fault. Memory index out of bounds on interrupt call 8.",
-                        ));
-                    }
+                if end_point < 0
+                    || end_point as usize >= memory.len()
+                    || starting_point < 0
+                    || starting_point as usize >= memory.len()
+                {
+                    return Err(self.handle_segmentation_fault(
+                        "Segmentation fault. Memory index out of bounds on interrupt call 8.",
+                    ));
                 }
 
                 for index in starting_point..=end_point {

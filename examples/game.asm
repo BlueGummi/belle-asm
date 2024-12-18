@@ -10,14 +10,14 @@ begin:
 	cmp %r3, #30
 	jz @next
 	jmp @begin
+next:	
 	mov %r3, #10
 	st $30, %r3
-next:
 	mov %r0, #0
-	mov %r1, #29
+	mov %r1, #30
 	int #8
-	int #9
 	int #12
+	int #9
 	cmp %r0, #68
 	cmp %r0, #100
 	jz @move_right
@@ -29,19 +29,11 @@ move_right:
 	pop %r5
 	mov %r1, #45
 	add %r4, #1
-	jmp @movr_loop
-movr_loop:
-	mov %r0, #32
-	st &r4, %r0
-	jmp @next
+	ret
 move_left:
 	pop %r5
 	mov %r1, #45
 	add %r4, #1
-	jmp @movl_loop
-movl_loop:
-	mov %r0, #32,
-	st &r4, %r0
-	jmp @next
+	ret
 done:
 	hlt
