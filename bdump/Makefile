@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -w -flto -O2 
+CFLAGS = -w -flto -O2
 SRCDIR = src
 OBJ = bdump.o # print_utils.o # math_functions.o
 TARGET = bdump
@@ -15,6 +15,8 @@ endif
 
 RELEASE_FLAGS = -static
 
+.PHONY: all release run clean
+
 all: $(TARGET)
 
 release: CFLAGS += $(RELEASE_FLAGS)
@@ -26,6 +28,9 @@ $(TARGET): $(SRCDIR)/$(OBJ)
 
 $(SRCDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
+
+run: $(TARGET)
+	./$(TARGET)
 
 clean:
 	$(RM) $(OBJ_DIR) $(RM_FLAGS) || true

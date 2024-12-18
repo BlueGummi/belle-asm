@@ -1,3 +1,4 @@
+#pragma once
 int line = 1;
 void print_binary(int num, int leading) {
     if (args.binary == 1) {

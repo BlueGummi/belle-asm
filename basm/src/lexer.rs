@@ -55,6 +55,10 @@ impl<'a> Lexer<'a> {
                     self.lex_memory_address(c)?;
                 }
                 '.' => self.lex_label()?,
+                '\'' => {
+                    self.location += 1;
+                    self.lex_ascii()?;
+                }
                 _ => {
                     return Err(UnknownCharacter(
                         c.to_string(),
@@ -66,6 +70,45 @@ impl<'a> Lexer<'a> {
         }
 
         Ok(&self.tokens)
+    }
+
+    fn lex_ascii(&mut self) -> Result<(), Error<'a>> {
+        let mut ascii_char = String::new();
+
+        for next_char in self.chars.by_ref() {
+            self.location += 1;
+
+            match next_char {
+                '\'' => {
+                    if ascii_char.is_empty() {
+                        return Err(Error::InvalidSyntax(
+                            "ASCII  value is empty",
+                            self.line_number,
+                            Some(self.location),
+                        ));
+                    }
+
+                    if ascii_char.len() > 1 {
+                        return Err(Error::InvalidSyntax(
+                            "ASCII value has more than one character",
+                            self.line_number,
+                            Some(self.location),
+                        ));
+                    }
+                    let ascii_value = ascii_char.chars().next().unwrap() as i16;
+                    self.tokens.push(Token::Literal(ascii_value));
+                    return Ok(());
+                }
+                _ => {
+                    ascii_char.push(next_char);
+                }
+            }
+        }
+        Err(Error::InvalidSyntax(
+            "ASCII value is missing closing quote",
+            self.line_number,
+            Some(self.location),
+        ))
     }
 
     fn lex_pointer(&mut self, c: char) -> Result<(), Error<'a>> {
@@ -133,15 +176,7 @@ impl<'a> Lexer<'a> {
     fn handle_memory(&mut self, pointer: String) -> Result<(), Error<'a>> {
         if pointer.len() > 2 {
             if let Ok(mem) = pointer.trim()[2..].parse::<i16>() {
-                if mem < 512 {
-                    self.tokens.push(Token::MemPointer(mem));
-                } else {
-                    return Err(InvalidSyntax(
-                        "address must be between 0-512",
-                        self.line_number,
-                        Some(self.location),
-                    ));
-                }
+                self.tokens.push(Token::MemPointer(mem));
             } else {
                 return Err(InvalidSyntax(
                     "invalid memory number",
@@ -267,14 +302,6 @@ impl<'a> Lexer<'a> {
             ));
         };
 
-        if !(-128..=127).contains(&num_value) {
-            return Err(InvalidSyntax(
-                "numeric literal cannot be over +/- 128",
-                self.line_number,
-                Some(self.location),
-            ));
-        }
-
         let stored_value = if num_value < 0 {
             let positive_value = num_value.unsigned_abs() as u8;
             (positive_value & 0x7F) | 0x80
@@ -297,20 +324,13 @@ impl<'a> Lexer<'a> {
 
         if addr[1..].parse::<i16>().is_err() {
             return Err(InvalidSyntax(
-                "value after $ must be numeric, 0-511",
+                "value after $ must be numeric",
                 self.line_number,
                 Some(self.location),
             ));
         }
 
         let addr_val = addr[1..].parse::<i16>().unwrap();
-        if !(0..=512).contains(&addr_val) {
-            return Err(InvalidSyntax(
-                "address must be between 0-512",
-                self.line_number,
-                Some(self.location),
-            ));
-        }
         self.tokens.push(Token::MemAddr(addr_val));
         Ok(())
     }

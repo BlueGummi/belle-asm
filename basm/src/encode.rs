@@ -62,6 +62,14 @@ pub fn encode_instruction(
     let mut ins_type = "default";
     let instruction_bin = match ins {
         Token::Ident(ref instruction) => match instruction.to_uppercase().as_str() {
+            "SSP" => {
+                ins_type = "one_arg";
+                Ok(RET_OP << 1 | 1)
+            }
+            "SBP" => {
+                ins_type = "one_arg";
+                Ok(NOP_OP << 1 | 1)
+            }
             "HLT" => Ok(HLT_OP), // 0
             "ADD" => Ok(ADD_OP), // 1
             "JO" => {
@@ -247,7 +255,7 @@ pub fn load_subroutines(lines: &[String]) -> Result<(), String> {
         } else {
             trimmed_line
         };
-        if line_before_comment.trim().ends_with(':') {
+        if line_before_comment.trim().ends_with(':') || !line_before_comment.trim().contains(' ') {
             let subroutine_name = line_before_comment
                 .trim()
                 .trim_end_matches(':')

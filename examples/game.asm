@@ -1,7 +1,7 @@
 .start $100
 .ssp $99
 .sbp $99
-	mov %r1, #45 ; hyphen ascii
+	mov %r1, '-' ; hyphen ascii
 	push #2
 begin:
 	pop %r5 ; avoiding overflow

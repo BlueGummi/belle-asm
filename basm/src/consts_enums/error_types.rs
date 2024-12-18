@@ -17,7 +17,7 @@ pub enum Error<'a> {
 
 pub type AssemblerError<'a> = Result<(), Error<'a>>;
 
-impl<'a> std::error::Error for Error<'a> {}
+impl std::error::Error for Error<'_> {}
 impl fmt::Display for Error<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let line_number = match self {

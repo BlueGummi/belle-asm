@@ -45,3 +45,4 @@
 #define ANSI_BG_CYAN "\033[46m"
 #define ANSI_BG_WHITE "\033[47m"
 #endif
+#pragma once

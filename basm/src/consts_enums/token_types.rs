@@ -36,6 +36,16 @@ impl Token {
             Token::MemPointer(n) => n.to_string(),
         }
     }
+    pub fn get_num(&self) -> i16 {
+        match *self {
+            Token::Register(n) => n,
+            Token::Literal(n) => n,
+            Token::MemAddr(n) => n,
+            Token::RegPointer(n) => n,
+            Token::MemPointer(n) => n,
+            _ => -1,
+        }
+    }
 }
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

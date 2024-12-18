@@ -183,12 +183,7 @@ impl CPU {
         arg1: &Argument,
         arg2: &Argument,
     ) -> Result<(), UnrecoverableError> {
-        let mut source = 0.0;
-        if let Err(e) = self.get_value(arg2) {
-            return Err(e);
-        } else if let Ok(v) = self.get_value(arg2) {
-            source = v;
-        }
+        let source = self.get_value(arg2)?;
         if let Register(n) = arg1 {
             match *n {
                 4 => self.uint_reg[0] = source as u16,
@@ -213,11 +208,7 @@ impl CPU {
         arg1: &Argument,
         arg2: &Argument,
     ) -> Result<(), UnrecoverableError> {
-        let source = match self.get_value(arg2) {
-            Ok(v) => v as i16,
-            Err(e) => return Err(e),
-        };
-
+        let source = self.get_value(arg2)? as i16;
         if let MemAddr(n) = arg1 {
             let index = *n as usize;
             if index >= self.memory.len() {
@@ -265,11 +256,7 @@ impl CPU {
             }
             self.pc = (*n as u16) - 1;
         } else if let RegPtr(n) = arg {
-            if let Err(e) = self.get_value(&Argument::Register(*n)) {
-                return Err(e);
-            } else if let Ok(v) = self.get_value(&Argument::Register(*n)) {
-                self.pc = v as u16;
-            }
+            self.pc = self.get_value(&Argument::Register(*n))? as u16;
         }
         Ok(())
     }
@@ -279,19 +266,9 @@ impl CPU {
         arg1: &Argument,
         arg2: &Argument,
     ) -> Result<(), UnrecoverableError> {
-        let mut src = 0.0;
-        if let Err(e) = self.get_value(arg2) {
-            return Err(e);
-        } else if let Ok(v) = self.get_value(arg2) {
-            src = v;
-        }
+        let src = self.get_value(arg2)?;
         if let Register(_) = arg1 {
-            let mut value = 0.0;
-            if let Err(e) = self.get_value(arg1) {
-                return Err(e);
-            } else if let Ok(v) = self.get_value(arg1) {
-                value = v;
-            }
+            let value = self.get_value(arg1)?;
             let result = value - src;
             self.zflag = (result).abs() < f32::EPSILON;
             self.sflag = result < 0.0;
@@ -349,11 +326,7 @@ impl CPU {
         }
 
         if let Register(_) = arg {
-            if let Err(e) = self.get_value(arg) {
-                return Err(e);
-            } else if let Ok(v) = self.get_value(arg) {
-                val = v;
-            }
+            val = self.get_value(arg)?;
         }
         if self.sp > self.bp || self.backward_stack {
             if self.sp != self.bp {
@@ -396,12 +369,7 @@ impl CPU {
         arg1: &Argument,
         arg2: &Argument,
     ) -> Result<(), UnrecoverableError> {
-        let mut value = 0.0;
-        if let Err(e) = self.get_value(arg2) {
-            return Err(e);
-        } else if let Ok(v) = self.get_value(arg2) {
-            value = v;
-        }
+        let value = self.get_value(arg2)?;
         if let Register(n) = arg1 {
             match *n {
                 4 => self.uint_reg[0] = value as u16,
@@ -421,12 +389,7 @@ impl CPU {
         if CONFIG.fuzz {
             return Ok(());
         }
-        let mut code = 0;
-        if let Err(e) = self.get_value(arg) {
-            return Err(e);
-        } else if let Ok(v) = self.get_value(arg) {
-            code = v as u16;
-        }
+        let code = self.get_value(arg)? as u16;
         match code {
             0_u16..=3_u16 => {
                 println!("{}", self.int_reg[code as usize]);

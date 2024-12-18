@@ -39,7 +39,7 @@ void print_help(char *bin);
 void print(const char *format, ...);
 char *match_opcode(Instruction *s);
 int main(int argc, char *argv[]);
-
+#pragma once
 #endif
 #include "consts.h"
 #include "print_helpers.c"
