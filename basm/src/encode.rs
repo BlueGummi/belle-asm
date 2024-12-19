@@ -63,11 +63,11 @@ pub fn encode_instruction(
     let instruction_bin = match ins {
         Token::Ident(ref instruction) => match instruction.to_uppercase().as_str() {
             "SSP" => {
-                ins_type = "one_arg";
+                ins_type = "sp";
                 Ok(RET_OP << 1 | 1)
             }
             "SBP" => {
-                ins_type = "one_arg";
+                ins_type = "sp";
                 Ok(NOP_OP << 1 | 1)
             }
             "HLT" => Ok(HLT_OP), // 0
@@ -193,6 +193,10 @@ pub fn encode_instruction(
                     | argument_to_binary(Some(&Token::Register(parsed_int)), line_num)?,
             ))
         }
+        "sp" => {
+            Ok(Some((instruction_bin << 11) | arg1.unwrap().get_num())) // this was verified in verify.rs
+                                                                        // unwrapping is safe
+        }
         _ => Err(format!(
             "Instruction type not recognized at line {}",
             line_num
@@ -217,11 +221,14 @@ pub fn process_start(lines: &[String]) -> Result<(), String> {
         };
 
         if line_before_comment.starts_with(".start") {
-            start_number = line_before_comment
-                .split_whitespace()
-                .nth(1)
-                .and_then(|s| s.strip_prefix('$'))
-                .and_then(|s| s.parse::<i32>().ok());
+            start_number = line_before_comment.split_whitespace().nth(1).and_then(|s| {
+                let stripped = s.strip_prefix('$').unwrap_or(s);
+                if stripped.starts_with('[') && stripped.ends_with(']') {
+                    stripped[1..stripped.len() - 1].parse::<i32>().ok()
+                } else {
+                    stripped.parse::<i32>().ok()
+                }
+            });
         }
     }
 

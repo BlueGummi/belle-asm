@@ -1,5 +1,8 @@
 use crate::Token;
 
+static MMAFAIL: &str = "memory address too large";
+static LITFAIL: &str = "literal value too large";
+
 impl Token {
     pub fn is_register(&self) -> bool {
         matches!(self, Token::Register(_))
@@ -63,97 +66,24 @@ fn check_instruction(
 ) -> Result<(), String> {
     match raw_token {
         "HLT" | "RET" => only_none(arg1, arg2, raw_token, line_num),
-        "ADD" => {
-            only_two(arg1, arg2, raw_token, line_num).and_then(|_| add_args(arg1, arg2, line_num))
-        }
         "LD" => {
             only_two(arg1, arg2, raw_token, line_num).and_then(|_| ld_args(arg1, arg2, line_num))
         }
         "ST" => {
             only_two(arg1, arg2, raw_token, line_num).and_then(|_| st_args(arg1, arg2, line_num))
         }
-        "MOV" => {
+        "MOV" | "MUL" | "DIV" | "ADD" | "CMP" => {
             only_two(arg1, arg2, raw_token, line_num).and_then(|_| mov_args(arg1, arg2, line_num))
-        }
-        "MUL" => {
-            only_two(arg1, arg2, raw_token, line_num).and_then(|_| mul_args(arg1, arg2, line_num))
-        }
-        "CMP" => {
-            only_two(arg1, arg2, raw_token, line_num).and_then(|_| cmp_args(arg1, arg2, line_num))
-        }
-        "DIV" => {
-            only_two(arg1, arg2, raw_token, line_num).and_then(|_| div_args(arg1, arg2, line_num))
         }
         "INT" => one_none(arg1, arg2, raw_token, line_num).and_then(|_| int_args(arg1, line_num)),
         "JZ" | "JO" | "JMP" => {
             only_one(arg1, arg2, raw_token, line_num).and_then(|_| jump_args(arg1, line_num))
         }
-        "PUSH" => only_one(arg1, arg2, raw_token, line_num).and_then(|_| push_args(arg1, line_num)),
-        "POP" => only_one(arg1, arg2, raw_token, line_num).and_then(|_| pop_args(arg1, line_num)),
+        "PUSH" | "POP" | "SSP" | "SBP " => {
+            only_one(arg1, arg2, raw_token, line_num).and_then(|_| push_args(arg1, line_num))
+        }
         _ => Ok(()),
     }
-}
-fn div_args(arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> Result<(), String> {
-    if !arg1.is_some_and(|tok| tok.is_register()) {
-        return Err(format!(
-            "DIV requires LHS to be a Register at line {}",
-            line_num
-        ));
-    }
-    if !arg2.is_some_and(|tok| {
-        tok.is_register()
-            || tok.is_literal()
-            || tok.is_register_pointer()
-            || tok.is_memory_address_pointer()
-    }) {
-        return Err(format!(
-            "DIV requires RHS to be a Register, literal, register pointer, or memory address pointer at line {}",
-            line_num
-        ));
-    }
-    Ok(())
-}
-
-fn cmp_args(arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> Result<(), String> {
-    if !arg1.is_some_and(|tok| tok.is_register()) {
-        return Err(format!(
-            "CMP requires LHS to be a Register at line {}",
-            line_num
-        ));
-    }
-    if !arg2.is_some_and(|tok| {
-        tok.is_register()
-            || tok.is_literal()
-            || tok.is_register_pointer()
-            || tok.is_memory_address_pointer()
-    }) {
-        return Err(format!(
-            "CMP requires RHS to be a Register, literal, register pointer, or memory address pointer at line {}",
-            line_num
-        ));
-    }
-    Ok(())
-}
-
-fn mul_args(arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> Result<(), String> {
-    if !arg1.is_some_and(|tok| tok.is_register()) {
-        return Err(format!(
-            "MUL requires LHS to be a Register at line {}",
-            line_num
-        ));
-    }
-    if !arg2.is_some_and(|tok| {
-        tok.is_register()
-            || tok.is_literal()
-            || tok.is_register_pointer()
-            || tok.is_memory_address_pointer()
-    }) {
-        return Err(format!(
-            "MUL requires RHS to be a Register, literal, register pointer, or memory address pointer at line {}",
-            line_num
-        ));
-    }
-    Ok(())
 }
 
 fn only_none(
@@ -216,27 +146,6 @@ fn only_one(
     Ok(())
 }
 
-fn add_args(arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> Result<(), String> {
-    if !arg1.is_some_and(|tok| tok.is_register()) {
-        return Err(format!(
-            "ADD requires LHS to be a Register at line {}",
-            line_num
-        ));
-    }
-    if !arg2.is_some_and(|tok| {
-        tok.is_register()
-            || tok.is_literal()
-            || tok.is_register_pointer()
-            || tok.is_memory_address_pointer()
-    }) {
-        return Err(format!(
-            "ADD requires RHS to be a Register, literal, register pointer, or memory address pointer at line {}",
-            line_num
-        ));
-    }
-    Ok(())
-}
-
 fn ld_args(arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> Result<(), String> {
     if !arg1.is_some_and(|tok| tok.is_register()) {
         return Err(format!(
@@ -249,6 +158,9 @@ fn ld_args(arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> Result<
             "LD requires RHS to be a Memory address at line {}",
             line_num
         ));
+    }
+    if arg2.unwrap().get_num() > 2047 {
+        return Err(MMAFAIL.to_string());
     }
     Ok(())
 }
@@ -265,6 +177,9 @@ fn st_args(arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> Result<
             "ST requires RHS to be a Register at line {}",
             line_num
         ));
+    }
+    if arg1.unwrap().get_num() > 2047 {
+        return Err(MMAFAIL.to_string());
     }
     Ok(())
 }
@@ -287,10 +202,23 @@ fn mov_args(arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> Result
             line_num
         ));
     }
+    match arg2 {
+        Some(tok) if tok.is_literal() => {
+            if tok.get_num() > 127 || tok.get_num() < -127 {
+                return Err(LITFAIL.to_string());
+            }
+        }
+        Some(tok) if tok.is_memory_address_pointer() => {
+            if tok.get_num() > 127 {
+                return Err(MMAFAIL.to_string());
+            }
+        }
+        _ => {
+            return Ok(());
+        }
+    }
     Ok(())
 }
-
-// Similarly, update `mul_args`, `cmp_args`, `div_args`, etc., using the `Token` methods.
 
 fn int_args(arg1: Option<&Token>, line_num: u32) -> Result<(), String> {
     if !arg1.is_some_and(|tok| tok.is_literal()) {
@@ -298,6 +226,9 @@ fn int_args(arg1: Option<&Token>, line_num: u32) -> Result<(), String> {
             "INT requires SRC to be a Literal at line {}",
             line_num
         ));
+    }
+    if arg1.unwrap().get_num() > 2047 || arg1.unwrap().get_num() < 0 {
+        return Err("invalid interrupt number".to_string());
     }
     Ok(())
 }
@@ -309,15 +240,13 @@ fn push_args(arg1: Option<&Token>, line_num: u32) -> Result<(), String> {
             line_num
         ));
     }
-    Ok(())
-}
-
-fn pop_args(arg1: Option<&Token>, line_num: u32) -> Result<(), String> {
-    if !arg1.is_some_and(|tok| tok.is_register()) {
-        return Err(format!(
-            "POP requires DEST to be a Register at line {}",
-            line_num
-        ));
+    match arg1 {
+        Some(tok) if tok.is_literal() => {
+            if tok.get_num() > 1023 || tok.get_num() < -1023 {
+                return Err(LITFAIL.to_string());
+            }
+        }
+        _ => (),
     }
     Ok(())
 }
@@ -330,6 +259,12 @@ fn jump_args(arg1: Option<&Token>, line_num: u32) -> Result<(), String> {
             "JMP/JZ/JO requires DEST to be a Register pointer, Memory address, or SRCall at line {}",
             line_num
         ));
+    }
+    match arg1 {
+        Some(tok) if tok.is_memory_address() && tok.get_num() > 2047 => {
+            return Err(MMAFAIL.to_string());
+        }
+        _ => (),
     }
     Ok(())
 }

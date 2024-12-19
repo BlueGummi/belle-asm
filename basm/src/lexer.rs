@@ -43,6 +43,9 @@ impl<'a> Lexer<'a> {
                     self.lex_register(c)?;
                 }
                 '@' => self.lex_subroutine_call(),
+                'r' | 'R' => {
+                    self.lex_register(c)?;
+                }
                 'a'..='z' | 'A'..='Z' => {
                     self.lex_identifier(c)?;
                 }
@@ -58,6 +61,13 @@ impl<'a> Lexer<'a> {
                 '\'' => {
                     self.location += 1;
                     self.lex_ascii()?;
+                }
+                '0'..='9' => {
+                    self.lex_literal(c)?;
+                }
+                '[' => {
+                    self.location += 1;
+                    self.lex_memory_address(c)?;
                 }
                 _ => {
                     return Err(UnknownCharacter(
@@ -121,6 +131,11 @@ impl<'a> Lexer<'a> {
                 pointer.push(self.chars.next().unwrap());
                 true
             }
+            Some(&('0'..='9')) => {
+                self.location += 1;
+                pointer.push(self.chars.next().unwrap());
+                false
+            }
             Some(&'$') => {
                 self.location += 1;
                 pointer.push(self.chars.next().unwrap());
@@ -155,6 +170,13 @@ impl<'a> Lexer<'a> {
         if pointer.len() > 2 {
             self.location += 1;
             if let Ok(reg) = pointer.trim()[2..].parse::<i16>() {
+                if !(0..=7).contains(&reg) {
+                    return Err(Error::InvalidSyntax(
+                        "invalid register pointer number",
+                        self.line_number,
+                        Some(self.location),
+                    ));
+                }
                 self.tokens.push(Token::RegPointer(reg));
             } else {
                 return Err(InvalidSyntax(
@@ -174,6 +196,18 @@ impl<'a> Lexer<'a> {
     }
 
     fn handle_memory(&mut self, pointer: String) -> Result<(), Error<'a>> {
+        if !pointer.contains('$') {
+            if let Ok(mem) = pointer.trim()[1..].parse::<i16>() {
+                self.tokens.push(Token::MemPointer(mem));
+            } else {
+                return Err(InvalidSyntax(
+                    "invalid memory number",
+                    self.line_number,
+                    Some(self.location),
+                ));
+            }
+            return Ok(());
+        }
         if pointer.len() > 2 {
             if let Ok(mem) = pointer.trim()[2..].parse::<i16>() {
                 self.tokens.push(Token::MemPointer(mem));
@@ -196,24 +230,24 @@ impl<'a> Lexer<'a> {
 
     fn lex_register(&mut self, c: char) -> Result<(), Error<'a>> {
         let mut reg = String::new();
-        reg.push(c);
 
+        let remaining_chars: String = self.chars.clone().collect();
+        if remaining_chars.eq_ignore_ascii_case("ret") {
+            return Ok(());
+        }
+        reg.push(c);
         if let Some(&next) = self.chars.peek() {
             if next == 'r' || next == 'R' {
                 reg.push(self.chars.next().unwrap());
             } else {
-                return Err(ExpectedArgument(
-                    "expected 'r' or 'R' after '%'",
-                    self.line_number,
-                    Some(self.location),
-                ));
+                if !c.is_alphanumeric() {
+                    return Err(Error::ExpectedArgument(
+                        "expected alphanumeric argument after 'r'",
+                        self.line_number,
+                        Some(self.location),
+                    ));
+                }
             }
-        } else {
-            return Err(ExpectedArgument(
-                "expected register identifier after '%'",
-                self.line_number,
-                Some(self.location),
-            ));
         }
 
         while let Some(&next) = self.chars.peek() {
@@ -224,22 +258,23 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        if reg.len() > 2 {
-            if let Ok(reg_num) = reg.trim()[2..].parse::<i16>() {
+        if reg.len() > 1 {
+            if let Ok(reg_num) = reg[1..].parse::<i16>() {
+                if !(0..=7).contains(&reg_num) {
+                    return Err(Error::InvalidSyntax(
+                        "invalid register number",
+                        self.line_number,
+                        Some(self.location),
+                    ));
+                }
                 self.tokens.push(Token::Register(reg_num));
             } else {
-                return Err(InvalidSyntax(
+                return Err(Error::InvalidSyntax(
                     "invalid register number",
                     self.line_number,
                     Some(self.location),
                 ));
             }
-        } else {
-            return Err(InvalidSyntax(
-                "register must have a number",
-                self.line_number,
-                Some(self.location),
-            ));
         }
         Ok(())
     }
@@ -292,7 +327,17 @@ impl<'a> Lexer<'a> {
             }
         }
 
-        let num_value = if let Ok(value) = number[1..].parse::<i16>() {
+        let num_value = if !number.contains('#') {
+            if let Ok(value) = number[0..].parse::<i16>() {
+                value
+            } else {
+                return Err(InvalidSyntax(
+                    "value must be a numeric literal",
+                    self.line_number,
+                    Some(self.location),
+                ));
+            }
+        } else if let Ok(value) = number[1..].parse::<i16>() {
             value
         } else {
             return Err(InvalidSyntax(
@@ -301,7 +346,6 @@ impl<'a> Lexer<'a> {
                 Some(self.location),
             ));
         };
-
         let stored_value = if num_value < 0 {
             let positive_value = num_value.unsigned_abs() as u8;
             (positive_value & 0x7F) | 0x80
@@ -314,24 +358,54 @@ impl<'a> Lexer<'a> {
 
     fn lex_memory_address(&mut self, c: char) -> Result<(), Error<'a>> {
         let mut addr = c.to_string();
-        while let Some(&next) = self.chars.peek() {
-            if next.is_ascii_digit() {
-                addr.push(self.chars.next().unwrap());
-            } else {
-                break;
+
+        if addr == "[" {
+            while let Some(&next) = self.chars.peek() {
+                if next.is_ascii_digit() {
+                    addr.push(self.chars.next().unwrap());
+                } else if next == ']' {
+                    addr.push(self.chars.next().unwrap());
+                    break;
+                } else {
+                    return Err(InvalidSyntax(
+                        "expected closing bracket or digit",
+                        self.line_number,
+                        Some(self.location),
+                    ));
+                }
             }
+
+            if addr.len() < 3 || addr[1..addr.len() - 1].parse::<i16>().is_err() {
+                return Err(InvalidSyntax(
+                    "value inside brackets must be numeric",
+                    self.line_number,
+                    Some(self.location),
+                ));
+            }
+
+            let addr_val = addr[1..addr.len() - 1].parse::<i16>().unwrap();
+            self.tokens.push(Token::MemAddr(addr_val));
+        } else {
+            while let Some(&next) = self.chars.peek() {
+                if next.is_ascii_digit() {
+                    addr.push(self.chars.next().unwrap());
+                } else {
+                    break;
+                }
+            }
+
+            if addr[1..].parse::<i16>().is_err() {
+                return Err(InvalidSyntax(
+                    "value after $ must be numeric",
+                    self.line_number,
+                    Some(self.location),
+                ));
+            }
+
+            let addr_val = addr[1..].parse::<i16>().unwrap();
+            self.tokens.push(Token::MemAddr(addr_val));
         }
 
-        if addr[1..].parse::<i16>().is_err() {
-            return Err(InvalidSyntax(
-                "value after $ must be numeric",
-                self.line_number,
-                Some(self.location),
-            ));
-        }
-
-        let addr_val = addr[1..].parse::<i16>().unwrap();
-        self.tokens.push(Token::MemAddr(addr_val));
         Ok(())
     }
 
