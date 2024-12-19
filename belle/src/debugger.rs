@@ -4,7 +4,7 @@ use colored::Colorize;
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::vec::Vec;
-fn cls() {
+pub fn cls() {
     print!("\x1B[2J\x1B[1;1H");
 }
 pub fn run_bdb(executable_path: &str) -> io::Result<()> {
@@ -317,10 +317,10 @@ pub fn run_bdb(executable_path: &str) -> io::Result<()> {
                             break 'pk;
                         }
                         if buffer.trim().starts_with("0b") {
-                            match i16::from_str_radix(&buffer.trim()[2..], 2) {
+                            match i32::from_str_radix(&buffer.trim()[2..], 2) {
                                 Ok(val) => {
                                     println!("Value in memory address {n} set to {val:016b}");
-                                    dbgcpu.memory[n] = Some(val);
+                                    dbgcpu.memory[n] = Some(val as i16);
                                     break 'pk;
                                 }
                                 Err(e) => println!("Input could not be parsed to binary\n{e}"),

@@ -1,6 +1,6 @@
 [package]
 name = "basm"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [dependencies]
@@ -11,7 +11,6 @@ colored = "2.1.0"
 
 [profile.release]
 debug = 0
-lto = true
 opt-level = 3
 codegen-units = 1
 strip = true

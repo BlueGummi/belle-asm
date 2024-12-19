@@ -1,6 +1,6 @@
 use crate::Argument::*;
 use crate::*;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 
 impl CPU {
     pub fn handle_add(
@@ -246,7 +246,7 @@ impl CPU {
     }
 
     fn jmp(&mut self, arg: &Argument) -> Result<(), UnrecoverableError> {
-        self.handle_push(&Argument::Literal(self.ip.try_into().unwrap()))?;
+        self.handle_push(&Argument::Literal(self.pc.try_into().unwrap()))?;
         if let MemAddr(n) = arg {
             if { *n } - 1 < 0 {
                 return Err(UnrecoverableError::IllegalInstruction(
@@ -256,7 +256,7 @@ impl CPU {
             }
             self.pc = (*n as u16) - 1;
         } else if let RegPtr(n) = arg {
-            self.pc = self.get_value(&Argument::Register(*n))? as u16;
+            self.pc = (self.get_value(&Argument::Register(*n))? as u16) - 1;
         }
         Ok(())
     }
@@ -399,6 +399,7 @@ impl CPU {
             6 => println!("{}", self.float_reg[0]),
             7 => println!("{}", self.float_reg[1]),
             8 => {
+                cls();
                 let starting_point = self.int_reg[0];
                 let end_point = self.int_reg[1];
                 let memory = &self.memory;
@@ -441,14 +442,24 @@ impl CPU {
                 }
             }
             9 => {
-                use crossterm::terminal;
+                use crossterm::{terminal};
+
                 terminal::enable_raw_mode().unwrap();
                 let mut buffer = [0; 1];
                 if let Err(_) = io::stdin().read_exact(&mut buffer) {
-                    return Err(UnrecoverableError::IllegalInstruction(self.pc, Some("failed to read from stdin".to_string())));
+                    println!("Failed to read");
+                    terminal::disable_raw_mode().unwrap();
+                    return Err(UnrecoverableError::IllegalInstruction(
+                        self.pc,
+                        Some("failed to read from stdin".to_string()),
+                    ));
                 }
+
                 self.int_reg[0] = buffer[0] as i16;
+
                 terminal::disable_raw_mode().unwrap();
+                io::stdout().flush().expect("Failed to flush stdout");
+
             }
             10 => {
                 std::thread::sleep(std::time::Duration::from_secs(1));

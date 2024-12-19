@@ -18,9 +18,14 @@ next:
 	int 8
 	int 9
 	int 12
+    int 0
+    cmp r0, 'D'
+	jz @one_more
 	cmp r0, 'd'
 	jz @one_more
 	int 12
+    cmp r0, 'A'
+	jz @one_less
 	cmp r0, 'a'
 	jz @one_less
 	jmp @done

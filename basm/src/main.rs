@@ -129,8 +129,9 @@ fn main() -> io::Result<()> {
 
     if !hlt_seen {
         println!(
-            "{}: No HLT instruction found in program.",
-            "Warning".yellow()
+            "{}: No HLT instruction found in program {}",
+            "Warning".yellow(),
+            CONFIG.file.bright_white()
         );
     }
 
