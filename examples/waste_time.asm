@@ -36,7 +36,5 @@ time_waster:
     jmp @print
     jmp @time_waster
 print:
-    pop r4
-    pop r4
     int 8
     ret

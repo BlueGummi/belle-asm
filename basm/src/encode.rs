@@ -262,7 +262,7 @@ pub fn load_subroutines(lines: &[String]) -> Result<(), String> {
         } else {
             trimmed_line
         };
-        if line_before_comment.trim().ends_with(':') || !line_before_comment.trim().contains(' ') {
+        if line_before_comment.trim().ends_with(':') && !line_before_comment.trim().contains(' ') {
             let subroutine_name = line_before_comment
                 .trim()
                 .trim_end_matches(':')
