@@ -444,7 +444,9 @@ impl CPU {
                 use crossterm::terminal;
                 terminal::enable_raw_mode().unwrap();
                 let mut buffer = [0; 1];
-                io::stdin().read_exact(&mut buffer).unwrap();
+                if let Err(_) = io::stdin().read_exact(&mut buffer) {
+                    return Err(UnrecoverableError::IllegalInstruction(self.pc, Some("failed to read from stdin".to_string())));
+                }
                 self.int_reg[0] = buffer[0] as i16;
                 terminal::disable_raw_mode().unwrap();
             }

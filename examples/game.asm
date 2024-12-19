@@ -14,26 +14,25 @@ next:
 	mov r3, 10
 	st [30], r3
 	mov r0, 0
-	mov r1, 30
+	mov r1, 50
 	int 8
-	int 12
 	int 9
-	cmp r0, 68
-	cmp r0, 100
-	jz @move_right
-	cmp r0, 65
-	cmp r0, 97
-	jz @move_left
+	int 12
+	cmp r0, 'd'
+	jz @one_more
+	int 12
+	cmp r0, 'a'
+	jz @one_less
 	jmp @done
-move_right:
-	pop r5
-	mov r1, 45
-	add r4, 1
-	ret
-move_left:
-	pop r5
-	mov r1, 45
-	add r4, 1
-	ret
+one_more:
+	pop r4
+	mov r1, '-'
+	st [31], r1
+	jmp @next
+one_less:
+	pop r4
+	mov r1, 8
+	st [30], r1
+	jmp @next
 done:
 	hlt
