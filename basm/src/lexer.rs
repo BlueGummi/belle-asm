@@ -239,14 +239,12 @@ impl<'a> Lexer<'a> {
         if let Some(&next) = self.chars.peek() {
             if next == 'r' || next == 'R' {
                 reg.push(self.chars.next().unwrap());
-            } else {
-                if !c.is_alphanumeric() {
-                    return Err(Error::ExpectedArgument(
-                        "expected alphanumeric argument after 'r'",
-                        self.line_number,
-                        Some(self.location),
-                    ));
-                }
+            } else if !c.is_alphanumeric() {
+                return Err(Error::ExpectedArgument(
+                    "expected alphanumeric argument after 'r'",
+                    self.line_number,
+                    Some(self.location),
+                ));
             }
         }
 

@@ -86,7 +86,7 @@ pub fn encode_instruction(
                 Ok(POP_OP) // 3
             }
             "DIV" => Ok(DIV_OP), // 4
-            "RET" => Ok(RET_OP), // 5
+            "RET" | "ET" => Ok(RET_OP), // 5
             "LD" => Ok(LD_OP),   // 6
             "ST" => {
                 if let Some(&Token::RegPointer(_)) = arg1.or(arg2) {
