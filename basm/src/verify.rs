@@ -203,11 +203,11 @@ fn mov_args(arg1: Option<&Token>, arg2: Option<&Token>, line_num: u32) -> Result
         ));
     }
     match arg2 {
-        Some(tok) if tok.is_literal() => {
+        /*Some(tok) if tok.is_literal() => {
             if tok.get_num() > 127 || tok.get_num() < -127 {
                 return Err(LITFAIL.to_string());
             }
-        }
+        }*/
         Some(tok) if tok.is_memory_address_pointer() => {
             if tok.get_num() > 127 {
                 return Err(MMAFAIL.to_string());
@@ -227,7 +227,7 @@ fn int_args(arg1: Option<&Token>, line_num: u32) -> Result<(), String> {
             line_num
         ));
     }
-    if arg1.unwrap().get_num() > 2047 || arg1.unwrap().get_num() < 0 {
+    if arg1.unwrap().get_num() > 2047 || arg1.unwrap().get_num() < -1 {
         return Err("invalid interrupt number".to_string());
     }
     Ok(())
