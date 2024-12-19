@@ -1,40 +1,42 @@
-.ssp $1
-.sbp $50
-.start $100
-    mov %r2, #87 ; w
-    st $51, %r2
-    mov %r2, #97 ; a
-    st $52, %r2
-    mov %r2, #115 ; s
-    st $53, %r2
-    mov %r2, #116 ; t
-    st $54, %r2
-    mov %r2, #101 ; e
-    st $55, %r2
-    mov %r2, #100 ; d
-    st $56, %r2
-    mov %r2, #32 ; 
-    st $57, %r2
-    mov %r2, #116 ; t
-    st $58, %r2
-    mov %r2, #105 ; i
-    st $59, %r2
-    mov %r2, #109 ; m
-    st $60, %r2
-    mov %r2, #101 ; e
-    st $61, %r2
-    mov %r2, #46 ; .
-    st $62, %r2
-    mov %r2, #10
-    st $63, %r2
-    mov %r0, #51
-    mov %r1, #63    
+.ssp [50]
+.sbp [50]
+.start [100]
+    mov r2, 'w'
+    st [51], r2
+    mov r2, 'a'
+    st [52], r2
+    mov r2, 's' ; s
+    st [53], r2
+    mov r2, 't' ; t
+    st [54], r2
+    mov r2, 'e' ; e
+    st [55], r2
+    mov r2, 'd' ; d
+    st [56], r2
+    mov r2, ' '; 
+    st [57], r2
+    mov r2, 't' ; t
+    st [58], r2
+    mov r2, 'i' ; i
+    st [59], r2
+    mov r2, 'm' ; m
+    st [60], r2
+    mov r2, 'e' ; e
+    st [61], r2
+    mov r2, '.' ; .
+    st [62], r2
+    mov r2, 10
+    st [63], r2
+    mov r0, 51
+    mov r1, 63    
     jmp @time_waster
 time_waster:
-    pop %r4 ; so the stack doesn't overflow
+    pop r4
     nop
     jmp @print
     jmp @time_waster
 print:
-    int #8
+    pop r4
+    pop r4
+    int 8
     ret
