@@ -403,7 +403,7 @@ impl CPU {
                 let starting_point = self.int_reg[0];
                 let end_point = self.int_reg[1];
                 let memory = &self.memory;
-
+                let mut toprint = String::from("");
                 if end_point < 0
                     || end_point as usize >= memory.len()
                     || starting_point < 0
@@ -425,7 +425,7 @@ impl CPU {
                         match u32::try_from(value) {
                             Ok(v) => {
                                 if let Some(character) = char::from_u32(v) {
-                                    print!("{}", character);
+                                    toprint = format!("{}{}", toprint, character);
                                 } else {
                                     return Err(self.handle_segmentation_fault(
                                         "Segmentation fault. Invalid Unicode value.",
@@ -440,26 +440,17 @@ impl CPU {
                         }
                     }
                 }
+                println!("{toprint}");
             }
             9 => {
-                use crossterm::{terminal};
-
+                use crossterm::terminal;
                 terminal::enable_raw_mode().unwrap();
                 let mut buffer = [0; 1];
-                if let Err(_) = io::stdin().read_exact(&mut buffer) {
-                    println!("Failed to read");
-                    terminal::disable_raw_mode().unwrap();
-                    return Err(UnrecoverableError::IllegalInstruction(
-                        self.pc,
-                        Some("failed to read from stdin".to_string()),
-                    ));
-                }
-
+                let _ = io::stdin().read_exact(&mut buffer);
                 self.int_reg[0] = buffer[0] as i16;
 
                 terminal::disable_raw_mode().unwrap();
                 io::stdout().flush().expect("Failed to flush stdout");
-
             }
             10 => {
                 std::thread::sleep(std::time::Duration::from_secs(1));
